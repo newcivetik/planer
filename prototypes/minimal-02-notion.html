@@ -1,0 +1,570 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0,maximum-scale=1.0,user-scalable=no">
+<title>Planer — Notion Style</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+*{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+:root{
+--bg:#FFFFFF;--bg2:#FBFBFA;--text:#37352F;--text2:#787774;--text3:#B4B4B0;
+--border:#E9E9E7;--hover:#F1F1EF;--accent:#2EAADC;--sidebar-bg:#FBFBFA;
+--sidebar-w:240px;--tag-red:#FFE2DD;--tag-red-t:#93370E;--tag-blue:#D3E5EF;--tag-blue-t:#183B56;
+--tag-green:#DBEDDB;--tag-green-t:#1E4620;--tag-purple:#E8DEEE;--tag-purple-t:#412B54;
+--tag-yellow:#FDECC8;--tag-yellow-t:#6B3B0A;--tag-gray:#E3E2E0;--tag-gray-t:#555550;
+--check-done:#2EAADC;--progress:#2EAADC;
+}
+.dark{
+--bg:#191919;--bg2:#202020;--text:#EBEBEB;--text2:#999999;--text3:#555555;
+--border:#2F2F2F;--hover:#2A2A2A;--accent:#529CCA;--sidebar-bg:#202020;
+--tag-red:#5C2B20;--tag-red-t:#FFB4A8;--tag-blue:#1E3A4F;--tag-blue-t:#A8D4F0;
+--tag-green:#1E3A20;--tag-green-t:#A8E0AA;--tag-purple:#352840;--tag-purple-t:#D0B8E8;
+--tag-yellow:#3D2E10;--tag-yellow-t:#F0D090;--tag-gray:#333;--tag-gray-t:#BBB;
+--check-done:#529CCA;--progress:#529CCA;
+}
+body{font-family:'Inter',system-ui,-apple-system,sans-serif;background:var(--bg);color:var(--text);
+width:375px;height:812px;overflow:hidden;position:relative;margin:0 auto;border:1px solid var(--border)}
+.app{display:flex;height:100%;position:relative;overflow:hidden}
+
+/* Sidebar overlay */
+.sidebar-overlay{position:absolute;inset:0;background:rgba(0,0,0,.2);z-index:90;opacity:0;
+pointer-events:none;transition:opacity .2s}
+.sidebar-overlay.show{opacity:1;pointer-events:auto}
+
+/* Sidebar */
+.sidebar{position:absolute;left:0;top:0;bottom:0;width:var(--sidebar-w);background:var(--sidebar-bg);
+z-index:100;transform:translateX(-100%);transition:transform .25s ease;display:flex;flex-direction:column;
+border-right:1px solid var(--border)}
+.sidebar.open{transform:translateX(0)}
+.sidebar-header{padding:12px 14px 8px;display:flex;align-items:center;justify-content:space-between}
+.sidebar-title{font-size:13px;font-weight:600;color:var(--text2)}
+.sidebar-close{background:none;border:none;color:var(--text2);cursor:pointer;padding:4px;
+border-radius:4px;font-size:18px;line-height:1;display:flex;align-items:center;justify-content:center}
+.sidebar-close:hover{background:var(--hover)}
+.sidebar-nav{flex:1;overflow-y:auto;padding:4px 8px}
+.nav-item{display:flex;align-items:center;gap:8px;padding:6px 8px;border-radius:4px;cursor:pointer;
+font-size:14px;color:var(--text);transition:background .1s;position:relative;user-select:none}
+.nav-item:hover,.nav-item.active{background:var(--hover)}
+.nav-item.active{font-weight:500}
+.nav-icon{font-size:16px;width:22px;text-align:center;flex-shrink:0}
+.nav-label{flex:1;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.nav-badge{font-size:12px;color:var(--text2);min-width:16px;text-align:right}
+.nav-divider{height:1px;background:var(--border);margin:6px 8px}
+.nav-section{font-size:11px;font-weight:600;color:var(--text3);padding:10px 8px 4px;
+text-transform:uppercase;letter-spacing:.5px}
+.sidebar-bottom{padding:8px;border-top:1px solid var(--border)}
+.nav-item.settings-btn .nav-icon{font-size:15px}
+
+/* Main content */
+.main{flex:1;display:flex;flex-direction:column;height:100%;overflow:hidden;min-width:0}
+.topbar{display:flex;align-items:center;padding:10px 16px;gap:8px;flex-shrink:0}
+.menu-btn{background:none;border:none;color:var(--text2);cursor:pointer;padding:4px;
+border-radius:4px;font-size:20px;display:flex;align-items:center}
+.menu-btn:hover{background:var(--hover)}
+.topbar-title{font-size:13px;color:var(--text2);flex:1}
+.content{flex:1;overflow-y:auto;padding:0 24px 100px;-webkit-overflow-scrolling:touch}
+.page-title{font-size:28px;font-weight:700;color:var(--text);padding:8px 0 2px;outline:none;
+border:none;background:none;width:100%;cursor:text}
+.page-title:empty::before{content:attr(data-placeholder);color:var(--text3)}
+.page-subtitle{font-size:13px;color:var(--text2);padding:2px 0 16px}
+
+/* Task rows */
+.task-group-header{font-size:13px;font-weight:600;color:var(--text);padding:18px 0 6px;
+border-bottom:1px solid var(--border);margin-bottom:2px}
+.task-row{display:flex;align-items:flex-start;padding:6px 0;border-bottom:1px solid transparent;
+position:relative;gap:8px;min-height:36px;transition:background .1s;border-radius:3px;
+margin:0 -4px;padding-left:4px;padding-right:4px}
+.task-row:hover{background:var(--hover)}
+.drag-handle{opacity:0;color:var(--text3);cursor:grab;font-size:14px;padding:2px 0;
+transition:opacity .15s;flex-shrink:0;width:14px;display:flex;align-items:center;margin-top:1px}
+.task-row:hover .drag-handle{opacity:1}
+.task-check{width:18px;height:18px;border:1.5px solid var(--border);border-radius:4px;
+cursor:pointer;flex-shrink:0;display:flex;align-items:center;justify-content:center;
+margin-top:1px;transition:all .15s;background:var(--bg)}
+.task-check:hover{border-color:var(--accent)}
+.task-check.done{background:var(--check-done);border-color:var(--check-done)}
+.task-check.done::after{content:'';display:block;width:5px;height:9px;
+border:solid #FFF;border-width:0 1.5px 1.5px 0;transform:rotate(45deg) translate(-0.5px,-0.5px)}
+.task-body{flex:1;min-width:0;display:flex;flex-direction:column;gap:3px}
+.task-title{font-size:14px;color:var(--text);line-height:1.4;word-break:break-word}
+.task-row.completed .task-title{text-decoration:line-through;color:var(--text3)}
+.task-meta{display:flex;align-items:center;gap:6px;flex-wrap:wrap}
+.tag{font-size:11px;padding:1px 6px;border-radius:3px;font-weight:500;white-space:nowrap}
+.tag.red{background:var(--tag-red);color:var(--tag-red-t)}
+.tag.blue{background:var(--tag-blue);color:var(--tag-blue-t)}
+.tag.green{background:var(--tag-green);color:var(--tag-green-t)}
+.tag.purple{background:var(--tag-purple);color:var(--tag-purple-t)}
+.tag.yellow{background:var(--tag-yellow);color:var(--tag-yellow-t)}
+.tag.gray{background:var(--tag-gray);color:var(--tag-gray-t)}
+.task-date{font-size:11px;color:var(--text3)}
+.task-more{opacity:0;color:var(--text3);cursor:pointer;font-size:16px;padding:2px 4px;
+border-radius:3px;transition:opacity .15s;flex-shrink:0;margin-top:1px;background:none;border:none}
+.task-row:hover .task-more{opacity:1}
+.task-more:hover{background:var(--border)}
+
+/* Context menu */
+.ctx-menu{position:fixed;background:var(--bg);border:1px solid var(--border);border-radius:6px;
+padding:4px;min-width:160px;z-index:200;font-size:13px;box-shadow:0 4px 12px rgba(0,0,0,.08)}
+.dark .ctx-menu{box-shadow:0 4px 12px rgba(0,0,0,.3)}
+.ctx-item{padding:6px 10px;border-radius:4px;cursor:pointer;display:flex;align-items:center;gap:8px;color:var(--text)}
+.ctx-item:hover{background:var(--hover)}
+.ctx-item.danger{color:#E03E3E}
+.ctx-item.danger:hover{background:#FFECEC}
+.dark .ctx-item.danger:hover{background:#3D2020}
+
+/* New task inline */
+.new-task-row{display:flex;align-items:center;gap:8px;padding:6px 4px;cursor:pointer;
+border-radius:3px;margin:0 -4px;color:var(--text3);font-size:14px;transition:background .1s}
+.new-task-row:hover{background:var(--hover);color:var(--text2)}
+.new-task-row .plus{font-size:18px;width:18px;text-align:center}
+.new-task-input{border:none;background:none;font-size:14px;color:var(--text);outline:none;
+font-family:inherit;width:100%;padding:0;line-height:1.4}
+.new-task-input::placeholder{color:var(--text3)}
+
+/* Progress bar */
+.progress-wrap{padding:8px 0 12px}
+.progress-info{display:flex;justify-content:space-between;font-size:11px;color:var(--text2);margin-bottom:4px}
+.progress-bar{height:3px;background:var(--border);border-radius:2px;overflow:hidden}
+.progress-fill{height:100%;background:var(--progress);border-radius:2px;transition:width .3s}
+
+/* Completed section */
+.completed-header{display:flex;align-items:center;gap:6px;padding:12px 0 4px;cursor:pointer;
+font-size:13px;color:var(--text2);user-select:none}
+.completed-header .arrow{font-size:10px;transition:transform .2s}
+.completed-header .arrow.open{transform:rotate(90deg)}
+.completed-section{overflow:hidden}
+.completed-section.collapsed{display:none}
+
+/* Settings panel */
+.settings-panel{padding:8px 0}
+.setting-row{display:flex;align-items:center;justify-content:space-between;padding:8px 0}
+.setting-label{font-size:14px;color:var(--text)}
+.toggle{width:36px;height:20px;background:var(--border);border-radius:10px;cursor:pointer;
+position:relative;transition:background .2s;flex-shrink:0}
+.toggle.on{background:var(--accent)}
+.toggle-knob{width:16px;height:16px;background:#FFF;border-radius:50%;position:absolute;
+top:2px;left:2px;transition:left .2s}
+.toggle.on .toggle-knob{left:18px}
+
+/* Density */
+.compact .task-row{min-height:30px;padding-top:3px;padding-bottom:3px}
+.compact .task-title{font-size:13px}
+.compact .page-title{font-size:24px}
+
+/* Screen transitions */
+.screen{display:none}
+.screen.active{display:block}
+
+/* Scrollbar */
+.content::-webkit-scrollbar{width:4px}
+.content::-webkit-scrollbar-track{background:transparent}
+.content::-webkit-scrollbar-thumb{background:var(--border);border-radius:2px}
+.content::-webkit-scrollbar-thumb:hover{background:var(--text3)}
+</style>
+</head>
+<body>
+<div class="app" id="app">
+<!-- Sidebar overlay -->
+<div class="sidebar-overlay" id="sidebarOverlay" onclick="toggleSidebar()"></div>
+
+<!-- Sidebar -->
+<div class="sidebar" id="sidebar">
+<div class="sidebar-header">
+<span class="sidebar-title">Планер</span>
+<button class="sidebar-close" onclick="toggleSidebar()">&#x2715;</button>
+</div>
+<div class="sidebar-nav">
+<div class="nav-item active" data-screen="inbox" onclick="switchScreen('inbox')">
+<span class="nav-icon">📥</span><span class="nav-label">Входящие</span><span class="nav-badge">3</span>
+</div>
+<div class="nav-item" data-screen="today" onclick="switchScreen('today')">
+<span class="nav-icon">☀️</span><span class="nav-label">Сегодня</span><span class="nav-badge">7</span>
+</div>
+<div class="nav-item" data-screen="upcoming" onclick="switchScreen('upcoming')">
+<span class="nav-icon">📅</span><span class="nav-label">Предстоящие</span>
+</div>
+<div class="nav-divider"></div>
+<div class="nav-section">Проекты</div>
+<div class="nav-item" data-screen="project-personal" onclick="switchScreen('project-personal')">
+<span class="nav-icon">🏠</span><span class="nav-label">Личное</span><span class="nav-badge">4</span>
+</div>
+<div class="nav-item" data-screen="project-work" onclick="switchScreen('project-work')">
+<span class="nav-icon">💼</span><span class="nav-label">Работа</span><span class="nav-badge">5</span>
+</div>
+<div class="nav-item" data-screen="project-study" onclick="switchScreen('project-study')">
+<span class="nav-icon">📚</span><span class="nav-label">Учёба</span><span class="nav-badge">3</span>
+</div>
+</div>
+<div class="sidebar-bottom">
+<div class="nav-item settings-btn" data-screen="settings" onclick="switchScreen('settings')">
+<span class="nav-icon">⚙️</span><span class="nav-label">Настройки</span>
+</div>
+</div>
+</div>
+
+<!-- Main -->
+<div class="main">
+<div class="topbar">
+<button class="menu-btn" onclick="toggleSidebar()">☰</button>
+<span class="topbar-title" id="topbarTitle">Входящие</span>
+</div>
+<div class="content" id="content">
+
+<!-- INBOX -->
+<div class="screen active" id="screen-inbox">
+<div class="page-title" contenteditable="true" data-placeholder="Входящие">Входящие</div>
+<div class="page-subtitle">Задачи без проекта</div>
+<div id="inbox-tasks"></div>
+<div class="new-task-row" onclick="startNewTask('inbox-tasks','inbox')">
+<span class="plus">+</span><span>Новая задача</span>
+</div>
+</div>
+
+<!-- TODAY -->
+<div class="screen" id="screen-today">
+<div class="page-title" contenteditable="true" data-placeholder="Сегодня">Сегодня</div>
+<div class="page-subtitle" id="today-subtitle">Среда, 18 марта &bull; 3 из 7 выполнено</div>
+<div id="today-tasks"></div>
+<div class="new-task-row" onclick="startNewTask('today-tasks','today')">
+<span class="plus">+</span><span>Новая задача</span>
+</div>
+<div class="completed-header" onclick="toggleCompleted('today')">
+<span class="arrow open" id="today-arrow">&#9654;</span>
+<span>Выполнено (<span id="today-done-count">3</span>)</span>
+</div>
+<div class="completed-section" id="today-completed"></div>
+</div>
+
+<!-- UPCOMING -->
+<div class="screen" id="screen-upcoming">
+<div class="page-title" contenteditable="true" data-placeholder="Предстоящие">Предстоящие</div>
+<div class="page-subtitle">Задачи на ближайшее время</div>
+<div id="upcoming-tasks"></div>
+</div>
+
+<!-- PROJECT: PERSONAL -->
+<div class="screen" id="screen-project-personal">
+<div class="page-title" contenteditable="true" data-placeholder="Личное">Личное</div>
+<div class="page-subtitle" style="color:var(--text2)">Личные задачи и дела</div>
+<div class="progress-wrap">
+<div class="progress-info"><span>Прогресс</span><span id="personal-pct">25%</span></div>
+<div class="progress-bar"><div class="progress-fill" id="personal-fill" style="width:25%"></div></div>
+</div>
+<div id="personal-tasks"></div>
+<div class="new-task-row" onclick="startNewTask('personal-tasks','project-personal')">
+<span class="plus">+</span><span>Новая задача</span>
+</div>
+</div>
+
+<!-- PROJECT: WORK -->
+<div class="screen" id="screen-project-work">
+<div class="page-title" contenteditable="true" data-placeholder="Работа">Работа</div>
+<div class="page-subtitle" style="color:var(--text2)">Рабочие задачи и проекты</div>
+<div class="progress-wrap">
+<div class="progress-info"><span>Прогресс</span><span id="work-pct">20%</span></div>
+<div class="progress-bar"><div class="progress-fill" id="work-fill" style="width:20%"></div></div>
+</div>
+<div id="work-tasks"></div>
+<div class="new-task-row" onclick="startNewTask('work-tasks','project-work')">
+<span class="plus">+</span><span>Новая задача</span>
+</div>
+</div>
+
+<!-- PROJECT: STUDY -->
+<div class="screen" id="screen-project-study">
+<div class="page-title" contenteditable="true" data-placeholder="Учёба">Учёба</div>
+<div class="page-subtitle" style="color:var(--text2)">Курсы, книги, обучение</div>
+<div class="progress-wrap">
+<div class="progress-info"><span>Прогресс</span><span id="study-pct">33%</span></div>
+<div class="progress-bar"><div class="progress-fill" id="study-fill" style="width:33%"></div></div>
+</div>
+<div id="study-tasks"></div>
+<div class="new-task-row" onclick="startNewTask('study-tasks','project-study')">
+<span class="plus">+</span><span>Новая задача</span>
+</div>
+</div>
+
+<!-- SETTINGS -->
+<div class="screen" id="screen-settings">
+<div class="page-title">Настройки</div>
+<div class="page-subtitle">Внешний вид</div>
+<div class="settings-panel">
+<div class="setting-row">
+<span class="setting-label">Тёмная тема</span>
+<div class="toggle" id="toggleDark" onclick="toggleDarkMode()"><div class="toggle-knob"></div></div>
+</div>
+<div class="setting-row">
+<span class="setting-label">Компактный вид</span>
+<div class="toggle" id="toggleCompact" onclick="toggleCompactMode()"><div class="toggle-knob"></div></div>
+</div>
+</div>
+</div>
+
+</div>
+</div>
+</div>
+
+<!-- Context menu -->
+<div class="ctx-menu" id="ctxMenu" style="display:none"></div>
+
+<script>
+// ==================== DATA ====================
+const allTasks = [
+  // Inbox
+  {id:1,title:'Позвонить в банк по поводу карты',done:false,tags:[{label:'Важно',color:'red'}],date:'',list:'inbox',project:''},
+  {id:2,title:'Идея: приложение для отслеживания привычек',done:false,tags:[{label:'Идея',color:'purple'}],date:'',list:'inbox',project:''},
+  {id:3,title:'Записаться к стоматологу',done:false,tags:[],date:'',list:'inbox',project:''},
+  // Today
+  {id:4,title:'Подготовить презентацию для клиента',done:false,tags:[{label:'Работа',color:'blue'},{label:'Срочно',color:'red'}],date:'18 мар',list:'today',project:'project-work'},
+  {id:5,title:'Купить продукты на неделю',done:false,tags:[{label:'Личное',color:'green'}],date:'18 мар',list:'today',project:'project-personal'},
+  {id:6,title:'Пробежка 5 км',done:false,tags:[{label:'Здоровье',color:'yellow'}],date:'18 мар',list:'today',project:'project-personal'},
+  {id:7,title:'Ревью кода: модуль авторизации',done:false,tags:[{label:'Работа',color:'blue'}],date:'18 мар',list:'today',project:'project-work'},
+  {id:8,title:'Утренняя медитация',done:true,tags:[{label:'Здоровье',color:'yellow'}],date:'18 мар',list:'today',project:'project-personal'},
+  {id:9,title:'Ответить на письма',done:true,tags:[{label:'Работа',color:'blue'}],date:'18 мар',list:'today',project:'project-work'},
+  {id:10,title:'Прочитать главу книги',done:true,tags:[{label:'Учёба',color:'purple'}],date:'18 мар',list:'today',project:'project-study'},
+  // Upcoming
+  {id:11,title:'Встреча с командой по спринту',done:false,tags:[{label:'Работа',color:'blue'}],date:'19 мар',list:'upcoming',project:'project-work'},
+  {id:12,title:'Оплатить коммунальные услуги',done:false,tags:[{label:'Личное',color:'green'}],date:'19 мар',list:'upcoming',project:'project-personal'},
+  {id:13,title:'Подготовиться к экзамену',done:false,tags:[{label:'Учёба',color:'purple'}],date:'20 мар',list:'upcoming',project:'project-study'},
+  {id:14,title:'Дедлайн проекта Alpha',done:false,tags:[{label:'Работа',color:'blue'},{label:'Срочно',color:'red'}],date:'20 мар',list:'upcoming',project:'project-work'},
+  {id:15,title:'День рождения Маши — купить подарок',done:false,tags:[{label:'Личное',color:'green'}],date:'21 мар',list:'upcoming',project:'project-personal'},
+  {id:16,title:'Написать эссе по философии',done:false,tags:[{label:'Учёба',color:'purple'}],date:'22 мар',list:'upcoming',project:'project-study'},
+  {id:17,title:'Ретро по итогам квартала',done:false,tags:[{label:'Работа',color:'blue'}],date:'23 мар',list:'upcoming',project:'project-work'},
+];
+
+let nextId = 100;
+let currentScreen = 'inbox';
+let darkMode = false;
+let compactMode = false;
+
+// ==================== RENDER ====================
+function getTasksForList(list) { return allTasks.filter(t => t.list === list); }
+function getTasksForProject(proj) { return allTasks.filter(t => t.project === proj); }
+
+function renderTaskRow(task) {
+  const completed = task.done ? ' completed' : '';
+  const tagsHtml = task.tags.map(t => `<span class="tag ${t.color}">${t.label}</span>`).join('');
+  const dateHtml = task.date ? `<span class="task-date">${task.date}</span>` : '';
+  return `<div class="task-row${completed}" data-id="${task.id}">
+    <span class="drag-handle">⠿</span>
+    <div class="task-check${task.done ? ' done' : ''}" onclick="toggleTask(${task.id})"></div>
+    <div class="task-body">
+      <div class="task-title">${task.title}</div>
+      ${tagsHtml || dateHtml ? `<div class="task-meta">${tagsHtml}${dateHtml}</div>` : ''}
+    </div>
+    <button class="task-more" onclick="showCtxMenu(event,${task.id})">⋯</button>
+  </div>`;
+}
+
+function renderInbox() {
+  const tasks = getTasksForList('inbox').filter(t => !t.done);
+  document.getElementById('inbox-tasks').innerHTML = tasks.map(renderTaskRow).join('');
+  updateBadge('inbox', tasks.length);
+}
+
+function renderToday() {
+  const tasks = getTasksForList('today');
+  const active = tasks.filter(t => !t.done);
+  const done = tasks.filter(t => t.done);
+  document.getElementById('today-tasks').innerHTML = active.map(renderTaskRow).join('');
+  document.getElementById('today-completed').innerHTML = done.map(renderTaskRow).join('');
+  document.getElementById('today-done-count').textContent = done.length;
+  document.getElementById('today-subtitle').innerHTML =
+    `Среда, 18 марта &bull; ${done.length} из ${tasks.length} выполнено`;
+  updateBadge('today', tasks.length);
+}
+
+function renderUpcoming() {
+  const tasks = getTasksForList('upcoming').filter(t => !t.done);
+  const groups = {};
+  tasks.forEach(t => {
+    const d = t.date || 'Без даты';
+    if (!groups[d]) groups[d] = [];
+    groups[d].push(t);
+  });
+  let html = '';
+  for (const [date, items] of Object.entries(groups)) {
+    html += `<div class="task-group-header">${date}</div>`;
+    html += items.map(renderTaskRow).join('');
+  }
+  document.getElementById('upcoming-tasks').innerHTML = html;
+}
+
+function renderProject(key, containerId, fillId, pctId) {
+  const tasks = getTasksForProject(key);
+  const active = tasks.filter(t => !t.done);
+  const done = tasks.filter(t => t.done);
+  const all = tasks.length;
+  const pct = all ? Math.round(done.length / all * 100) : 0;
+  document.getElementById(containerId).innerHTML =
+    active.map(renderTaskRow).join('') +
+    (done.length ? `<div class="completed-header" onclick="toggleCompletedProject('${containerId}')">
+      <span class="arrow open" id="${containerId}-arrow">&#9654;</span>
+      <span>Выполнено (${done.length})</span>
+    </div><div class="completed-section" id="${containerId}-completed">${done.map(renderTaskRow).join('')}</div>` : '');
+  if (document.getElementById(fillId)) {
+    document.getElementById(fillId).style.width = pct + '%';
+    document.getElementById(pctId).textContent = pct + '%';
+  }
+}
+
+function renderAll() {
+  renderInbox();
+  renderToday();
+  renderUpcoming();
+  renderProject('project-personal','personal-tasks','personal-fill','personal-pct');
+  renderProject('project-work','work-tasks','work-fill','work-pct');
+  renderProject('project-study','study-tasks','study-fill','study-pct');
+}
+
+function updateBadge(screen, count) {
+  const item = document.querySelector(`.nav-item[data-screen="${screen}"]`);
+  if (item) {
+    const badge = item.querySelector('.nav-badge');
+    if (badge) badge.textContent = count || '';
+  }
+}
+
+// ==================== INTERACTIONS ====================
+function toggleTask(id) {
+  const task = allTasks.find(t => t.id === id);
+  if (task) { task.done = !task.done; renderAll(); }
+}
+
+function deleteTask(id) {
+  const idx = allTasks.findIndex(t => t.id === id);
+  if (idx > -1) { allTasks.splice(idx, 1); renderAll(); }
+  hideCtxMenu();
+}
+
+function toggleSidebar() {
+  const sb = document.getElementById('sidebar');
+  const ov = document.getElementById('sidebarOverlay');
+  const open = sb.classList.toggle('open');
+  ov.classList.toggle('show', open);
+}
+
+function switchScreen(screen) {
+  currentScreen = screen;
+  document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+  document.getElementById('screen-' + screen).classList.add('active');
+  document.querySelectorAll('.nav-item').forEach(n => {
+    n.classList.toggle('active', n.dataset.screen === screen);
+  });
+  const titles = {
+    inbox:'Входящие',today:'Сегодня',upcoming:'Предстоящие',
+    'project-personal':'Личное','project-work':'Работа','project-study':'Учёба',settings:'Настройки'
+  };
+  document.getElementById('topbarTitle').textContent = titles[screen] || '';
+  toggleSidebar();
+}
+
+function toggleCompleted(prefix) {
+  const section = document.getElementById(prefix + '-completed');
+  const arrow = document.getElementById(prefix + '-arrow');
+  section.classList.toggle('collapsed');
+  arrow.classList.toggle('open');
+}
+
+function toggleCompletedProject(containerId) {
+  const section = document.getElementById(containerId + '-completed');
+  const arrow = document.getElementById(containerId + '-arrow');
+  if (section) section.classList.toggle('collapsed');
+  if (arrow) arrow.classList.toggle('open');
+}
+
+// New task inline
+function startNewTask(containerId, list) {
+  const container = document.getElementById(containerId);
+  // Remove existing input rows
+  document.querySelectorAll('.inline-input-row').forEach(r => r.remove());
+  const row = document.createElement('div');
+  row.className = 'task-row inline-input-row';
+  row.innerHTML = `<span class="drag-handle" style="opacity:0"></span>
+    <div class="task-check"></div>
+    <div class="task-body"><input class="new-task-input" placeholder="Введите задачу..." autofocus></div>`;
+  container.appendChild(row);
+  const input = row.querySelector('.new-task-input');
+  input.focus();
+  input.addEventListener('keydown', function(e) {
+    if (e.key === 'Enter' && this.value.trim()) {
+      const project = list.startsWith('project-') ? list : '';
+      allTasks.push({
+        id: nextId++, title: this.value.trim(), done: false, tags: [], date: '',
+        list: list.startsWith('project-') ? 'today' : list, project: project
+      });
+      renderAll();
+    } else if (e.key === 'Escape') {
+      row.remove();
+    }
+  });
+  input.addEventListener('blur', function() {
+    if (this.value.trim()) {
+      const project = list.startsWith('project-') ? list : '';
+      allTasks.push({
+        id: nextId++, title: this.value.trim(), done: false, tags: [], date: '',
+        list: list.startsWith('project-') ? 'today' : list, project: project
+      });
+      renderAll();
+    } else {
+      row.remove();
+    }
+  });
+}
+
+// Context menu
+function showCtxMenu(e, id) {
+  e.stopPropagation();
+  const menu = document.getElementById('ctxMenu');
+  menu.innerHTML = `
+    <div class="ctx-item" onclick="moveTask(${id},'today')">☀️ В Сегодня</div>
+    <div class="ctx-item" onclick="moveTask(${id},'inbox')">📥 Во Входящие</div>
+    <div class="ctx-item" onclick="moveTask(${id},'upcoming')">📅 В Предстоящие</div>
+    <div class="ctx-item danger" onclick="deleteTask(${id})">🗑 Удалить</div>`;
+  const rect = e.target.getBoundingClientRect();
+  const appRect = document.getElementById('app').getBoundingClientRect();
+  let top = rect.bottom - appRect.top + 4;
+  let left = rect.left - appRect.left - 120;
+  if (left < 8) left = 8;
+  if (top + 160 > 812) top = rect.top - appRect.top - 160;
+  menu.style.top = top + 'px';
+  menu.style.left = left + 'px';
+  menu.style.display = 'block';
+}
+
+function hideCtxMenu() { document.getElementById('ctxMenu').style.display = 'none'; }
+document.addEventListener('click', hideCtxMenu);
+
+function moveTask(id, list) {
+  const task = allTasks.find(t => t.id === id);
+  if (task) { task.list = list; renderAll(); }
+  hideCtxMenu();
+}
+
+// Settings
+function toggleDarkMode() {
+  darkMode = !darkMode;
+  document.body.classList.toggle('dark', darkMode);
+  document.getElementById('toggleDark').classList.toggle('on', darkMode);
+}
+
+function toggleCompactMode() {
+  compactMode = !compactMode;
+  document.getElementById('app').classList.toggle('compact', compactMode);
+  document.getElementById('toggleCompact').classList.toggle('on', compactMode);
+}
+
+// ==================== INIT ====================
+renderAll();
+// Start on inbox
+switchScreen('inbox');
+// Re-open sidebar state (it closes on switchScreen, so just set initial screen without sidebar)
+document.getElementById('sidebar').classList.remove('open');
+document.getElementById('sidebarOverlay').classList.remove('show');
+document.querySelectorAll('.nav-item').forEach(n => {
+  n.classList.toggle('active', n.dataset.screen === 'inbox');
+});
+</script>
+</body>
+</html>

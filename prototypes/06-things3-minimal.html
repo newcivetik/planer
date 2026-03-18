@@ -1,0 +1,1707 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+<title>Planer — Things 3 Style</title>
+<style>
+:root {
+  --bg: #FFFFFF;
+  --bg-section: #F2F2F7;
+  --text: #1C1C1E;
+  --text-secondary: #8E8E93;
+  --text-tertiary: #C7C7CC;
+  --accent: #1D7AF2;
+  --border: #E5E5EA;
+  --danger: #FF3B30;
+  --card-bg: #FFFFFF;
+  --sidebar-bg: #F2F2F7;
+  --sidebar-active: #E8E8ED;
+  --checkbox-border: #C7C7CC;
+  --overlay: rgba(0,0,0,0.3);
+  --transition: 0.25s cubic-bezier(0.25, 0.1, 0.25, 1);
+}
+
+.dark {
+  --bg: #1C1C1E;
+  --bg-section: #2C2C2E;
+  --text: #F2F2F7;
+  --text-secondary: #8E8E93;
+  --text-tertiary: #48484A;
+  --accent: #1D7AF2;
+  --border: #38383A;
+  --card-bg: #2C2C2E;
+  --sidebar-bg: #1C1C1E;
+  --sidebar-active: #38383A;
+  --checkbox-border: #48484A;
+  --overlay: rgba(0,0,0,0.6);
+}
+
+* { margin: 0; padding: 0; box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+
+body {
+  font-family: -apple-system, BlinkMacSystemFont, 'SF Pro Display', 'Segoe UI', sans-serif;
+  background: #1C1C1E;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  min-height: 100vh;
+  color: var(--text);
+}
+
+.phone {
+  width: 375px;
+  height: 812px;
+  background: var(--bg);
+  position: relative;
+  overflow: hidden;
+  border-radius: 44px;
+  box-shadow: 0 0 0 3px #333, 0 20px 60px rgba(0,0,0,0.5);
+}
+
+/* Status bar */
+.status-bar {
+  height: 54px;
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+  padding: 0 30px 8px;
+  font-size: 14px;
+  font-weight: 600;
+  position: relative;
+  z-index: 100;
+  background: var(--bg);
+}
+.status-bar .time { font-weight: 700; font-size: 15px; }
+.status-bar .icons { display: flex; gap: 5px; font-size: 12px; }
+
+/* Main container */
+.main-container {
+  height: calc(812px - 54px);
+  position: relative;
+  overflow: hidden;
+}
+
+/* Sidebar overlay */
+.sidebar-overlay {
+  position: absolute;
+  inset: 0;
+  background: var(--overlay);
+  z-index: 200;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity var(--transition);
+}
+.sidebar-overlay.active {
+  opacity: 1;
+  pointer-events: auto;
+}
+
+/* Sidebar */
+.sidebar {
+  position: absolute;
+  left: -300px;
+  top: 0;
+  bottom: 0;
+  width: 300px;
+  background: var(--sidebar-bg);
+  z-index: 300;
+  transition: left var(--transition);
+  padding: 20px 0;
+  overflow-y: auto;
+  -webkit-overflow-scrolling: touch;
+}
+.sidebar.open { left: 0; }
+
+.sidebar-item {
+  display: flex;
+  align-items: center;
+  padding: 11px 24px;
+  font-size: 16px;
+  cursor: pointer;
+  transition: background 0.15s;
+  color: var(--text);
+  gap: 14px;
+}
+.sidebar-item:hover { background: var(--sidebar-active); }
+.sidebar-item.active { background: var(--sidebar-active); font-weight: 600; }
+.sidebar-item .icon { font-size: 20px; width: 24px; text-align: center; }
+.sidebar-item .badge {
+  margin-left: auto;
+  background: var(--text-tertiary);
+  color: var(--bg);
+  font-size: 12px;
+  font-weight: 600;
+  padding: 1px 7px;
+  border-radius: 10px;
+  min-width: 22px;
+  text-align: center;
+}
+.dark .sidebar-item .badge { background: var(--text-secondary); }
+
+.sidebar-divider {
+  height: 1px;
+  background: var(--border);
+  margin: 12px 24px;
+}
+
+.sidebar-header {
+  padding: 16px 24px 8px;
+  font-size: 12px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.8px;
+  color: var(--text-secondary);
+}
+
+.sidebar-project {
+  display: flex;
+  align-items: center;
+  padding: 10px 24px 10px 38px;
+  font-size: 15px;
+  cursor: pointer;
+  transition: background 0.15s;
+  color: var(--text);
+  gap: 10px;
+}
+.sidebar-project:hover { background: var(--sidebar-active); }
+.sidebar-project.active { background: var(--sidebar-active); font-weight: 600; }
+.sidebar-project .dot {
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  flex-shrink: 0;
+}
+
+/* Screens */
+.screen {
+  position: absolute;
+  inset: 0;
+  background: var(--bg);
+  overflow-y: auto;
+  -webkit-overflow-scrolling: touch;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.2s ease;
+  padding-bottom: 40px;
+}
+.screen.active {
+  opacity: 1;
+  pointer-events: auto;
+}
+
+/* Header */
+.screen-header {
+  padding: 12px 20px 0;
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  position: sticky;
+  top: 0;
+  background: var(--bg);
+  z-index: 10;
+  padding-bottom: 4px;
+}
+.screen-header .menu-btn {
+  width: 36px;
+  height: 36px;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  gap: 5px;
+  cursor: pointer;
+  border-radius: 8px;
+  transition: background 0.15s;
+  margin-top: 4px;
+}
+.screen-header .menu-btn:hover { background: var(--bg-section); }
+.screen-header .menu-btn span {
+  display: block;
+  width: 18px;
+  height: 2px;
+  background: var(--text);
+  border-radius: 1px;
+}
+.screen-header .header-actions {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+}
+.header-action-btn {
+  width: 36px;
+  height: 36px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 8px;
+  cursor: pointer;
+  font-size: 18px;
+  transition: background 0.15s;
+}
+.header-action-btn:hover { background: var(--bg-section); }
+
+.screen-title {
+  padding: 8px 20px 2px;
+  font-size: 32px;
+  font-weight: 700;
+  letter-spacing: -0.5px;
+  color: var(--text);
+}
+.screen-subtitle {
+  padding: 0 20px 16px;
+  font-size: 14px;
+  color: var(--text-secondary);
+  font-weight: 400;
+}
+
+/* Section headers */
+.section-header {
+  padding: 20px 20px 8px;
+  font-size: 14px;
+  font-weight: 700;
+  color: var(--text-secondary);
+  text-transform: uppercase;
+  letter-spacing: 0.6px;
+  background: var(--bg);
+}
+
+/* Task item */
+.task-item {
+  display: flex;
+  align-items: flex-start;
+  padding: 12px 20px;
+  gap: 14px;
+  cursor: pointer;
+  transition: background 0.15s;
+  position: relative;
+}
+.task-item:hover { background: var(--bg-section); }
+.task-item.completed .task-title {
+  text-decoration: line-through;
+  color: var(--text-tertiary);
+}
+
+/* Drag handle */
+.drag-handle {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  padding: 6px 0 6px 0;
+  cursor: grab;
+  opacity: 0;
+  transition: opacity 0.15s;
+  margin-left: -6px;
+}
+.task-item:hover .drag-handle { opacity: 0.4; }
+.drag-handle span {
+  display: block;
+  width: 14px;
+  height: 1.5px;
+  background: var(--text-secondary);
+  border-radius: 1px;
+}
+
+/* Checkbox - Things 3 style */
+.checkbox {
+  width: 22px;
+  height: 22px;
+  border-radius: 50%;
+  border: 2px solid var(--checkbox-border);
+  flex-shrink: 0;
+  position: relative;
+  cursor: pointer;
+  transition: all 0.3s cubic-bezier(0.25, 0.1, 0.25, 1);
+  margin-top: 1px;
+}
+.checkbox:hover {
+  border-color: var(--accent);
+}
+.checkbox.checked {
+  background: var(--accent);
+  border-color: var(--accent);
+  animation: checkPop 0.35s cubic-bezier(0.25, 0.1, 0.25, 1);
+}
+.checkbox.checked::after {
+  content: '';
+  position: absolute;
+  left: 6px;
+  top: 3px;
+  width: 6px;
+  height: 10px;
+  border: solid #fff;
+  border-width: 0 2px 2px 0;
+  transform: rotate(45deg);
+  animation: checkmarkDraw 0.2s ease 0.1s both;
+}
+
+@keyframes checkPop {
+  0% { transform: scale(1); }
+  30% { transform: scale(1.2); }
+  100% { transform: scale(1); }
+}
+@keyframes checkmarkDraw {
+  0% { opacity: 0; transform: rotate(45deg) scale(0); }
+  100% { opacity: 1; transform: rotate(45deg) scale(1); }
+}
+
+.task-content { flex: 1; min-width: 0; }
+.task-title {
+  font-size: 16px;
+  color: var(--text);
+  line-height: 1.35;
+}
+.task-meta {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-top: 3px;
+}
+.task-tag {
+  font-size: 12px;
+  color: var(--accent);
+  font-weight: 500;
+}
+.task-date-label {
+  font-size: 12px;
+  color: var(--text-secondary);
+}
+.task-project-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  display: inline-block;
+}
+
+/* Inline add */
+.inline-add {
+  padding: 14px 20px;
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  cursor: pointer;
+  color: var(--text-secondary);
+  font-size: 16px;
+  transition: color 0.15s;
+}
+.inline-add:hover { color: var(--accent); }
+.inline-add .plus {
+  width: 22px;
+  height: 22px;
+  border-radius: 50%;
+  border: 2px dashed var(--text-tertiary);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 14px;
+  transition: all 0.15s;
+}
+.inline-add:hover .plus {
+  border-color: var(--accent);
+  color: var(--accent);
+}
+
+/* Inline form */
+.inline-form {
+  max-height: 0;
+  overflow: hidden;
+  transition: max-height 0.3s ease, opacity 0.2s ease;
+  opacity: 0;
+  background: var(--bg-section);
+  margin: 0 12px;
+  border-radius: 12px;
+}
+.inline-form.open {
+  max-height: 400px;
+  opacity: 1;
+  margin-top: 4px;
+  margin-bottom: 4px;
+}
+.inline-form-inner {
+  padding: 16px;
+}
+.inline-form input[type="text"],
+.inline-form textarea {
+  width: 100%;
+  border: none;
+  background: transparent;
+  font-family: inherit;
+  font-size: 16px;
+  color: var(--text);
+  outline: none;
+  resize: none;
+}
+.inline-form input[type="text"] {
+  font-weight: 600;
+  margin-bottom: 8px;
+}
+.inline-form textarea {
+  font-size: 14px;
+  color: var(--text-secondary);
+  height: 44px;
+}
+.inline-form-row {
+  display: flex;
+  gap: 8px;
+  margin-top: 12px;
+  flex-wrap: wrap;
+}
+.form-chip {
+  padding: 6px 12px;
+  border-radius: 8px;
+  font-size: 13px;
+  background: var(--card-bg);
+  color: var(--text-secondary);
+  cursor: pointer;
+  border: 1px solid var(--border);
+  transition: all 0.15s;
+}
+.form-chip:hover { border-color: var(--accent); color: var(--accent); }
+.form-chip.selected { background: var(--accent); color: #fff; border-color: var(--accent); }
+.inline-form-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 16px;
+  margin-top: 16px;
+}
+.form-btn {
+  font-size: 15px;
+  font-weight: 600;
+  cursor: pointer;
+  background: none;
+  border: none;
+  font-family: inherit;
+  padding: 6px 2px;
+}
+.form-btn.cancel { color: var(--text-secondary); }
+.form-btn.save { color: var(--accent); }
+
+/* Task detail */
+.task-detail {
+  max-height: 0;
+  overflow: hidden;
+  transition: max-height 0.35s ease, opacity 0.2s ease;
+  opacity: 0;
+}
+.task-detail.open {
+  max-height: 600px;
+  opacity: 1;
+}
+.task-detail-inner {
+  padding: 0 20px 16px 56px;
+}
+.detail-notes {
+  font-size: 14px;
+  color: var(--text-secondary);
+  line-height: 1.5;
+  margin-bottom: 12px;
+  width: 100%;
+  border: none;
+  background: transparent;
+  font-family: inherit;
+  outline: none;
+  resize: none;
+}
+.detail-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 8px;
+  font-size: 14px;
+  color: var(--text-secondary);
+}
+.detail-row .label { font-weight: 500; min-width: 50px; }
+
+/* Subtasks */
+.subtask-list { margin: 8px 0; }
+.subtask-item {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 6px 0;
+}
+.subtask-checkbox {
+  width: 16px;
+  height: 16px;
+  border-radius: 50%;
+  border: 1.5px solid var(--checkbox-border);
+  flex-shrink: 0;
+  cursor: pointer;
+  transition: all 0.3s;
+  position: relative;
+}
+.subtask-checkbox.checked {
+  background: var(--accent);
+  border-color: var(--accent);
+}
+.subtask-checkbox.checked::after {
+  content: '';
+  position: absolute;
+  left: 4px;
+  top: 2px;
+  width: 4px;
+  height: 7px;
+  border: solid #fff;
+  border-width: 0 1.5px 1.5px 0;
+  transform: rotate(45deg);
+}
+.subtask-title {
+  font-size: 14px;
+  color: var(--text);
+}
+.subtask-item.completed .subtask-title {
+  text-decoration: line-through;
+  color: var(--text-tertiary);
+}
+
+.detail-delete {
+  color: var(--danger);
+  font-size: 14px;
+  cursor: pointer;
+  margin-top: 12px;
+  font-weight: 500;
+}
+.detail-delete:hover { text-decoration: underline; }
+
+/* Calendar strip */
+.calendar-strip {
+  display: flex;
+  gap: 4px;
+  padding: 8px 20px 16px;
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+  scrollbar-width: none;
+}
+.calendar-strip::-webkit-scrollbar { display: none; }
+.cal-day {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 8px 12px;
+  border-radius: 12px;
+  cursor: pointer;
+  min-width: 44px;
+  transition: all 0.15s;
+}
+.cal-day:hover { background: var(--bg-section); }
+.cal-day.active { background: var(--accent); }
+.cal-day .weekday {
+  font-size: 11px;
+  font-weight: 600;
+  color: var(--text-secondary);
+  text-transform: uppercase;
+  margin-bottom: 4px;
+}
+.cal-day.active .weekday { color: rgba(255,255,255,0.8); }
+.cal-day .day-num {
+  font-size: 18px;
+  font-weight: 600;
+  color: var(--text);
+}
+.cal-day.active .day-num { color: #fff; }
+.cal-day.today .day-num { color: var(--accent); }
+.cal-day.active.today .day-num { color: #fff; }
+
+/* Empty state */
+.empty-state {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 80px 40px;
+  text-align: center;
+}
+.empty-state .empty-icon {
+  font-size: 48px;
+  margin-bottom: 16px;
+  opacity: 0.3;
+}
+.empty-state .empty-text {
+  font-size: 16px;
+  color: var(--text-tertiary);
+  font-weight: 500;
+}
+
+/* Progress bar */
+.progress-bar-container {
+  padding: 0 20px 16px;
+}
+.progress-bar {
+  height: 3px;
+  background: var(--bg-section);
+  border-radius: 2px;
+  overflow: hidden;
+}
+.progress-fill {
+  height: 100%;
+  background: var(--accent);
+  border-radius: 2px;
+  transition: width 0.5s ease;
+}
+
+/* Dark mode toggle */
+.dark-toggle {
+  position: absolute;
+  bottom: 20px;
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: 400;
+  background: rgba(255,255,255,0.1);
+  border: 1px solid rgba(255,255,255,0.2);
+  color: rgba(255,255,255,0.7);
+  padding: 6px 16px;
+  border-radius: 20px;
+  font-size: 12px;
+  cursor: pointer;
+  font-family: inherit;
+  transition: all 0.2s;
+}
+.dark-toggle:hover { background: rgba(255,255,255,0.2); color: #fff; }
+
+/* Scrollbar */
+.screen::-webkit-scrollbar { width: 0; }
+.sidebar::-webkit-scrollbar { width: 0; }
+
+/* Task complete fade */
+.task-item.fading {
+  opacity: 0.4;
+  transition: opacity 0.5s ease;
+}
+</style>
+</head>
+<body>
+
+<div class="phone" id="phone">
+  <!-- Status Bar -->
+  <div class="status-bar">
+    <span class="time">9:41</span>
+    <span class="icons">
+      <svg width="16" height="12" viewBox="0 0 16 12" fill="currentColor"><rect x="0" y="4" width="3" height="8" rx="0.5"/><rect x="4.5" y="2.5" width="3" height="9.5" rx="0.5"/><rect x="9" y="1" width="3" height="11" rx="0.5"/><rect x="13.5" y="0" width="2.5" height="12" rx="0.5"/></svg>
+      &nbsp;
+      <svg width="24" height="12" viewBox="0 0 24 12" fill="currentColor"><rect x="0" y="1" width="20" height="10" rx="2" fill="none" stroke="currentColor" stroke-width="1"/><rect x="21" y="4" width="2" height="4" rx="0.5"/><rect x="1.5" y="2.5" width="14" height="7" rx="1"/></svg>
+    </span>
+  </div>
+
+  <div class="main-container">
+    <!-- Sidebar Overlay -->
+    <div class="sidebar-overlay" id="sidebarOverlay" onclick="closeSidebar()"></div>
+
+    <!-- Sidebar -->
+    <div class="sidebar" id="sidebar">
+      <div class="sidebar-item" data-screen="inbox" onclick="navigate('inbox')">
+        <span class="icon">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="var(--accent)" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="3"/><polyline points="3 14 8 14 10 17 14 17 16 14 21 14"/></svg>
+        </span>
+        <span>Входящие</span>
+        <span class="badge" id="inboxBadge">5</span>
+      </div>
+      <div class="sidebar-item active" data-screen="today" onclick="navigate('today')">
+        <span class="icon">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="var(--accent)" stroke-width="2"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 3"/></svg>
+        </span>
+        <span>Сегодня</span>
+        <span class="badge" id="todayBadge">6</span>
+      </div>
+      <div class="sidebar-item" data-screen="planned" onclick="navigate('planned')">
+        <span class="icon">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="var(--text-secondary)" stroke-width="2"><rect x="3" y="4" width="18" height="17" rx="2"/><path d="M16 2v4M8 2v4M3 10h18"/></svg>
+        </span>
+        <span>Запланированные</span>
+      </div>
+      <div class="sidebar-item" data-screen="anytime" onclick="navigate('anytime')">
+        <span class="icon">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="var(--text-secondary)" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="3"/></svg>
+        </span>
+        <span>В любое время</span>
+      </div>
+      <div class="sidebar-item" data-screen="someday" onclick="navigate('someday')">
+        <span class="icon">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="var(--text-secondary)" stroke-width="2"><path d="M12 3C7 3 3 7 3 12s4 9 9 9 9-4 9-9"/><path d="M16 3c-1 3-1 6 0 9"/></svg>
+        </span>
+        <span>Когда-нибудь</span>
+      </div>
+      <div class="sidebar-item" data-screen="trash" onclick="navigate('trash')">
+        <span class="icon">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="var(--text-secondary)" stroke-width="2"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 01-2 2H8a2 2 0 01-2-2L5 6"/><path d="M10 11v6M14 11v6"/><path d="M9 6V4a1 1 0 011-1h4a1 1 0 011 1v2"/></svg>
+        </span>
+        <span>Корзина</span>
+      </div>
+
+      <div class="sidebar-divider"></div>
+      <div class="sidebar-header">Проекты</div>
+
+      <div class="sidebar-project" data-screen="project-personal" onclick="navigate('project-personal')">
+        <span class="dot" style="background:#1D7AF2"></span>
+        <span>Личное</span>
+      </div>
+      <div class="sidebar-project" data-screen="project-work" onclick="navigate('project-work')">
+        <span class="dot" style="background:#34C759"></span>
+        <span>Работа</span>
+      </div>
+      <div class="sidebar-project" data-screen="project-study" onclick="navigate('project-study')">
+        <span class="dot" style="background:#FF9500"></span>
+        <span>Учёба</span>
+      </div>
+    </div>
+
+    <!-- SCREEN: Сегодня -->
+    <div class="screen active" id="screen-today">
+      <div class="screen-header">
+        <div class="menu-btn" onclick="openSidebar()">
+          <span></span><span></span><span></span>
+        </div>
+        <div class="header-actions">
+          <div class="header-action-btn" onclick="toggleDarkMode()" title="Тема">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M4.93 4.93l1.41 1.41M17.66 17.66l1.41 1.41M2 12h2M20 12h2M6.34 17.66l-1.41 1.41M19.07 4.93l-1.41 1.41"/></svg>
+          </div>
+        </div>
+      </div>
+      <div class="screen-title">Сегодня</div>
+      <div class="screen-subtitle">Среда, 18 марта</div>
+
+      <div class="section-header">Утро</div>
+      <div class="task-item" data-id="t1" onclick="toggleDetail(this)">
+        <div class="drag-handle"><span></span><span></span><span></span></div>
+        <div class="checkbox" onclick="event.stopPropagation(); toggleCheck(this)"></div>
+        <div class="task-content">
+          <div class="task-title">Утренняя медитация 10 мин</div>
+          <div class="task-meta">
+            <span class="task-project-dot" style="background:#1D7AF2"></span>
+            <span class="task-tag">Личное</span>
+          </div>
+        </div>
+      </div>
+      <div class="task-detail" data-for="t1">
+        <div class="task-detail-inner">
+          <textarea class="detail-notes" rows="2" placeholder="Заметки...">Использовать приложение Headspace</textarea>
+          <div class="detail-row"><span class="label">Дата</span><span>Сегодня</span></div>
+          <div class="detail-row"><span class="label">Тег</span><span style="color:var(--accent)">Личное</span></div>
+          <div class="subtask-list">
+            <div class="subtask-item">
+              <div class="subtask-checkbox checked" onclick="toggleSubtask(this)"></div>
+              <span class="subtask-title">Выбрать программу</span>
+            </div>
+            <div class="subtask-item">
+              <div class="subtask-checkbox" onclick="toggleSubtask(this)"></div>
+              <span class="subtask-title">Найти тихое место</span>
+            </div>
+          </div>
+          <div class="detail-delete" onclick="event.stopPropagation(); deleteTask(this)">Удалить задачу</div>
+        </div>
+      </div>
+
+      <div class="task-item" data-id="t2" onclick="toggleDetail(this)">
+        <div class="drag-handle"><span></span><span></span><span></span></div>
+        <div class="checkbox" onclick="event.stopPropagation(); toggleCheck(this)"></div>
+        <div class="task-content">
+          <div class="task-title">Проверить почту и ответить</div>
+          <div class="task-meta">
+            <span class="task-project-dot" style="background:#34C759"></span>
+            <span class="task-tag">Работа</span>
+          </div>
+        </div>
+      </div>
+      <div class="task-detail" data-for="t2">
+        <div class="task-detail-inner">
+          <textarea class="detail-notes" rows="2" placeholder="Заметки...">Приоритет: письма от клиентов</textarea>
+          <div class="detail-row"><span class="label">Дата</span><span>Сегодня</span></div>
+          <div class="detail-delete" onclick="event.stopPropagation(); deleteTask(this)">Удалить задачу</div>
+        </div>
+      </div>
+
+      <div class="section-header">После обеда</div>
+      <div class="task-item" data-id="t3" onclick="toggleDetail(this)">
+        <div class="drag-handle"><span></span><span></span><span></span></div>
+        <div class="checkbox" onclick="event.stopPropagation(); toggleCheck(this)"></div>
+        <div class="task-content">
+          <div class="task-title">Созвон с командой в 14:00</div>
+          <div class="task-meta">
+            <span class="task-project-dot" style="background:#34C759"></span>
+            <span class="task-tag">Работа</span>
+            <span class="task-date-label">14:00</span>
+          </div>
+        </div>
+      </div>
+      <div class="task-detail" data-for="t3">
+        <div class="task-detail-inner">
+          <textarea class="detail-notes" rows="2" placeholder="Заметки...">Обсудить спринт и блокеры</textarea>
+          <div class="detail-delete" onclick="event.stopPropagation(); deleteTask(this)">Удалить задачу</div>
+        </div>
+      </div>
+
+      <div class="task-item" data-id="t4" onclick="toggleDetail(this)">
+        <div class="drag-handle"><span></span><span></span><span></span></div>
+        <div class="checkbox" onclick="event.stopPropagation(); toggleCheck(this)"></div>
+        <div class="task-content">
+          <div class="task-title">Подготовить презентацию</div>
+          <div class="task-meta">
+            <span class="task-project-dot" style="background:#34C759"></span>
+            <span class="task-tag">Работа</span>
+          </div>
+        </div>
+      </div>
+      <div class="task-detail" data-for="t4">
+        <div class="task-detail-inner">
+          <textarea class="detail-notes" rows="2" placeholder="Заметки..."></textarea>
+          <div class="subtask-list">
+            <div class="subtask-item">
+              <div class="subtask-checkbox" onclick="toggleSubtask(this)"></div>
+              <span class="subtask-title">Собрать данные</span>
+            </div>
+            <div class="subtask-item">
+              <div class="subtask-checkbox" onclick="toggleSubtask(this)"></div>
+              <span class="subtask-title">Сделать слайды</span>
+            </div>
+            <div class="subtask-item">
+              <div class="subtask-checkbox" onclick="toggleSubtask(this)"></div>
+              <span class="subtask-title">Прогнать тайминг</span>
+            </div>
+          </div>
+          <div class="detail-delete" onclick="event.stopPropagation(); deleteTask(this)">Удалить задачу</div>
+        </div>
+      </div>
+
+      <div class="section-header">Вечер</div>
+      <div class="task-item" data-id="t5" onclick="toggleDetail(this)">
+        <div class="drag-handle"><span></span><span></span><span></span></div>
+        <div class="checkbox" onclick="event.stopPropagation(); toggleCheck(this)"></div>
+        <div class="task-content">
+          <div class="task-title">Тренировка в зале</div>
+          <div class="task-meta">
+            <span class="task-project-dot" style="background:#1D7AF2"></span>
+            <span class="task-tag">Личное</span>
+            <span class="task-date-label">19:00</span>
+          </div>
+        </div>
+      </div>
+      <div class="task-detail" data-for="t5">
+        <div class="task-detail-inner">
+          <textarea class="detail-notes" rows="2" placeholder="Заметки...">День ног + кардио</textarea>
+          <div class="detail-delete" onclick="event.stopPropagation(); deleteTask(this)">Удалить задачу</div>
+        </div>
+      </div>
+
+      <div class="task-item" data-id="t6" onclick="toggleDetail(this)">
+        <div class="drag-handle"><span></span><span></span><span></span></div>
+        <div class="checkbox" onclick="event.stopPropagation(); toggleCheck(this)"></div>
+        <div class="task-content">
+          <div class="task-title">Прочитать 30 страниц книги</div>
+          <div class="task-meta">
+            <span class="task-project-dot" style="background:#1D7AF2"></span>
+            <span class="task-tag">Личное</span>
+          </div>
+        </div>
+      </div>
+      <div class="task-detail" data-for="t6">
+        <div class="task-detail-inner">
+          <textarea class="detail-notes" rows="2" placeholder="Заметки...">"Атомные привычки" — глава 5</textarea>
+          <div class="detail-delete" onclick="event.stopPropagation(); deleteTask(this)">Удалить задачу</div>
+        </div>
+      </div>
+
+      <!-- Inline add -->
+      <div class="inline-add" onclick="openInlineForm(this)">
+        <div class="plus">+</div>
+        <span>Новая задача</span>
+      </div>
+      <div class="inline-form" id="form-today">
+        <div class="inline-form-inner">
+          <input type="text" placeholder="Что нужно сделать?" class="new-task-input" onkeydown="if(event.key==='Enter')saveInlineTask(this)">
+          <textarea placeholder="Заметки..."></textarea>
+          <div class="inline-form-row">
+            <div class="form-chip" onclick="this.classList.toggle('selected')">Сегодня</div>
+            <div class="form-chip" onclick="this.classList.toggle('selected')">Завтра</div>
+            <div class="form-chip" onclick="this.classList.toggle('selected')">Личное</div>
+            <div class="form-chip" onclick="this.classList.toggle('selected')">Работа</div>
+          </div>
+          <div class="inline-form-actions">
+            <button class="form-btn cancel" onclick="closeInlineForm(this)">Отмена</button>
+            <button class="form-btn save" onclick="saveInlineTask(this)">Сохранить</button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- SCREEN: Входящие -->
+    <div class="screen" id="screen-inbox">
+      <div class="screen-header">
+        <div class="menu-btn" onclick="openSidebar()">
+          <span></span><span></span><span></span>
+        </div>
+        <div class="header-actions"></div>
+      </div>
+      <div class="screen-title">Входящие</div>
+      <div class="screen-subtitle" id="inboxSubtitle">5 задач</div>
+
+      <div class="task-item" data-id="i1" onclick="toggleDetail(this)">
+        <div class="drag-handle"><span></span><span></span><span></span></div>
+        <div class="checkbox" onclick="event.stopPropagation(); toggleCheck(this)"></div>
+        <div class="task-content"><div class="task-title">Купить продукты на неделю</div></div>
+      </div>
+      <div class="task-detail" data-for="i1">
+        <div class="task-detail-inner">
+          <textarea class="detail-notes" rows="2" placeholder="Заметки...">Молоко, хлеб, овощи, курица</textarea>
+          <div class="detail-delete" onclick="event.stopPropagation(); deleteTask(this)">Удалить задачу</div>
+        </div>
+      </div>
+
+      <div class="task-item" data-id="i2" onclick="toggleDetail(this)">
+        <div class="drag-handle"><span></span><span></span><span></span></div>
+        <div class="checkbox" onclick="event.stopPropagation(); toggleCheck(this)"></div>
+        <div class="task-content"><div class="task-title">Записаться к стоматологу</div></div>
+      </div>
+      <div class="task-detail" data-for="i2">
+        <div class="task-detail-inner">
+          <textarea class="detail-notes" rows="2" placeholder="Заметки..."></textarea>
+          <div class="detail-delete" onclick="event.stopPropagation(); deleteTask(this)">Удалить задачу</div>
+        </div>
+      </div>
+
+      <div class="task-item" data-id="i3" onclick="toggleDetail(this)">
+        <div class="drag-handle"><span></span><span></span><span></span></div>
+        <div class="checkbox" onclick="event.stopPropagation(); toggleCheck(this)"></div>
+        <div class="task-content"><div class="task-title">Обновить резюме</div></div>
+      </div>
+      <div class="task-detail" data-for="i3">
+        <div class="task-detail-inner">
+          <textarea class="detail-notes" rows="2" placeholder="Заметки..."></textarea>
+          <div class="detail-delete" onclick="event.stopPropagation(); deleteTask(this)">Удалить задачу</div>
+        </div>
+      </div>
+
+      <div class="task-item" data-id="i4" onclick="toggleDetail(this)">
+        <div class="drag-handle"><span></span><span></span><span></span></div>
+        <div class="checkbox" onclick="event.stopPropagation(); toggleCheck(this)"></div>
+        <div class="task-content"><div class="task-title">Позвонить маме</div></div>
+      </div>
+      <div class="task-detail" data-for="i4">
+        <div class="task-detail-inner">
+          <textarea class="detail-notes" rows="2" placeholder="Заметки..."></textarea>
+          <div class="detail-delete" onclick="event.stopPropagation(); deleteTask(this)">Удалить задачу</div>
+        </div>
+      </div>
+
+      <div class="task-item" data-id="i5" onclick="toggleDetail(this)">
+        <div class="drag-handle"><span></span><span></span><span></span></div>
+        <div class="checkbox" onclick="event.stopPropagation(); toggleCheck(this)"></div>
+        <div class="task-content"><div class="task-title">Разобрать фотографии из поездки</div></div>
+      </div>
+      <div class="task-detail" data-for="i5">
+        <div class="task-detail-inner">
+          <textarea class="detail-notes" rows="2" placeholder="Заметки..."></textarea>
+          <div class="detail-delete" onclick="event.stopPropagation(); deleteTask(this)">Удалить задачу</div>
+        </div>
+      </div>
+
+      <div class="inline-add" onclick="openInlineForm(this)">
+        <div class="plus">+</div>
+        <span>Новая задача</span>
+      </div>
+      <div class="inline-form" id="form-inbox">
+        <div class="inline-form-inner">
+          <input type="text" placeholder="Что нужно сделать?" class="new-task-input" onkeydown="if(event.key==='Enter')saveInlineTask(this)">
+          <textarea placeholder="Заметки..."></textarea>
+          <div class="inline-form-actions">
+            <button class="form-btn cancel" onclick="closeInlineForm(this)">Отмена</button>
+            <button class="form-btn save" onclick="saveInlineTask(this)">Сохранить</button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- SCREEN: Запланированные -->
+    <div class="screen" id="screen-planned">
+      <div class="screen-header">
+        <div class="menu-btn" onclick="openSidebar()">
+          <span></span><span></span><span></span>
+        </div>
+        <div class="header-actions"></div>
+      </div>
+      <div class="screen-title">Запланированные</div>
+      <div class="screen-subtitle">Март 2026</div>
+
+      <div class="calendar-strip" id="calStrip"></div>
+
+      <div id="planned-tasks">
+        <div class="task-item" data-id="p1" onclick="toggleDetail(this)">
+          <div class="drag-handle"><span></span><span></span><span></span></div>
+          <div class="checkbox" onclick="event.stopPropagation(); toggleCheck(this)"></div>
+          <div class="task-content">
+            <div class="task-title">Встреча с дизайнером</div>
+            <div class="task-meta"><span class="task-date-label">10:00</span></div>
+          </div>
+        </div>
+        <div class="task-detail" data-for="p1">
+          <div class="task-detail-inner">
+            <textarea class="detail-notes" rows="2" placeholder="Заметки...">Обсудить макеты нового приложения</textarea>
+            <div class="detail-delete" onclick="event.stopPropagation(); deleteTask(this)">Удалить задачу</div>
+          </div>
+        </div>
+
+        <div class="task-item" data-id="p2" onclick="toggleDetail(this)">
+          <div class="drag-handle"><span></span><span></span><span></span></div>
+          <div class="checkbox" onclick="event.stopPropagation(); toggleCheck(this)"></div>
+          <div class="task-content">
+            <div class="task-title">Оплатить аренду</div>
+            <div class="task-meta"><span class="task-date-label">до конца дня</span></div>
+          </div>
+        </div>
+        <div class="task-detail" data-for="p2">
+          <div class="task-detail-inner">
+            <textarea class="detail-notes" rows="2" placeholder="Заметки..."></textarea>
+            <div class="detail-delete" onclick="event.stopPropagation(); deleteTask(this)">Удалить задачу</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="empty-state" id="planned-empty" style="display:none">
+        <div class="empty-icon">
+          <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="var(--text-tertiary)" stroke-width="1.5"><rect x="3" y="4" width="18" height="17" rx="2"/><path d="M16 2v4M8 2v4M3 10h18"/></svg>
+        </div>
+        <div class="empty-text">Нет запланированных задач</div>
+      </div>
+
+      <div class="inline-add" onclick="openInlineForm(this)">
+        <div class="plus">+</div>
+        <span>Новая задача</span>
+      </div>
+      <div class="inline-form" id="form-planned">
+        <div class="inline-form-inner">
+          <input type="text" placeholder="Что нужно сделать?" class="new-task-input" onkeydown="if(event.key==='Enter')saveInlineTask(this)">
+          <textarea placeholder="Заметки..."></textarea>
+          <div class="inline-form-actions">
+            <button class="form-btn cancel" onclick="closeInlineForm(this)">Отмена</button>
+            <button class="form-btn save" onclick="saveInlineTask(this)">Сохранить</button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- SCREEN: В любое время -->
+    <div class="screen" id="screen-anytime">
+      <div class="screen-header">
+        <div class="menu-btn" onclick="openSidebar()">
+          <span></span><span></span><span></span>
+        </div>
+        <div class="header-actions"></div>
+      </div>
+      <div class="screen-title">В любое время</div>
+      <div class="screen-subtitle">Задачи без срока</div>
+
+      <div class="task-item" data-id="a1" onclick="toggleDetail(this)">
+        <div class="drag-handle"><span></span><span></span><span></span></div>
+        <div class="checkbox" onclick="event.stopPropagation(); toggleCheck(this)"></div>
+        <div class="task-content"><div class="task-title">Навести порядок на рабочем столе</div></div>
+      </div>
+      <div class="task-detail" data-for="a1">
+        <div class="task-detail-inner">
+          <textarea class="detail-notes" rows="2" placeholder="Заметки..."></textarea>
+          <div class="detail-delete" onclick="event.stopPropagation(); deleteTask(this)">Удалить задачу</div>
+        </div>
+      </div>
+
+      <div class="task-item" data-id="a2" onclick="toggleDetail(this)">
+        <div class="drag-handle"><span></span><span></span><span></span></div>
+        <div class="checkbox" onclick="event.stopPropagation(); toggleCheck(this)"></div>
+        <div class="task-content"><div class="task-title">Настроить бэкап фотографий</div></div>
+      </div>
+      <div class="task-detail" data-for="a2">
+        <div class="task-detail-inner">
+          <textarea class="detail-notes" rows="2" placeholder="Заметки..."></textarea>
+          <div class="detail-delete" onclick="event.stopPropagation(); deleteTask(this)">Удалить задачу</div>
+        </div>
+      </div>
+
+      <div class="task-item" data-id="a3" onclick="toggleDetail(this)">
+        <div class="drag-handle"><span></span><span></span><span></span></div>
+        <div class="checkbox" onclick="event.stopPropagation(); toggleCheck(this)"></div>
+        <div class="task-content"><div class="task-title">Изучить новый фреймворк</div></div>
+      </div>
+      <div class="task-detail" data-for="a3">
+        <div class="task-detail-inner">
+          <textarea class="detail-notes" rows="2" placeholder="Заметки..."></textarea>
+          <div class="detail-delete" onclick="event.stopPropagation(); deleteTask(this)">Удалить задачу</div>
+        </div>
+      </div>
+
+      <div class="inline-add" onclick="openInlineForm(this)">
+        <div class="plus">+</div>
+        <span>Новая задача</span>
+      </div>
+      <div class="inline-form" id="form-anytime">
+        <div class="inline-form-inner">
+          <input type="text" placeholder="Что нужно сделать?" class="new-task-input" onkeydown="if(event.key==='Enter')saveInlineTask(this)">
+          <textarea placeholder="Заметки..."></textarea>
+          <div class="inline-form-actions">
+            <button class="form-btn cancel" onclick="closeInlineForm(this)">Отмена</button>
+            <button class="form-btn save" onclick="saveInlineTask(this)">Сохранить</button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- SCREEN: Когда-нибудь -->
+    <div class="screen" id="screen-someday">
+      <div class="screen-header">
+        <div class="menu-btn" onclick="openSidebar()">
+          <span></span><span></span><span></span>
+        </div>
+        <div class="header-actions"></div>
+      </div>
+      <div class="screen-title">Когда-нибудь</div>
+      <div class="screen-subtitle">Идеи на будущее</div>
+
+      <div class="task-item" data-id="s1" onclick="toggleDetail(this)">
+        <div class="drag-handle"><span></span><span></span><span></span></div>
+        <div class="checkbox" onclick="event.stopPropagation(); toggleCheck(this)"></div>
+        <div class="task-content"><div class="task-title">Выучить японский язык</div></div>
+      </div>
+      <div class="task-detail" data-for="s1">
+        <div class="task-detail-inner">
+          <textarea class="detail-notes" rows="2" placeholder="Заметки..."></textarea>
+          <div class="detail-delete" onclick="event.stopPropagation(); deleteTask(this)">Удалить задачу</div>
+        </div>
+      </div>
+
+      <div class="task-item" data-id="s2" onclick="toggleDetail(this)">
+        <div class="drag-handle"><span></span><span></span><span></span></div>
+        <div class="checkbox" onclick="event.stopPropagation(); toggleCheck(this)"></div>
+        <div class="task-content"><div class="task-title">Пробежать марафон</div></div>
+      </div>
+      <div class="task-detail" data-for="s2">
+        <div class="task-detail-inner">
+          <textarea class="detail-notes" rows="2" placeholder="Заметки..."></textarea>
+          <div class="detail-delete" onclick="event.stopPropagation(); deleteTask(this)">Удалить задачу</div>
+        </div>
+      </div>
+
+      <div class="inline-add" onclick="openInlineForm(this)">
+        <div class="plus">+</div>
+        <span>Новая задача</span>
+      </div>
+      <div class="inline-form" id="form-someday">
+        <div class="inline-form-inner">
+          <input type="text" placeholder="Что нужно сделать?" class="new-task-input" onkeydown="if(event.key==='Enter')saveInlineTask(this)">
+          <textarea placeholder="Заметки..."></textarea>
+          <div class="inline-form-actions">
+            <button class="form-btn cancel" onclick="closeInlineForm(this)">Отмена</button>
+            <button class="form-btn save" onclick="saveInlineTask(this)">Сохранить</button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- SCREEN: Корзина -->
+    <div class="screen" id="screen-trash">
+      <div class="screen-header">
+        <div class="menu-btn" onclick="openSidebar()">
+          <span></span><span></span><span></span>
+        </div>
+        <div class="header-actions"></div>
+      </div>
+      <div class="screen-title">Корзина</div>
+      <div class="screen-subtitle">Удалённые задачи</div>
+
+      <div id="trash-list"></div>
+      <div class="empty-state" id="trash-empty">
+        <div class="empty-icon">
+          <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="var(--text-tertiary)" stroke-width="1.5"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 01-2 2H8a2 2 0 01-2-2L5 6"/><path d="M10 11v6M14 11v6"/></svg>
+        </div>
+        <div class="empty-text">Корзина пуста</div>
+      </div>
+    </div>
+
+    <!-- SCREEN: Проект Личное -->
+    <div class="screen" id="screen-project-personal">
+      <div class="screen-header">
+        <div class="menu-btn" onclick="openSidebar()">
+          <span></span><span></span><span></span>
+        </div>
+        <div class="header-actions"></div>
+      </div>
+      <div class="screen-title" style="display:flex;align-items:center;gap:10px">
+        <span style="width:12px;height:12px;border-radius:50%;background:#1D7AF2;display:inline-block"></span>
+        Личное
+      </div>
+      <div class="screen-subtitle" id="personal-progress">3 из 8 задач выполнено</div>
+      <div class="progress-bar-container">
+        <div class="progress-bar"><div class="progress-fill" id="personal-progress-bar" style="width:37.5%"></div></div>
+      </div>
+
+      <div class="section-header">Здоровье</div>
+      <div class="task-item" data-id="pp1" onclick="toggleDetail(this)">
+        <div class="drag-handle"><span></span><span></span><span></span></div>
+        <div class="checkbox checked" onclick="event.stopPropagation(); toggleCheck(this)"></div>
+        <div class="task-content"><div class="task-title" style="text-decoration:line-through;color:var(--text-tertiary)">Записаться в спортзал</div></div>
+      </div>
+      <div class="task-detail" data-for="pp1"><div class="task-detail-inner"><textarea class="detail-notes" rows="2" placeholder="Заметки..."></textarea><div class="detail-delete" onclick="event.stopPropagation(); deleteTask(this)">Удалить задачу</div></div></div>
+
+      <div class="task-item" data-id="pp2" onclick="toggleDetail(this)">
+        <div class="drag-handle"><span></span><span></span><span></span></div>
+        <div class="checkbox" onclick="event.stopPropagation(); toggleCheck(this)"></div>
+        <div class="task-content"><div class="task-title">Сдать анализы</div></div>
+      </div>
+      <div class="task-detail" data-for="pp2"><div class="task-detail-inner"><textarea class="detail-notes" rows="2" placeholder="Заметки..."></textarea><div class="detail-delete" onclick="event.stopPropagation(); deleteTask(this)">Удалить задачу</div></div></div>
+
+      <div class="task-item" data-id="pp3" onclick="toggleDetail(this)">
+        <div class="drag-handle"><span></span><span></span><span></span></div>
+        <div class="checkbox" onclick="event.stopPropagation(); toggleCheck(this)"></div>
+        <div class="task-content"><div class="task-title">Наладить режим сна</div></div>
+      </div>
+      <div class="task-detail" data-for="pp3"><div class="task-detail-inner"><textarea class="detail-notes" rows="2" placeholder="Заметки..."></textarea><div class="detail-delete" onclick="event.stopPropagation(); deleteTask(this)">Удалить задачу</div></div></div>
+
+      <div class="section-header">Дом</div>
+      <div class="task-item" data-id="pp4" onclick="toggleDetail(this)">
+        <div class="drag-handle"><span></span><span></span><span></span></div>
+        <div class="checkbox checked" onclick="event.stopPropagation(); toggleCheck(this)"></div>
+        <div class="task-content"><div class="task-title" style="text-decoration:line-through;color:var(--text-tertiary)">Купить новые полотенца</div></div>
+      </div>
+      <div class="task-detail" data-for="pp4"><div class="task-detail-inner"><textarea class="detail-notes" rows="2" placeholder="Заметки..."></textarea><div class="detail-delete" onclick="event.stopPropagation(); deleteTask(this)">Удалить задачу</div></div></div>
+
+      <div class="task-item" data-id="pp5" onclick="toggleDetail(this)">
+        <div class="drag-handle"><span></span><span></span><span></span></div>
+        <div class="checkbox" onclick="event.stopPropagation(); toggleCheck(this)"></div>
+        <div class="task-content"><div class="task-title">Повесить картины</div></div>
+      </div>
+      <div class="task-detail" data-for="pp5"><div class="task-detail-inner"><textarea class="detail-notes" rows="2" placeholder="Заметки..."></textarea><div class="detail-delete" onclick="event.stopPropagation(); deleteTask(this)">Удалить задачу</div></div></div>
+
+      <div class="task-item" data-id="pp6" onclick="toggleDetail(this)">
+        <div class="drag-handle"><span></span><span></span><span></span></div>
+        <div class="checkbox checked" onclick="event.stopPropagation(); toggleCheck(this)"></div>
+        <div class="task-content"><div class="task-title" style="text-decoration:line-through;color:var(--text-tertiary)">Заказать фильтр для воды</div></div>
+      </div>
+      <div class="task-detail" data-for="pp6"><div class="task-detail-inner"><textarea class="detail-notes" rows="2" placeholder="Заметки..."></textarea><div class="detail-delete" onclick="event.stopPropagation(); deleteTask(this)">Удалить задачу</div></div></div>
+
+      <div class="section-header">Развитие</div>
+      <div class="task-item" data-id="pp7" onclick="toggleDetail(this)">
+        <div class="drag-handle"><span></span><span></span><span></span></div>
+        <div class="checkbox" onclick="event.stopPropagation(); toggleCheck(this)"></div>
+        <div class="task-content"><div class="task-title">Пройти курс по фотографии</div></div>
+      </div>
+      <div class="task-detail" data-for="pp7"><div class="task-detail-inner"><textarea class="detail-notes" rows="2" placeholder="Заметки..."></textarea><div class="detail-delete" onclick="event.stopPropagation(); deleteTask(this)">Удалить задачу</div></div></div>
+
+      <div class="task-item" data-id="pp8" onclick="toggleDetail(this)">
+        <div class="drag-handle"><span></span><span></span><span></span></div>
+        <div class="checkbox" onclick="event.stopPropagation(); toggleCheck(this)"></div>
+        <div class="task-content"><div class="task-title">Прочитать 12 книг за год</div></div>
+      </div>
+      <div class="task-detail" data-for="pp8"><div class="task-detail-inner"><textarea class="detail-notes" rows="2" placeholder="Заметки..."></textarea><div class="detail-delete" onclick="event.stopPropagation(); deleteTask(this)">Удалить задачу</div></div></div>
+
+      <div class="inline-add" onclick="openInlineForm(this)">
+        <div class="plus">+</div>
+        <span>Новая задача</span>
+      </div>
+      <div class="inline-form" id="form-project-personal">
+        <div class="inline-form-inner">
+          <input type="text" placeholder="Что нужно сделать?" class="new-task-input" onkeydown="if(event.key==='Enter')saveInlineTask(this)">
+          <textarea placeholder="Заметки..."></textarea>
+          <div class="inline-form-actions">
+            <button class="form-btn cancel" onclick="closeInlineForm(this)">Отмена</button>
+            <button class="form-btn save" onclick="saveInlineTask(this)">Сохранить</button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- SCREEN: Проект Работа -->
+    <div class="screen" id="screen-project-work">
+      <div class="screen-header">
+        <div class="menu-btn" onclick="openSidebar()">
+          <span></span><span></span><span></span>
+        </div>
+        <div class="header-actions"></div>
+      </div>
+      <div class="screen-title" style="display:flex;align-items:center;gap:10px">
+        <span style="width:12px;height:12px;border-radius:50%;background:#34C759;display:inline-block"></span>
+        Работа
+      </div>
+      <div class="screen-subtitle">1 из 4 задач выполнено</div>
+
+      <div class="progress-bar-container">
+        <div class="progress-bar"><div class="progress-fill" style="width:25%"></div></div>
+      </div>
+
+      <div class="section-header">Текущий спринт</div>
+      <div class="task-item" data-id="pw1" onclick="toggleDetail(this)">
+        <div class="drag-handle"><span></span><span></span><span></span></div>
+        <div class="checkbox checked" onclick="event.stopPropagation(); toggleCheck(this)"></div>
+        <div class="task-content"><div class="task-title" style="text-decoration:line-through;color:var(--text-tertiary)">Настроить CI/CD</div></div>
+      </div>
+      <div class="task-detail" data-for="pw1"><div class="task-detail-inner"><textarea class="detail-notes" rows="2" placeholder="Заметки..."></textarea><div class="detail-delete" onclick="event.stopPropagation(); deleteTask(this)">Удалить задачу</div></div></div>
+
+      <div class="task-item" data-id="pw2" onclick="toggleDetail(this)">
+        <div class="drag-handle"><span></span><span></span><span></span></div>
+        <div class="checkbox" onclick="event.stopPropagation(); toggleCheck(this)"></div>
+        <div class="task-content"><div class="task-title">Ревью кода Алексея</div></div>
+      </div>
+      <div class="task-detail" data-for="pw2"><div class="task-detail-inner"><textarea class="detail-notes" rows="2" placeholder="Заметки..."></textarea><div class="detail-delete" onclick="event.stopPropagation(); deleteTask(this)">Удалить задачу</div></div></div>
+
+      <div class="task-item" data-id="pw3" onclick="toggleDetail(this)">
+        <div class="drag-handle"><span></span><span></span><span></span></div>
+        <div class="checkbox" onclick="event.stopPropagation(); toggleCheck(this)"></div>
+        <div class="task-content"><div class="task-title">Написать тесты для API</div></div>
+      </div>
+      <div class="task-detail" data-for="pw3"><div class="task-detail-inner"><textarea class="detail-notes" rows="2" placeholder="Заметки..."></textarea><div class="detail-delete" onclick="event.stopPropagation(); deleteTask(this)">Удалить задачу</div></div></div>
+
+      <div class="section-header">Бэклог</div>
+      <div class="task-item" data-id="pw4" onclick="toggleDetail(this)">
+        <div class="drag-handle"><span></span><span></span><span></span></div>
+        <div class="checkbox" onclick="event.stopPropagation(); toggleCheck(this)"></div>
+        <div class="task-content"><div class="task-title">Оптимизация базы данных</div></div>
+      </div>
+      <div class="task-detail" data-for="pw4"><div class="task-detail-inner"><textarea class="detail-notes" rows="2" placeholder="Заметки..."></textarea><div class="detail-delete" onclick="event.stopPropagation(); deleteTask(this)">Удалить задачу</div></div></div>
+
+      <div class="inline-add" onclick="openInlineForm(this)">
+        <div class="plus">+</div>
+        <span>Новая задача</span>
+      </div>
+      <div class="inline-form" id="form-project-work">
+        <div class="inline-form-inner">
+          <input type="text" placeholder="Что нужно сделать?" class="new-task-input" onkeydown="if(event.key==='Enter')saveInlineTask(this)">
+          <textarea placeholder="Заметки..."></textarea>
+          <div class="inline-form-actions">
+            <button class="form-btn cancel" onclick="closeInlineForm(this)">Отмена</button>
+            <button class="form-btn save" onclick="saveInlineTask(this)">Сохранить</button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- SCREEN: Проект Учёба -->
+    <div class="screen" id="screen-project-study">
+      <div class="screen-header">
+        <div class="menu-btn" onclick="openSidebar()">
+          <span></span><span></span><span></span>
+        </div>
+        <div class="header-actions"></div>
+      </div>
+      <div class="screen-title" style="display:flex;align-items:center;gap:10px">
+        <span style="width:12px;height:12px;border-radius:50%;background:#FF9500;display:inline-block"></span>
+        Учёба
+      </div>
+      <div class="screen-subtitle">0 из 3 задач выполнено</div>
+      <div class="progress-bar-container">
+        <div class="progress-bar"><div class="progress-fill" style="width:0%"></div></div>
+      </div>
+
+      <div class="task-item" data-id="ps1" onclick="toggleDetail(this)">
+        <div class="drag-handle"><span></span><span></span><span></span></div>
+        <div class="checkbox" onclick="event.stopPropagation(); toggleCheck(this)"></div>
+        <div class="task-content"><div class="task-title">Подготовиться к экзамену</div></div>
+      </div>
+      <div class="task-detail" data-for="ps1"><div class="task-detail-inner"><textarea class="detail-notes" rows="2" placeholder="Заметки..."></textarea><div class="detail-delete" onclick="event.stopPropagation(); deleteTask(this)">Удалить задачу</div></div></div>
+
+      <div class="task-item" data-id="ps2" onclick="toggleDetail(this)">
+        <div class="drag-handle"><span></span><span></span><span></span></div>
+        <div class="checkbox" onclick="event.stopPropagation(); toggleCheck(this)"></div>
+        <div class="task-content"><div class="task-title">Написать конспект лекции</div></div>
+      </div>
+      <div class="task-detail" data-for="ps2"><div class="task-detail-inner"><textarea class="detail-notes" rows="2" placeholder="Заметки..."></textarea><div class="detail-delete" onclick="event.stopPropagation(); deleteTask(this)">Удалить задачу</div></div></div>
+
+      <div class="task-item" data-id="ps3" onclick="toggleDetail(this)">
+        <div class="drag-handle"><span></span><span></span><span></span></div>
+        <div class="checkbox" onclick="event.stopPropagation(); toggleCheck(this)"></div>
+        <div class="task-content"><div class="task-title">Сдать домашнее задание</div></div>
+      </div>
+      <div class="task-detail" data-for="ps3"><div class="task-detail-inner"><textarea class="detail-notes" rows="2" placeholder="Заметки..."></textarea><div class="detail-delete" onclick="event.stopPropagation(); deleteTask(this)">Удалить задачу</div></div></div>
+
+      <div class="inline-add" onclick="openInlineForm(this)">
+        <div class="plus">+</div>
+        <span>Новая задача</span>
+      </div>
+      <div class="inline-form" id="form-project-study">
+        <div class="inline-form-inner">
+          <input type="text" placeholder="Что нужно сделать?" class="new-task-input" onkeydown="if(event.key==='Enter')saveInlineTask(this)">
+          <textarea placeholder="Заметки..."></textarea>
+          <div class="inline-form-actions">
+            <button class="form-btn cancel" onclick="closeInlineForm(this)">Отмена</button>
+            <button class="form-btn save" onclick="saveInlineTask(this)">Сохранить</button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+  </div><!-- /main-container -->
+</div><!-- /phone -->
+
+<button class="dark-toggle" onclick="toggleDarkMode()">Тёмная тема</button>
+
+<script>
+// State
+let currentScreen = 'today';
+let taskIdCounter = 100;
+const trashItems = [];
+
+// Sidebar
+function openSidebar() {
+  document.getElementById('sidebar').classList.add('open');
+  document.getElementById('sidebarOverlay').classList.add('active');
+}
+function closeSidebar() {
+  document.getElementById('sidebar').classList.remove('open');
+  document.getElementById('sidebarOverlay').classList.remove('active');
+}
+
+// Navigation
+function navigate(screen) {
+  closeSidebar();
+  document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+  document.getElementById('screen-' + screen).classList.add('active');
+
+  // Update sidebar active
+  document.querySelectorAll('.sidebar-item, .sidebar-project').forEach(i => i.classList.remove('active'));
+  const item = document.querySelector(`[data-screen="${screen}"]`);
+  if (item) item.classList.add('active');
+
+  currentScreen = screen;
+}
+
+// Checkbox toggle
+function toggleCheck(el) {
+  const taskItem = el.closest('.task-item');
+  const titleEl = taskItem.querySelector('.task-title');
+
+  if (el.classList.contains('checked')) {
+    el.classList.remove('checked');
+    taskItem.classList.remove('completed', 'fading');
+    titleEl.style.textDecoration = '';
+    titleEl.style.color = '';
+  } else {
+    el.classList.add('checked');
+    taskItem.classList.add('fading');
+    setTimeout(() => {
+      taskItem.classList.add('completed');
+      titleEl.style.textDecoration = 'line-through';
+      titleEl.style.color = 'var(--text-tertiary)';
+    }, 300);
+  }
+  updateCounters();
+}
+
+// Subtask toggle
+function toggleSubtask(el) {
+  const item = el.closest('.subtask-item');
+  if (el.classList.contains('checked')) {
+    el.classList.remove('checked');
+    item.classList.remove('completed');
+  } else {
+    el.classList.add('checked');
+    item.classList.add('completed');
+  }
+}
+
+// Task detail toggle
+function toggleDetail(taskItem) {
+  const id = taskItem.dataset.id;
+  const detail = document.querySelector(`.task-detail[data-for="${id}"]`);
+  if (!detail) return;
+
+  // Close others first
+  document.querySelectorAll('.task-detail.open').forEach(d => {
+    if (d !== detail) d.classList.remove('open');
+  });
+
+  detail.classList.toggle('open');
+}
+
+// Inline form
+function openInlineForm(el) {
+  const form = el.nextElementSibling;
+  if (form && form.classList.contains('inline-form')) {
+    form.classList.add('open');
+    el.style.display = 'none';
+    setTimeout(() => {
+      const input = form.querySelector('.new-task-input');
+      if (input) input.focus();
+    }, 100);
+  }
+}
+
+function closeInlineForm(btn) {
+  const form = btn.closest('.inline-form');
+  form.classList.remove('open');
+  // Reset fields
+  form.querySelectorAll('input, textarea').forEach(f => f.value = '');
+  form.querySelectorAll('.form-chip.selected').forEach(c => c.classList.remove('selected'));
+  // Show add button
+  const addBtn = form.previousElementSibling;
+  if (addBtn) addBtn.style.display = '';
+}
+
+function saveInlineTask(btn) {
+  const form = btn.closest('.inline-form');
+  const input = form.querySelector('.new-task-input');
+  const title = input.value.trim();
+  if (!title) { input.focus(); return; }
+
+  const id = 'task' + (++taskIdCounter);
+
+  // Create task HTML
+  const taskHTML = `
+    <div class="task-item" data-id="${id}" onclick="toggleDetail(this)">
+      <div class="drag-handle"><span></span><span></span><span></span></div>
+      <div class="checkbox" onclick="event.stopPropagation(); toggleCheck(this)"></div>
+      <div class="task-content"><div class="task-title">${escapeHtml(title)}</div></div>
+    </div>
+    <div class="task-detail" data-for="${id}">
+      <div class="task-detail-inner">
+        <textarea class="detail-notes" rows="2" placeholder="Заметки..."></textarea>
+        <div class="detail-delete" onclick="event.stopPropagation(); deleteTask(this)">Удалить задачу</div>
+      </div>
+    </div>
+  `;
+
+  // Insert before the inline-add button
+  const addBtn = form.previousElementSibling;
+  addBtn.insertAdjacentHTML('beforebegin', taskHTML);
+
+  closeInlineForm(btn);
+  updateCounters();
+}
+
+function escapeHtml(str) {
+  const div = document.createElement('div');
+  div.textContent = str;
+  return div.innerHTML;
+}
+
+// Delete task
+function deleteTask(el) {
+  const detailInner = el.closest('.task-detail-inner');
+  const detail = el.closest('.task-detail');
+  const taskId = detail.dataset.for;
+  const taskItem = document.querySelector(`.task-item[data-id="${taskId}"]`);
+
+  if (taskItem) {
+    const title = taskItem.querySelector('.task-title').textContent;
+    trashItems.push(title);
+
+    taskItem.style.opacity = '0';
+    taskItem.style.maxHeight = '0';
+    taskItem.style.overflow = 'hidden';
+    taskItem.style.transition = 'all 0.3s ease';
+    detail.classList.remove('open');
+    detail.style.transition = 'all 0.3s ease';
+
+    setTimeout(() => {
+      taskItem.remove();
+      detail.remove();
+      updateCounters();
+      updateTrash();
+    }, 300);
+  }
+}
+
+// Update trash screen
+function updateTrash() {
+  const list = document.getElementById('trash-list');
+  const empty = document.getElementById('trash-empty');
+  if (trashItems.length === 0) {
+    list.innerHTML = '';
+    empty.style.display = '';
+  } else {
+    empty.style.display = 'none';
+    list.innerHTML = trashItems.map(t => `
+      <div class="task-item" style="opacity:0.6">
+        <div class="checkbox checked" style="pointer-events:none"></div>
+        <div class="task-content"><div class="task-title" style="text-decoration:line-through;color:var(--text-tertiary)">${escapeHtml(t)}</div></div>
+      </div>
+    `).join('');
+  }
+}
+
+// Counter updates
+function updateCounters() {
+  // Today count
+  const todayTasks = document.querySelectorAll('#screen-today .task-item:not(.completed)');
+  const todayCount = Array.from(todayTasks).filter(t => !t.querySelector('.checkbox.checked')).length;
+  document.getElementById('todayBadge').textContent = todayCount;
+
+  // Inbox count
+  const inboxTasks = document.querySelectorAll('#screen-inbox .task-item');
+  const inboxCount = Array.from(inboxTasks).filter(t => !t.querySelector('.checkbox.checked')).length;
+  document.getElementById('inboxBadge').textContent = inboxCount;
+  document.getElementById('inboxSubtitle').textContent = inboxCount + ' задач';
+
+  // Personal project
+  updateProjectProgress('screen-project-personal', 'personal-progress', 'personal-progress-bar');
+}
+
+function updateProjectProgress(screenId, labelId, barId) {
+  const screen = document.getElementById(screenId);
+  if (!screen) return;
+  const total = screen.querySelectorAll('.task-item').length;
+  const done = screen.querySelectorAll('.task-item .checkbox.checked').length;
+  const label = document.getElementById(labelId);
+  const bar = document.getElementById(barId);
+  if (label) label.textContent = done + ' из ' + total + ' задач выполнено';
+  if (bar) bar.style.width = (total > 0 ? (done / total * 100) : 0) + '%';
+}
+
+// Calendar strip
+function buildCalendar() {
+  const strip = document.getElementById('calStrip');
+  const days = ['Вс','Пн','Вт','Ср','Чт','Пт','Сб'];
+  const today = new Date(2026, 2, 18); // March 18, 2026 = Wednesday
+  let html = '';
+
+  for (let i = -3; i < 11; i++) {
+    const d = new Date(today);
+    d.setDate(d.getDate() + i);
+    const isToday = i === 0;
+    const cls = isToday ? 'cal-day today active' : 'cal-day';
+    html += `<div class="${cls}" onclick="selectCalDay(this)">
+      <span class="weekday">${days[d.getDay()]}</span>
+      <span class="day-num">${d.getDate()}</span>
+    </div>`;
+  }
+  strip.innerHTML = html;
+}
+
+function selectCalDay(el) {
+  document.querySelectorAll('.cal-day').forEach(d => d.classList.remove('active'));
+  el.classList.add('active');
+
+  // Show/hide tasks based on selection (demo: show tasks only for "today")
+  const isToday = el.classList.contains('today');
+  const tasks = document.getElementById('planned-tasks');
+  const empty = document.getElementById('planned-empty');
+  if (isToday) {
+    tasks.style.display = '';
+    empty.style.display = 'none';
+  } else {
+    tasks.style.display = 'none';
+    empty.style.display = '';
+  }
+}
+
+// Dark mode
+function toggleDarkMode() {
+  document.getElementById('phone').classList.toggle('dark');
+  const btn = document.querySelector('.dark-toggle');
+  if (document.getElementById('phone').classList.contains('dark')) {
+    btn.textContent = 'Светлая тема';
+  } else {
+    btn.textContent = 'Тёмная тема';
+  }
+}
+
+// Touch swipe for sidebar
+let touchStartX = 0;
+const mc = document.querySelector('.main-container');
+mc.addEventListener('touchstart', e => {
+  touchStartX = e.touches[0].clientX;
+}, { passive: true });
+mc.addEventListener('touchend', e => {
+  const diff = e.changedTouches[0].clientX - touchStartX;
+  if (diff > 80 && touchStartX < 50) openSidebar();
+  if (diff < -80 && document.getElementById('sidebar').classList.contains('open')) closeSidebar();
+}, { passive: true });
+
+// Init
+buildCalendar();
+updateCounters();
+</script>
+
+</body>
+</html>

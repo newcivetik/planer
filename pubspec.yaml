@@ -1,0 +1,60 @@
+name: planer
+description: "Удобный планер — приложение для планирования задач"
+publish_to: 'none'
+version: 1.0.0+1
+
+environment:
+  sdk: ^3.11.1
+
+dependencies:
+  flutter:
+    sdk: flutter
+  flutter_localizations:
+    sdk: flutter
+
+  cupertino_icons: ^1.0.8
+
+  # State Management
+  flutter_riverpod: ^2.6.1
+  riverpod_annotation: ^2.6.1
+
+  # Navigation
+  go_router: ^14.8.1
+
+  # Database
+  drift: ^2.24.1
+  drift_flutter: ^0.2.4
+  sqlite3_flutter_libs: ^0.5.30
+  path_provider: ^2.1.5
+  path: ^1.9.1
+
+  # UI
+  flutter_slidable: ^3.1.1
+  percent_indicator: ^4.2.4
+  intl: ^0.20.2
+  uuid: ^4.5.1
+  flutter_animate: ^4.5.2
+
+  # Notifications
+  flutter_local_notifications: ^18.0.1
+  timezone: ^0.10.0
+
+  # Attachments
+  image_picker: ^1.1.2
+  file_picker: ^8.1.7
+
+  # Home Screen Widgets
+  home_widget: ^0.7.0
+
+  # Settings
+  shared_preferences: ^2.5.3
+
+dev_dependencies:
+  flutter_test:
+    sdk: flutter
+  flutter_lints: ^6.0.0
+  drift_dev: ^2.24.1
+  build_runner: ^2.4.15
+
+flutter:
+  uses-material-design: true

@@ -1,0 +1,1564 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+<title>Forest Planner 🌿</title>
+<link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800&display=swap" rel="stylesheet">
+<style>
+:root {
+  --sage: #D5E8D4;
+  --cream: #FFF8E7;
+  --mushroom: #E8D5C4;
+  --berry: #E8B4B8;
+  --bark: #5D4E3C;
+  --bark-light: #8B7355;
+  --leaf-dark: #7AB06E;
+  --leaf-bright: #A8D5A2;
+  --bg: #F5F0E8;
+  --card: #FFFFFF;
+  --text: #3D3226;
+  --text-secondary: #7A6B5D;
+  --shadow: rgba(93, 78, 60, 0.1);
+  --nav-bg: rgba(255, 248, 231, 0.95);
+  --modal-bg: #FFFFFF;
+  --input-bg: #F5F0E8;
+  --today-marker: #7AB06E;
+  --firefly: transparent;
+}
+
+.dark-mode {
+  --sage: #2D4A2D;
+  --cream: #1A2F1A;
+  --mushroom: #3A2E22;
+  --berry: #5A3040;
+  --bark: #C4B89A;
+  --bark-light: #A89A7C;
+  --leaf-dark: #4A7A44;
+  --leaf-bright: #3D6B37;
+  --bg: #0F1F0F;
+  --card: #1A2F1A;
+  --text: #D5E8D4;
+  --text-secondary: #8BAA82;
+  --shadow: rgba(0, 0, 0, 0.3);
+  --nav-bg: rgba(26, 47, 26, 0.95);
+  --modal-bg: #1A2F1A;
+  --input-bg: #0F1F0F;
+  --today-marker: #5A9A54;
+  --firefly: #E8E060;
+}
+
+* { margin: 0; padding: 0; box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+
+body {
+  font-family: 'Nunito', sans-serif;
+  background: var(--bg);
+  color: var(--text);
+  overflow: hidden;
+  user-select: none;
+}
+
+.phone-frame {
+  width: 375px;
+  height: 812px;
+  margin: auto;
+  position: relative;
+  overflow: hidden;
+  background: var(--bg);
+}
+
+/* === FALLING LEAVES === */
+.leaves-container {
+  position: fixed;
+  top: 0; left: 0; right: 0; bottom: 0;
+  pointer-events: none;
+  z-index: 0;
+  overflow: hidden;
+}
+
+.falling-leaf {
+  position: absolute;
+  top: -40px;
+  font-size: 20px;
+  animation: leafFall linear infinite;
+  opacity: 0.5;
+}
+
+@keyframes leafFall {
+  0% { transform: translateY(-40px) rotate(0deg) translateX(0); opacity: 0; }
+  10% { opacity: 0.5; }
+  90% { opacity: 0.4; }
+  100% { transform: translateY(850px) rotate(720deg) translateX(80px); opacity: 0; }
+}
+
+/* === FIREFLIES (dark mode) === */
+.fireflies-container {
+  position: fixed;
+  top: 0; left: 0; right: 0; bottom: 0;
+  pointer-events: none;
+  z-index: 1;
+  display: none;
+}
+
+.dark-mode .fireflies-container { display: block; }
+
+.firefly {
+  position: absolute;
+  width: 4px;
+  height: 4px;
+  border-radius: 50%;
+  background: #E8E060;
+  box-shadow: 0 0 8px 3px rgba(232, 224, 96, 0.4), 0 0 16px 6px rgba(232, 224, 96, 0.2);
+  animation: fireflyFloat ease-in-out infinite;
+}
+
+@keyframes fireflyFloat {
+  0%, 100% { opacity: 0; transform: translate(0, 0); }
+  25% { opacity: 1; }
+  50% { opacity: 0.8; transform: translate(30px, -20px); }
+  75% { opacity: 1; }
+}
+
+/* === SCREENS === */
+.screen {
+  position: absolute;
+  top: 0; left: 0; right: 0; bottom: 70px;
+  overflow-y: auto;
+  overflow-x: hidden;
+  padding: 0 0 20px 0;
+  opacity: 0;
+  transform: translateY(10px);
+  transition: opacity 0.3s, transform 0.3s;
+  pointer-events: none;
+  z-index: 2;
+  -webkit-overflow-scrolling: touch;
+}
+
+.screen.active {
+  opacity: 1;
+  transform: translateY(0);
+  pointer-events: auto;
+}
+
+.screen::-webkit-scrollbar { display: none; }
+
+/* === BOTTOM NAV === */
+.bottom-nav {
+  position: absolute;
+  bottom: 0; left: 0; right: 0;
+  height: 70px;
+  background: var(--nav-bg);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  display: flex;
+  justify-content: space-around;
+  align-items: center;
+  border-top: 1px solid rgba(93, 78, 60, 0.1);
+  z-index: 50;
+  padding-bottom: 8px;
+}
+
+.nav-item {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 2px;
+  cursor: pointer;
+  padding: 6px 12px;
+  transition: transform 0.2s;
+  position: relative;
+}
+
+.nav-item:active { transform: scale(0.92); }
+
+.nav-item .nav-icon { font-size: 22px; }
+
+.nav-item .nav-label {
+  font-size: 10px;
+  font-weight: 600;
+  color: var(--text-secondary);
+  transition: color 0.2s;
+}
+
+.nav-item.active .nav-label { color: var(--leaf-dark); }
+
+.nav-item.active::after {
+  content: '';
+  position: absolute;
+  bottom: -2px;
+  width: 20px;
+  height: 3px;
+  border-radius: 2px;
+  background: var(--leaf-dark);
+}
+
+/* === HEADER AREA === */
+.header-forest {
+  background: linear-gradient(135deg, var(--sage), var(--leaf-bright));
+  padding: 50px 20px 24px;
+  border-radius: 0 0 28px 28px;
+  position: relative;
+  overflow: hidden;
+}
+
+.header-forest::before {
+  content: '';
+  position: absolute;
+  bottom: 0; left: 0; right: 0;
+  height: 40px;
+  background: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 375 40'%3E%3Cpath d='M0,20 Q30,5 60,18 T120,15 T180,20 T240,12 T300,18 T375,15 L375,40 L0,40 Z' fill='%23D5E8D4' opacity='0.3'/%3E%3C/svg%3E") no-repeat bottom center;
+  background-size: cover;
+}
+
+.greeting { font-size: 22px; font-weight: 800; color: var(--bark); margin-bottom: 4px; }
+.greeting-sub { font-size: 13px; color: var(--bark-light); font-weight: 600; }
+
+/* === TREE PROGRESS === */
+.tree-progress {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  margin: 16px 20px;
+  padding: 16px;
+  background: var(--card);
+  border-radius: 20px;
+  box-shadow: 0 4px 16px var(--shadow);
+}
+
+.tree-visual {
+  width: 60px;
+  height: 80px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: flex-end;
+  position: relative;
+}
+
+.tree-trunk {
+  width: 8px;
+  background: linear-gradient(to top, #8B6914, #A07B28);
+  border-radius: 4px;
+  transition: height 1s ease;
+}
+
+.tree-crown {
+  font-size: 30px;
+  transition: font-size 1s ease, transform 1s ease;
+  animation: treeSway 3s ease-in-out infinite;
+}
+
+@keyframes treeSway { 0%, 100% { transform: rotate(-2deg); } 50% { transform: rotate(2deg); } }
+
+.tree-info { flex: 1; }
+.tree-info .label { font-size: 12px; color: var(--text-secondary); font-weight: 600; }
+.tree-info .percent { font-size: 28px; font-weight: 800; color: var(--leaf-dark); }
+
+.progress-bar-bg {
+  width: 100%;
+  height: 8px;
+  background: var(--sage);
+  border-radius: 4px;
+  margin-top: 6px;
+  overflow: hidden;
+}
+
+.progress-bar-fill {
+  height: 100%;
+  background: linear-gradient(90deg, var(--leaf-dark), var(--leaf-bright));
+  border-radius: 4px;
+  transition: width 1s ease;
+}
+
+/* === STAT CARDS (wooden signs) === */
+.stat-signs {
+  display: flex;
+  gap: 10px;
+  padding: 0 20px;
+  margin: 12px 0;
+}
+
+.stat-sign {
+  flex: 1;
+  background: linear-gradient(135deg, var(--mushroom), #E0C8B0);
+  border-radius: 14px;
+  padding: 12px 8px;
+  text-align: center;
+  position: relative;
+  box-shadow: 0 3px 10px var(--shadow);
+  border: 2px solid rgba(93, 78, 60, 0.15);
+}
+
+.dark-mode .stat-sign {
+  background: linear-gradient(135deg, var(--mushroom), #2E2218);
+  border-color: rgba(196, 184, 154, 0.15);
+}
+
+.stat-sign::after {
+  content: '';
+  position: absolute;
+  bottom: -8px;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 6px;
+  height: 10px;
+  background: var(--bark-light);
+  border-radius: 0 0 3px 3px;
+}
+
+.stat-sign .stat-emoji { font-size: 18px; }
+.stat-sign .stat-val { font-size: 18px; font-weight: 800; color: var(--bark); }
+.stat-sign .stat-label { font-size: 10px; color: var(--text-secondary); font-weight: 600; }
+
+/* === SECTION HEADERS === */
+.section-header {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 16px 20px 8px;
+  font-size: 15px;
+  font-weight: 700;
+  color: var(--bark);
+}
+
+/* === TASK CARDS (leaf-shaped) === */
+.task-card {
+  margin: 6px 20px;
+  padding: 14px 16px;
+  background: var(--card);
+  border-radius: 20px 8px 20px 8px;
+  box-shadow: 0 2px 10px var(--shadow);
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  cursor: pointer;
+  transition: transform 0.2s, box-shadow 0.2s;
+  border-left: 3px solid var(--sage);
+  position: relative;
+  overflow: hidden;
+}
+
+.task-card:active { transform: scale(0.97); }
+
+.task-card.done {
+  opacity: 0.6;
+  border-left-color: var(--leaf-dark);
+}
+
+.task-card.done .task-text {
+  text-decoration: line-through;
+  color: var(--text-secondary);
+}
+
+.task-checkbox {
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  border: 2px solid var(--sage);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 14px;
+  flex-shrink: 0;
+  transition: all 0.3s;
+  background: transparent;
+  cursor: pointer;
+}
+
+.task-card.done .task-checkbox {
+  background: var(--leaf-dark);
+  border-color: var(--leaf-dark);
+  animation: sprout 0.4s ease;
+}
+
+@keyframes sprout {
+  0% { transform: scale(0.5); }
+  50% { transform: scale(1.3); }
+  100% { transform: scale(1); }
+}
+
+.task-content { flex: 1; min-width: 0; }
+.task-text { font-size: 14px; font-weight: 600; }
+.task-time { font-size: 11px; color: var(--text-secondary); margin-top: 2px; }
+.task-emoji { font-size: 20px; flex-shrink: 0; }
+
+/* === SCREEN 2 — TASKS === */
+.tasks-header {
+  padding: 50px 20px 20px;
+  background: linear-gradient(135deg, var(--cream), var(--sage));
+  border-radius: 0 0 28px 28px;
+}
+
+.tasks-title { font-size: 24px; font-weight: 800; color: var(--bark); }
+
+.category-tabs {
+  display: flex;
+  gap: 8px;
+  padding: 14px 20px;
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+}
+
+.category-tabs::-webkit-scrollbar { display: none; }
+
+.cat-tab {
+  padding: 8px 16px;
+  background: var(--card);
+  border-radius: 20px;
+  font-size: 13px;
+  font-weight: 700;
+  white-space: nowrap;
+  cursor: pointer;
+  border: 2px solid transparent;
+  transition: all 0.2s;
+  color: var(--text-secondary);
+}
+
+.cat-tab.active {
+  background: var(--sage);
+  border-color: var(--leaf-dark);
+  color: var(--bark);
+}
+
+.cat-tab:active { transform: scale(0.95); }
+
+/* Quick add */
+.quick-add {
+  margin: 8px 20px;
+  display: flex;
+  gap: 10px;
+  align-items: center;
+}
+
+.quick-add input {
+  flex: 1;
+  padding: 12px 16px;
+  border: 2px solid var(--sage);
+  border-radius: 16px;
+  font-family: 'Nunito', sans-serif;
+  font-size: 14px;
+  font-weight: 600;
+  background: var(--input-bg);
+  color: var(--text);
+  outline: none;
+  transition: border-color 0.2s;
+}
+
+.quick-add input::placeholder { color: var(--text-secondary); }
+.quick-add input:focus { border-color: var(--leaf-dark); }
+
+.quick-add-btn {
+  width: 44px;
+  height: 44px;
+  border-radius: 50%;
+  background: linear-gradient(135deg, var(--leaf-dark), var(--leaf-bright));
+  border: none;
+  color: white;
+  font-size: 20px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: transform 0.2s;
+  box-shadow: 0 4px 12px rgba(122, 176, 110, 0.3);
+}
+
+.quick-add-btn:active { transform: scale(0.9); }
+
+.empty-state {
+  text-align: center;
+  padding: 40px 20px;
+  color: var(--text-secondary);
+}
+
+.empty-state .empty-emoji { font-size: 48px; margin-bottom: 12px; }
+.empty-state .empty-text { font-size: 16px; font-weight: 700; }
+
+/* === SCREEN 3 — CALENDAR === */
+.calendar-header {
+  padding: 50px 20px 20px;
+  background: linear-gradient(135deg, var(--sage), var(--leaf-bright));
+  border-radius: 0 0 28px 28px;
+}
+
+.month-nav {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 14px;
+}
+
+.month-nav .month-title { font-size: 20px; font-weight: 800; color: var(--bark); }
+
+.month-nav button {
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  border: none;
+  background: rgba(255,255,255,0.5);
+  font-size: 16px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: transform 0.2s;
+}
+
+.month-nav button:active { transform: scale(0.9); }
+
+.cal-weekdays {
+  display: grid;
+  grid-template-columns: repeat(7, 1fr);
+  text-align: center;
+  font-size: 11px;
+  font-weight: 700;
+  color: var(--bark-light);
+  margin-bottom: 6px;
+}
+
+.cal-grid {
+  display: grid;
+  grid-template-columns: repeat(7, 1fr);
+  gap: 4px;
+  text-align: center;
+}
+
+.cal-day {
+  aspect-ratio: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  border-radius: 12px;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s;
+  position: relative;
+  color: var(--bark);
+}
+
+.cal-day:active { transform: scale(0.9); }
+.cal-day.empty { pointer-events: none; }
+
+.cal-day.today {
+  background: var(--today-marker);
+  color: white;
+  font-weight: 800;
+  box-shadow: 0 3px 10px rgba(122, 176, 110, 0.3);
+}
+
+.cal-day.selected {
+  background: var(--mushroom);
+  font-weight: 800;
+}
+
+.cal-day .dot {
+  position: absolute;
+  bottom: 3px;
+  font-size: 6px;
+}
+
+.cal-tasks-section {
+  padding: 16px 20px;
+}
+
+.cal-tasks-title {
+  font-size: 15px;
+  font-weight: 700;
+  color: var(--bark);
+  margin-bottom: 10px;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.ground-grow {
+  animation: growUp 0.4s ease;
+  transform-origin: bottom center;
+}
+
+@keyframes growUp {
+  0% { transform: scaleY(0); opacity: 0; }
+  100% { transform: scaleY(1); opacity: 1; }
+}
+
+/* === SCREEN 4 — PROFILE === */
+.profile-header {
+  padding: 50px 20px 24px;
+  background: linear-gradient(135deg, var(--mushroom), var(--cream));
+  border-radius: 0 0 28px 28px;
+  text-align: center;
+}
+
+.avatar-wrap {
+  width: 90px;
+  height: 90px;
+  border-radius: 50%;
+  margin: 0 auto 12px;
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 42px;
+  background: var(--card);
+  box-shadow: 0 4px 16px var(--shadow);
+}
+
+.avatar-wrap::before {
+  content: '';
+  position: absolute;
+  inset: -5px;
+  border-radius: 50%;
+  border: 3px solid var(--leaf-dark);
+  animation: vineGrow 3s ease-in-out infinite;
+}
+
+@keyframes vineGrow {
+  0%, 100% { border-color: var(--leaf-dark); transform: rotate(0deg); }
+  50% { border-color: var(--leaf-bright); transform: rotate(5deg); }
+}
+
+.avatar-wrap::after {
+  content: '🌿';
+  position: absolute;
+  top: -8px;
+  right: -4px;
+  font-size: 18px;
+  animation: leafWave 2s ease-in-out infinite;
+}
+
+@keyframes leafWave {
+  0%, 100% { transform: rotate(-10deg); }
+  50% { transform: rotate(10deg); }
+}
+
+.profile-name { font-size: 20px; font-weight: 800; color: var(--bark); }
+.profile-rank { font-size: 13px; color: var(--leaf-dark); font-weight: 700; margin-top: 2px; }
+
+.rank-progress {
+  margin: 12px auto 0;
+  width: 200px;
+}
+
+.rank-bar-bg {
+  width: 100%;
+  height: 6px;
+  background: rgba(93, 78, 60, 0.15);
+  border-radius: 3px;
+  overflow: hidden;
+}
+
+.rank-bar-fill {
+  height: 100%;
+  width: 65%;
+  background: linear-gradient(90deg, var(--leaf-dark), var(--leaf-bright));
+  border-radius: 3px;
+}
+
+.rank-labels {
+  display: flex;
+  justify-content: space-between;
+  font-size: 10px;
+  color: var(--text-secondary);
+  margin-top: 4px;
+  font-weight: 600;
+}
+
+/* Profile sections */
+.profile-section {
+  margin: 16px 20px;
+}
+
+.profile-section-title {
+  font-size: 15px;
+  font-weight: 700;
+  color: var(--bark);
+  margin-bottom: 10px;
+}
+
+.achievements-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 10px;
+}
+
+.achievement-card {
+  background: var(--card);
+  border-radius: 16px;
+  padding: 14px 8px;
+  text-align: center;
+  box-shadow: 0 2px 8px var(--shadow);
+  transition: transform 0.2s;
+  cursor: pointer;
+}
+
+.achievement-card:active { transform: scale(0.95); }
+.achievement-card .ach-emoji { font-size: 28px; margin-bottom: 4px; }
+.achievement-card .ach-name { font-size: 10px; font-weight: 700; color: var(--text-secondary); }
+
+.achievement-card.locked { opacity: 0.4; filter: grayscale(1); }
+
+.themes-row {
+  display: flex;
+  gap: 10px;
+  overflow-x: auto;
+  padding-bottom: 4px;
+  -webkit-overflow-scrolling: touch;
+}
+
+.themes-row::-webkit-scrollbar { display: none; }
+
+.theme-card {
+  min-width: 80px;
+  padding: 12px;
+  background: var(--card);
+  border-radius: 16px;
+  text-align: center;
+  box-shadow: 0 2px 8px var(--shadow);
+  cursor: pointer;
+  border: 2px solid transparent;
+  transition: all 0.2s;
+}
+
+.theme-card.active { border-color: var(--leaf-dark); }
+.theme-card:active { transform: scale(0.95); }
+.theme-card .theme-emoji { font-size: 24px; }
+.theme-card .theme-name { font-size: 11px; font-weight: 700; color: var(--text-secondary); margin-top: 4px; }
+
+/* Settings rows */
+.setting-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 14px 16px;
+  background: var(--card);
+  border-radius: 14px;
+  margin-bottom: 8px;
+  box-shadow: 0 2px 8px var(--shadow);
+}
+
+.setting-left {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.setting-left .s-emoji { font-size: 20px; }
+.setting-left .s-label { font-size: 14px; font-weight: 600; }
+
+/* Toggle switch */
+.toggle {
+  width: 48px;
+  height: 26px;
+  background: var(--sage);
+  border-radius: 13px;
+  position: relative;
+  cursor: pointer;
+  transition: background 0.3s;
+}
+
+.toggle.on { background: var(--leaf-dark); }
+
+.toggle::after {
+  content: '';
+  position: absolute;
+  width: 22px;
+  height: 22px;
+  background: white;
+  border-radius: 50%;
+  top: 2px;
+  left: 2px;
+  transition: transform 0.3s;
+  box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+}
+
+.toggle.on::after { transform: translateX(22px); }
+
+/* === MODAL === */
+.modal-overlay {
+  position: absolute;
+  inset: 0;
+  background: rgba(0,0,0,0.4);
+  z-index: 100;
+  display: none;
+  align-items: flex-end;
+  justify-content: center;
+  opacity: 0;
+  transition: opacity 0.3s;
+}
+
+.modal-overlay.show { display: flex; opacity: 1; }
+
+.modal-content {
+  width: 100%;
+  background: var(--modal-bg);
+  border-radius: 24px 24px 0 0;
+  padding: 20px;
+  animation: plantGrow 0.4s ease;
+  transform-origin: bottom center;
+  max-height: 70%;
+  overflow-y: auto;
+}
+
+@keyframes plantGrow {
+  0% { transform: scaleY(0) translateY(100%); opacity: 0; }
+  100% { transform: scaleY(1) translateY(0); opacity: 1; }
+}
+
+.modal-handle {
+  width: 40px;
+  height: 4px;
+  background: var(--sage);
+  border-radius: 2px;
+  margin: 0 auto 16px;
+}
+
+.modal-title {
+  font-size: 18px;
+  font-weight: 800;
+  color: var(--bark);
+  margin-bottom: 16px;
+  text-align: center;
+}
+
+.modal-input {
+  width: 100%;
+  padding: 14px 16px;
+  border: 2px solid var(--sage);
+  border-radius: 14px;
+  font-family: 'Nunito', sans-serif;
+  font-size: 14px;
+  font-weight: 600;
+  background: var(--input-bg);
+  color: var(--text);
+  outline: none;
+  margin-bottom: 12px;
+}
+
+.modal-input:focus { border-color: var(--leaf-dark); }
+
+.modal-row {
+  display: flex;
+  gap: 8px;
+  margin-bottom: 12px;
+  flex-wrap: wrap;
+}
+
+.modal-chip {
+  padding: 8px 14px;
+  background: var(--input-bg);
+  border-radius: 20px;
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+  border: 2px solid transparent;
+  transition: all 0.2s;
+  color: var(--text-secondary);
+}
+
+.modal-chip.active {
+  border-color: var(--leaf-dark);
+  background: var(--sage);
+  color: var(--bark);
+}
+
+.modal-chip:active { transform: scale(0.95); }
+
+.modal-btn {
+  width: 100%;
+  padding: 14px;
+  border: none;
+  border-radius: 16px;
+  background: linear-gradient(135deg, var(--leaf-dark), var(--leaf-bright));
+  color: white;
+  font-family: 'Nunito', sans-serif;
+  font-size: 15px;
+  font-weight: 700;
+  cursor: pointer;
+  transition: transform 0.2s;
+  box-shadow: 0 4px 16px rgba(122, 176, 110, 0.3);
+  margin-top: 8px;
+}
+
+.modal-btn:active { transform: scale(0.97); }
+
+/* === FAB === */
+.fab {
+  position: absolute;
+  bottom: 82px;
+  right: 20px;
+  width: 52px;
+  height: 52px;
+  border-radius: 50%;
+  background: linear-gradient(135deg, var(--leaf-dark), var(--leaf-bright));
+  border: none;
+  color: white;
+  font-size: 24px;
+  cursor: pointer;
+  z-index: 40;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 6px 20px rgba(122, 176, 110, 0.4);
+  transition: transform 0.2s;
+}
+
+.fab:active { transform: scale(0.9) rotate(90deg); }
+
+/* wood grain texture hint */
+.wood-texture {
+  background-image: repeating-linear-gradient(
+    90deg,
+    transparent,
+    transparent 20px,
+    rgba(93, 78, 60, 0.03) 20px,
+    rgba(93, 78, 60, 0.03) 21px
+  );
+}
+</style>
+</head>
+<body>
+<div class="phone-frame" id="app">
+  <!-- Falling Leaves -->
+  <div class="leaves-container" id="leavesContainer"></div>
+
+  <!-- Fireflies (dark mode) -->
+  <div class="fireflies-container" id="firefliesContainer"></div>
+
+  <!-- ========== SCREEN 1: TODAY ========== -->
+  <div class="screen active" id="screen-today">
+    <div class="header-forest">
+      <div class="greeting" id="greetingText">Доброе утро, лесной друг! 🦊</div>
+      <div class="greeting-sub">Среда, 18 марта</div>
+    </div>
+
+    <!-- Tree Progress -->
+    <div class="tree-progress">
+      <div class="tree-visual">
+        <div class="tree-crown" id="treeCrown">🌳</div>
+        <div class="tree-trunk" id="treeTrunk" style="height: 28px;"></div>
+      </div>
+      <div class="tree-info">
+        <div class="label">Рост леса сегодня</div>
+        <div class="percent" id="treePercent">38%</div>
+        <div class="progress-bar-bg">
+          <div class="progress-bar-fill" id="treeBar" style="width: 38%;"></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Stat Signs -->
+    <div class="stat-signs">
+      <div class="stat-sign">
+        <div class="stat-emoji">🌿</div>
+        <div class="stat-val" id="statTasks">8</div>
+        <div class="stat-label">Задачи</div>
+      </div>
+      <div class="stat-sign">
+        <div class="stat-emoji">✅</div>
+        <div class="stat-val" id="statDone">3</div>
+        <div class="stat-label">Собрано</div>
+      </div>
+      <div class="stat-sign">
+        <div class="stat-emoji">🔥</div>
+        <div class="stat-val">12</div>
+        <div class="stat-label">Дней</div>
+      </div>
+    </div>
+
+    <!-- Morning Tasks -->
+    <div class="section-header">🌅 Рассвет</div>
+    <div id="morningTasks"></div>
+
+    <!-- Afternoon Tasks -->
+    <div class="section-header">☀️ Полдень</div>
+    <div id="afternoonTasks"></div>
+
+    <!-- Evening Tasks -->
+    <div class="section-header">🌙 Сумерки</div>
+    <div id="eveningTasks"></div>
+  </div>
+
+  <!-- ========== SCREEN 2: TASKS ========== -->
+  <div class="screen" id="screen-tasks">
+    <div class="tasks-header">
+      <div class="tasks-title">Мои задачи 🌿</div>
+      <div class="greeting-sub" id="taskCount">8 задач на поляне</div>
+    </div>
+
+    <div class="category-tabs" id="categoryTabs">
+      <div class="cat-tab active" data-cat="all">🌲 Все</div>
+      <div class="cat-tab" data-cat="home">🏡 Дом</div>
+      <div class="cat-tab" data-cat="work">💼 Работа</div>
+      <div class="cat-tab" data-cat="study">📚 Учёба</div>
+      <div class="cat-tab" data-cat="shop">🛒 Запасы</div>
+    </div>
+
+    <div class="quick-add">
+      <input type="text" id="quickAddInput" placeholder="Что посадим сегодня? 🌱">
+      <button class="quick-add-btn" id="quickAddBtn">+</button>
+    </div>
+
+    <div id="tasksList"></div>
+    <div id="emptyState" class="empty-state" style="display:none;">
+      <div class="empty-emoji">🌻</div>
+      <div class="empty-text">Урожай собран!</div>
+    </div>
+  </div>
+
+  <!-- ========== SCREEN 3: CALENDAR ========== -->
+  <div class="screen" id="screen-calendar">
+    <div class="calendar-header">
+      <div class="month-nav">
+        <button id="prevMonth">◀</button>
+        <div class="month-title" id="monthTitle">Март 2026</div>
+        <button id="nextMonth">▶</button>
+      </div>
+      <div class="cal-weekdays">
+        <div>Пн</div><div>Вт</div><div>Ср</div><div>Чт</div><div>Пт</div><div>Сб</div><div>Вс</div>
+      </div>
+      <div class="cal-grid" id="calGrid"></div>
+    </div>
+
+    <div class="cal-tasks-section">
+      <div class="cal-tasks-title">🌱 Задачи на день</div>
+      <div id="calTasksList"></div>
+    </div>
+  </div>
+
+  <!-- ========== SCREEN 4: PROFILE ========== -->
+  <div class="screen" id="screen-profile">
+    <div class="profile-header">
+      <div class="avatar-wrap">🦊</div>
+      <div class="profile-name">Лесной друг</div>
+      <div class="profile-rank" id="profileRank">🌳 Дерево</div>
+      <div class="rank-progress">
+        <div class="rank-bar-bg"><div class="rank-bar-fill"></div></div>
+        <div class="rank-labels"><span>Дерево</span><span>Дуб</span></div>
+      </div>
+    </div>
+
+    <!-- Achievements -->
+    <div class="profile-section">
+      <div class="profile-section-title">Достижения 🏆</div>
+      <div class="achievements-grid">
+        <div class="achievement-card"><div class="ach-emoji">🌿</div><div class="ach-name">Первый росток</div></div>
+        <div class="achievement-card"><div class="ach-emoji">🍄</div><div class="ach-name">Грибник</div></div>
+        <div class="achievement-card"><div class="ach-emoji">🦊</div><div class="ach-name">Друг леса</div></div>
+        <div class="achievement-card"><div class="ach-emoji">🌳</div><div class="ach-name">Садовник</div></div>
+        <div class="achievement-card locked"><div class="ach-emoji">🦔</div><div class="ach-name">Ёжик-герой</div></div>
+        <div class="achievement-card locked"><div class="ach-emoji">🌻</div><div class="ach-name">Подсолнух</div></div>
+      </div>
+    </div>
+
+    <!-- Themes -->
+    <div class="profile-section">
+      <div class="profile-section-title">Сезоны 🎨</div>
+      <div class="themes-row" id="themesRow">
+        <div class="theme-card active" data-theme="forest"><div class="theme-emoji">🌲</div><div class="theme-name">Лес</div></div>
+        <div class="theme-card" data-theme="autumn"><div class="theme-emoji">🍂</div><div class="theme-name">Осень</div></div>
+        <div class="theme-card" data-theme="spring"><div class="theme-emoji">🌸</div><div class="theme-name">Весна</div></div>
+        <div class="theme-card" data-theme="winter"><div class="theme-emoji">❄️</div><div class="theme-name">Зима</div></div>
+      </div>
+    </div>
+
+    <!-- Settings -->
+    <div class="profile-section">
+      <div class="profile-section-title">Настройки ⚙️</div>
+      <div class="setting-row">
+        <div class="setting-left">
+          <span class="s-emoji">🌙</span>
+          <span class="s-label">Ночной лес</span>
+        </div>
+        <div class="toggle" id="darkToggle"></div>
+      </div>
+      <div class="setting-row">
+        <div class="setting-left">
+          <span class="s-emoji">🔔</span>
+          <span class="s-label">Уведомления</span>
+        </div>
+        <div class="toggle on" id="notifToggle"></div>
+      </div>
+      <div class="setting-row">
+        <div class="setting-left">
+          <span class="s-emoji">🍃</span>
+          <span class="s-label">Падающие листья</span>
+        </div>
+        <div class="toggle on" id="leavesToggle"></div>
+      </div>
+    </div>
+
+    <!-- Ranks list -->
+    <div class="profile-section" style="padding-bottom: 20px;">
+      <div class="profile-section-title">Ранги леса 🌲</div>
+      <div class="setting-row"><div class="setting-left"><span class="s-emoji">🌱</span><span class="s-label">Росток</span></div><span style="font-size:12px;color:var(--text-secondary);font-weight:600;">0 задач</span></div>
+      <div class="setting-row"><div class="setting-left"><span class="s-emoji">🌿</span><span class="s-label">Куст</span></div><span style="font-size:12px;color:var(--text-secondary);font-weight:600;">25 задач</span></div>
+      <div class="setting-row" style="border: 2px solid var(--leaf-dark);"><div class="setting-left"><span class="s-emoji">🌳</span><span class="s-label">Дерево</span></div><span style="font-size:12px;color:var(--leaf-dark);font-weight:700;">← Вы тут</span></div>
+      <div class="setting-row" style="opacity:0.5;"><div class="setting-left"><span class="s-emoji">🌳</span><span class="s-label">Дуб</span></div><span style="font-size:12px;color:var(--text-secondary);font-weight:600;">100 задач</span></div>
+      <div class="setting-row" style="opacity:0.35;"><div class="setting-left"><span class="s-emoji">🏔️</span><span class="s-label">Хранитель леса</span></div><span style="font-size:12px;color:var(--text-secondary);font-weight:600;">250 задач</span></div>
+    </div>
+  </div>
+
+  <!-- FAB -->
+  <button class="fab" id="fab">+</button>
+
+  <!-- Bottom Nav -->
+  <div class="bottom-nav">
+    <div class="nav-item active" data-screen="today">
+      <span class="nav-icon">🌿</span>
+      <span class="nav-label">Сегодня</span>
+    </div>
+    <div class="nav-item" data-screen="tasks">
+      <span class="nav-icon">🍄</span>
+      <span class="nav-label">Задачи</span>
+    </div>
+    <div class="nav-item" data-screen="calendar">
+      <span class="nav-icon">📅</span>
+      <span class="nav-label">Календарь</span>
+    </div>
+    <div class="nav-item" data-screen="profile">
+      <span class="nav-icon">🦊</span>
+      <span class="nav-label">Профиль</span>
+    </div>
+  </div>
+
+  <!-- Modal -->
+  <div class="modal-overlay" id="modalOverlay">
+    <div class="modal-content">
+      <div class="modal-handle"></div>
+      <div class="modal-title">Новое задание 🌱</div>
+      <input class="modal-input" id="modalTaskName" placeholder="Название задачи...">
+      <div style="font-size:13px;font-weight:700;color:var(--bark);margin-bottom:8px;">Категория</div>
+      <div class="modal-row" id="modalCats">
+        <div class="modal-chip active" data-cat="home">🏡 Дом</div>
+        <div class="modal-chip" data-cat="work">💼 Работа</div>
+        <div class="modal-chip" data-cat="study">📚 Учёба</div>
+        <div class="modal-chip" data-cat="shop">🛒 Запасы</div>
+      </div>
+      <div style="font-size:13px;font-weight:700;color:var(--bark);margin-bottom:8px;">Время суток</div>
+      <div class="modal-row" id="modalTime">
+        <div class="modal-chip active" data-time="morning">🌅 Рассвет</div>
+        <div class="modal-chip" data-time="afternoon">☀️ Полдень</div>
+        <div class="modal-chip" data-time="evening">🌙 Сумерки</div>
+      </div>
+      <div style="font-size:13px;font-weight:700;color:var(--bark);margin-bottom:8px;">Приоритет</div>
+      <div class="modal-row" id="modalPriority">
+        <div class="modal-chip" data-pri="low">🌿 Спокойно</div>
+        <div class="modal-chip active" data-pri="mid">🌻 Обычный</div>
+        <div class="modal-chip" data-pri="high">🔥 Срочно</div>
+      </div>
+      <button class="modal-btn" id="modalAddBtn">Посадить задачу 🌱</button>
+    </div>
+  </div>
+</div>
+
+<script>
+// ========== DATA ==========
+const defaultTasks = [
+  { id: 1, text: 'Утренняя прогулка по лесу', cat: 'home', time: 'morning', emoji: '🌲', done: false, hour: '07:00' },
+  { id: 2, text: 'Приготовить травяной чай', cat: 'home', time: 'morning', emoji: '🍵', done: true, hour: '08:00' },
+  { id: 3, text: 'Закончить отчёт по проекту', cat: 'work', time: 'morning', emoji: '📋', done: false, hour: '09:00' },
+  { id: 4, text: 'Прочитать главу учебника', cat: 'study', time: 'afternoon', emoji: '📖', done: true, hour: '12:00' },
+  { id: 5, text: 'Созвон с командой', cat: 'work', time: 'afternoon', emoji: '💬', done: false, hour: '14:00' },
+  { id: 6, text: 'Купить ягоды и мёд', cat: 'shop', time: 'afternoon', emoji: '🍯', done: true, hour: '16:00' },
+  { id: 7, text: 'Вечерняя медитация', cat: 'home', time: 'evening', emoji: '🧘', done: false, hour: '19:00' },
+  { id: 8, text: 'Полить цветы в саду', cat: 'home', time: 'evening', emoji: '🌻', done: false, hour: '20:00' },
+];
+
+let tasks = JSON.parse(JSON.stringify(defaultTasks));
+let currentScreen = 'today';
+let currentCat = 'all';
+let calMonth = 2; // March (0-indexed)
+let calYear = 2026;
+let selectedDay = 18;
+let darkMode = false;
+let leavesEnabled = true;
+let nextId = 20;
+
+// ========== FALLING LEAVES ==========
+const leafEmojis = ['🍂', '🍃', '🌿', '🍁'];
+function createLeaf() {
+  if (!leavesEnabled) return;
+  const container = document.getElementById('leavesContainer');
+  const leaf = document.createElement('div');
+  leaf.className = 'falling-leaf';
+  leaf.textContent = leafEmojis[Math.floor(Math.random() * leafEmojis.length)];
+  leaf.style.left = Math.random() * 375 + 'px';
+  leaf.style.fontSize = (14 + Math.random() * 14) + 'px';
+  leaf.style.animationDuration = (6 + Math.random() * 8) + 's';
+  leaf.style.animationDelay = '0s';
+  leaf.style.opacity = 0.3 + Math.random() * 0.3;
+  container.appendChild(leaf);
+  setTimeout(() => leaf.remove(), 15000);
+}
+setInterval(createLeaf, 1200);
+for (let i = 0; i < 5; i++) setTimeout(createLeaf, i * 300);
+
+// ========== FIREFLIES ==========
+function createFireflies() {
+  const container = document.getElementById('firefliesContainer');
+  container.innerHTML = '';
+  for (let i = 0; i < 15; i++) {
+    const ff = document.createElement('div');
+    ff.className = 'firefly';
+    ff.style.left = Math.random() * 350 + 'px';
+    ff.style.top = Math.random() * 750 + 'px';
+    ff.style.animationDuration = (3 + Math.random() * 4) + 's';
+    ff.style.animationDelay = Math.random() * 5 + 's';
+    container.appendChild(ff);
+  }
+}
+createFireflies();
+
+// ========== NAVIGATION ==========
+document.querySelectorAll('.nav-item').forEach(item => {
+  item.addEventListener('click', () => {
+    const screen = item.dataset.screen;
+    switchScreen(screen);
+  });
+});
+
+function switchScreen(screen) {
+  currentScreen = screen;
+  document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+  document.getElementById('screen-' + screen).classList.add('active');
+  document.querySelectorAll('.nav-item').forEach(n => {
+    n.classList.toggle('active', n.dataset.screen === screen);
+  });
+  if (screen === 'today') renderToday();
+  if (screen === 'tasks') renderTasks();
+  if (screen === 'calendar') renderCalendar();
+}
+
+// ========== GREETING ==========
+function updateGreeting() {
+  const h = new Date().getHours();
+  const el = document.getElementById('greetingText');
+  if (h < 6) el.textContent = 'Тихой ночи, лесной друг! 🌙';
+  else if (h < 12) el.textContent = 'Доброе утро, лесной друг! 🦊';
+  else if (h < 18) el.textContent = 'Добрый день, лесной друг! 🌻';
+  else el.textContent = 'Добрый вечер, лесной друг! 🦔';
+}
+updateGreeting();
+
+// ========== RENDER TODAY ==========
+function renderToday() {
+  const total = tasks.length;
+  const done = tasks.filter(t => t.done).length;
+  const pct = total > 0 ? Math.round((done / total) * 100) : 0;
+
+  document.getElementById('statTasks').textContent = total;
+  document.getElementById('statDone').textContent = done;
+  document.getElementById('treePercent').textContent = pct + '%';
+  document.getElementById('treeBar').style.width = pct + '%';
+
+  // Tree growth
+  const trunk = document.getElementById('treeTrunk');
+  const crown = document.getElementById('treeCrown');
+  const tH = 10 + (pct / 100) * 45;
+  trunk.style.height = tH + 'px';
+  if (pct < 25) { crown.textContent = '🌱'; crown.style.fontSize = '20px'; }
+  else if (pct < 50) { crown.textContent = '🌿'; crown.style.fontSize = '25px'; }
+  else if (pct < 75) { crown.textContent = '🌳'; crown.style.fontSize = '30px'; }
+  else { crown.textContent = '🌳'; crown.style.fontSize = '38px'; }
+
+  const sections = { morning: 'morningTasks', afternoon: 'afternoonTasks', evening: 'eveningTasks' };
+  Object.entries(sections).forEach(([time, containerId]) => {
+    const container = document.getElementById(containerId);
+    const timeTasks = tasks.filter(t => t.time === time);
+    container.innerHTML = timeTasks.map(t => taskCardHTML(t)).join('');
+  });
+
+  bindTaskClicks();
+}
+
+function taskCardHTML(t) {
+  return `<div class="task-card ${t.done ? 'done' : ''}" data-id="${t.id}">
+    <div class="task-checkbox">${t.done ? '🌿' : '🌱'}</div>
+    <div class="task-content">
+      <div class="task-text">${t.text}</div>
+      <div class="task-time">${t.hour || ''}</div>
+    </div>
+    <div class="task-emoji">${t.emoji}</div>
+  </div>`;
+}
+
+function bindTaskClicks() {
+  document.querySelectorAll('.task-card').forEach(card => {
+    card.addEventListener('click', () => {
+      const id = parseInt(card.dataset.id);
+      const task = tasks.find(t => t.id === id);
+      if (task) {
+        task.done = !task.done;
+        renderToday();
+        renderTasks();
+        if (currentScreen === 'calendar') renderCalendar();
+      }
+    });
+  });
+}
+
+// ========== RENDER TASKS (SCREEN 2) ==========
+function renderTasks() {
+  const filtered = currentCat === 'all' ? tasks : tasks.filter(t => t.cat === currentCat);
+  const container = document.getElementById('tasksList');
+  const empty = document.getElementById('emptyState');
+
+  const undone = filtered.filter(t => !t.done);
+  const doneList = filtered.filter(t => t.done);
+
+  if (filtered.length === 0) {
+    container.innerHTML = '';
+    empty.style.display = 'block';
+  } else {
+    empty.style.display = 'none';
+    container.innerHTML = undone.concat(doneList).map(t => taskCardHTML(t)).join('');
+  }
+
+  document.getElementById('taskCount').textContent = tasks.filter(t => !t.done).length + ' задач на поляне';
+  bindTaskClicks();
+}
+
+// Category tabs
+document.getElementById('categoryTabs').addEventListener('click', (e) => {
+  const tab = e.target.closest('.cat-tab');
+  if (!tab) return;
+  currentCat = tab.dataset.cat;
+  document.querySelectorAll('.cat-tab').forEach(t => t.classList.toggle('active', t.dataset.cat === currentCat));
+  renderTasks();
+});
+
+// Quick add
+document.getElementById('quickAddBtn').addEventListener('click', () => {
+  const input = document.getElementById('quickAddInput');
+  const val = input.value.trim();
+  if (!val) return;
+  const catEmojis = { home: '🏡', work: '💼', study: '📚', shop: '🛒', all: '🌿' };
+  tasks.push({
+    id: nextId++,
+    text: val,
+    cat: currentCat === 'all' ? 'home' : currentCat,
+    time: 'morning',
+    emoji: catEmojis[currentCat === 'all' ? 'home' : currentCat],
+    done: false,
+    hour: ''
+  });
+  input.value = '';
+  renderTasks();
+  renderToday();
+});
+
+document.getElementById('quickAddInput').addEventListener('keydown', (e) => {
+  if (e.key === 'Enter') document.getElementById('quickAddBtn').click();
+});
+
+// ========== RENDER CALENDAR ==========
+const monthNames = ['Январь', 'Февраль', 'Март', 'Апрель', 'Май', 'Июнь', 'Июль', 'Август', 'Сентябрь', 'Октябрь', 'Ноябрь', 'Декабрь'];
+
+function renderCalendar() {
+  document.getElementById('monthTitle').textContent = monthNames[calMonth] + ' ' + calYear;
+  const grid = document.getElementById('calGrid');
+  const firstDay = new Date(calYear, calMonth, 1).getDay();
+  const daysInMonth = new Date(calYear, calMonth + 1, 0).getDate();
+  const startDay = firstDay === 0 ? 6 : firstDay - 1; // Monday start
+
+  // Days with tasks (simulate some)
+  const taskDays = [2, 5, 8, 10, 14, 18, 20, 22, 25, 28];
+
+  let html = '';
+  for (let i = 0; i < startDay; i++) html += '<div class="cal-day empty"></div>';
+  for (let d = 1; d <= daysInMonth; d++) {
+    const isToday = d === 18 && calMonth === 2 && calYear === 2026;
+    const isSel = d === selectedDay && !isToday;
+    const hasTasks = taskDays.includes(d);
+    html += `<div class="cal-day ${isToday ? 'today' : ''} ${isSel ? 'selected' : ''}" data-day="${d}">
+      ${d}
+      ${hasTasks ? '<div class="dot">🍄</div>' : ''}
+    </div>`;
+  }
+  grid.innerHTML = html;
+
+  // Day click
+  grid.querySelectorAll('.cal-day:not(.empty)').forEach(day => {
+    day.addEventListener('click', () => {
+      selectedDay = parseInt(day.dataset.day);
+      renderCalendar();
+    });
+  });
+
+  renderCalTasks();
+}
+
+function renderCalTasks() {
+  const container = document.getElementById('calTasksList');
+  // Show some tasks for selected day
+  const dayTasks = tasks.slice(0, 3 + (selectedDay % 3));
+  container.innerHTML = dayTasks.map((t, i) => `
+    <div class="task-card ground-grow" style="animation-delay: ${i * 0.1}s;" data-id="${t.id}">
+      <div class="task-checkbox">${t.done ? '🌿' : '🌱'}</div>
+      <div class="task-content">
+        <div class="task-text">${t.text}</div>
+        <div class="task-time">${selectedDay} ${monthNames[calMonth]}</div>
+      </div>
+      <div class="task-emoji">${t.emoji}</div>
+    </div>
+  `).join('');
+
+  bindTaskClicks();
+}
+
+document.getElementById('prevMonth').addEventListener('click', () => {
+  calMonth--;
+  if (calMonth < 0) { calMonth = 11; calYear--; }
+  selectedDay = 1;
+  renderCalendar();
+});
+
+document.getElementById('nextMonth').addEventListener('click', () => {
+  calMonth++;
+  if (calMonth > 11) { calMonth = 0; calYear++; }
+  selectedDay = 1;
+  renderCalendar();
+});
+
+// ========== MODAL ==========
+const modalOverlay = document.getElementById('modalOverlay');
+
+document.getElementById('fab').addEventListener('click', () => {
+  modalOverlay.classList.add('show');
+  document.getElementById('modalTaskName').value = '';
+  document.getElementById('modalTaskName').focus();
+});
+
+modalOverlay.addEventListener('click', (e) => {
+  if (e.target === modalOverlay) modalOverlay.classList.remove('show');
+});
+
+// Modal chips
+document.querySelectorAll('#modalCats .modal-chip').forEach(chip => {
+  chip.addEventListener('click', () => {
+    document.querySelectorAll('#modalCats .modal-chip').forEach(c => c.classList.remove('active'));
+    chip.classList.add('active');
+  });
+});
+
+document.querySelectorAll('#modalTime .modal-chip').forEach(chip => {
+  chip.addEventListener('click', () => {
+    document.querySelectorAll('#modalTime .modal-chip').forEach(c => c.classList.remove('active'));
+    chip.classList.add('active');
+  });
+});
+
+document.querySelectorAll('#modalPriority .modal-chip').forEach(chip => {
+  chip.addEventListener('click', () => {
+    document.querySelectorAll('#modalPriority .modal-chip').forEach(c => c.classList.remove('active'));
+    chip.classList.add('active');
+  });
+});
+
+document.getElementById('modalAddBtn').addEventListener('click', () => {
+  const name = document.getElementById('modalTaskName').value.trim();
+  if (!name) return;
+  const cat = document.querySelector('#modalCats .modal-chip.active').dataset.cat;
+  const time = document.querySelector('#modalTime .modal-chip.active').dataset.time;
+  const catEmojis = { home: '🏡', work: '💼', study: '📚', shop: '🛒' };
+
+  tasks.push({
+    id: nextId++,
+    text: name,
+    cat: cat,
+    time: time,
+    emoji: catEmojis[cat] || '🌿',
+    done: false,
+    hour: ''
+  });
+
+  modalOverlay.classList.remove('show');
+  renderToday();
+  renderTasks();
+});
+
+// ========== DARK MODE ==========
+document.getElementById('darkToggle').addEventListener('click', function() {
+  this.classList.toggle('on');
+  darkMode = this.classList.contains('on');
+  document.querySelector('.phone-frame').classList.toggle('dark-mode', darkMode);
+  if (darkMode) createFireflies();
+});
+
+// ========== NOTIFICATIONS TOGGLE ==========
+document.getElementById('notifToggle').addEventListener('click', function() {
+  this.classList.toggle('on');
+});
+
+// ========== LEAVES TOGGLE ==========
+document.getElementById('leavesToggle').addEventListener('click', function() {
+  this.classList.toggle('on');
+  leavesEnabled = this.classList.contains('on');
+  if (!leavesEnabled) document.getElementById('leavesContainer').innerHTML = '';
+});
+
+// ========== THEMES ==========
+document.getElementById('themesRow').addEventListener('click', (e) => {
+  const card = e.target.closest('.theme-card');
+  if (!card) return;
+  document.querySelectorAll('.theme-card').forEach(c => c.classList.remove('active'));
+  card.classList.add('active');
+
+  const theme = card.dataset.theme;
+  const root = document.documentElement;
+  const frame = document.querySelector('.phone-frame');
+
+  // Reset dark mode class if switching themes
+  if (theme === 'forest') {
+    root.style.setProperty('--sage', darkMode ? '#2D4A2D' : '#D5E8D4');
+    root.style.setProperty('--cream', darkMode ? '#1A2F1A' : '#FFF8E7');
+    root.style.setProperty('--mushroom', darkMode ? '#3A2E22' : '#E8D5C4');
+    root.style.setProperty('--berry', darkMode ? '#5A3040' : '#E8B4B8');
+    root.style.setProperty('--leaf-dark', '#7AB06E');
+    root.style.setProperty('--leaf-bright', '#A8D5A2');
+  } else if (theme === 'autumn') {
+    root.style.setProperty('--sage', '#F0D9B0');
+    root.style.setProperty('--cream', '#FFF5E6');
+    root.style.setProperty('--mushroom', '#E8C4A0');
+    root.style.setProperty('--berry', '#D4826A');
+    root.style.setProperty('--leaf-dark', '#C87941');
+    root.style.setProperty('--leaf-bright', '#E8A862');
+  } else if (theme === 'spring') {
+    root.style.setProperty('--sage', '#F0D5E8');
+    root.style.setProperty('--cream', '#FFF5FA');
+    root.style.setProperty('--mushroom', '#E8D0E0');
+    root.style.setProperty('--berry', '#E8A0C0');
+    root.style.setProperty('--leaf-dark', '#C07AB0');
+    root.style.setProperty('--leaf-bright', '#E0A8D5');
+  } else if (theme === 'winter') {
+    root.style.setProperty('--sage', '#D0E4F0');
+    root.style.setProperty('--cream', '#F0F6FA');
+    root.style.setProperty('--mushroom', '#D8E8F0');
+    root.style.setProperty('--berry', '#A0C4D8');
+    root.style.setProperty('--leaf-dark', '#5A8AA0');
+    root.style.setProperty('--leaf-bright', '#8AB8D0');
+  }
+});
+
+// ========== ACHIEVEMENT CLICK ==========
+document.querySelectorAll('.achievement-card').forEach(card => {
+  card.addEventListener('click', function() {
+    if (this.classList.contains('locked')) {
+      this.style.transform = 'scale(0.95) rotate(-5deg)';
+      setTimeout(() => this.style.transform = '', 300);
+    } else {
+      this.style.transform = 'scale(1.1)';
+      setTimeout(() => this.style.transform = '', 300);
+    }
+  });
+});
+
+// ========== INIT ==========
+renderToday();
+renderTasks();
+renderCalendar();
+</script>
+</body>
+</html>

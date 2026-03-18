@@ -1,0 +1,1084 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Aurora Planner</title>
+<link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;500;600;700;800&family=Playfair+Display:ital,wght@0,500;0,700;1,500&display=swap" rel="stylesheet">
+<style>
+* { margin:0; padding:0; box-sizing:border-box; -webkit-tap-highlight-color:transparent; }
+:root {
+  --violet: #C4B5FD; --teal: #99F6E4; --pink: #FBCFE8; --gold: #FDE68A;
+  --pearl: #FAFAF9; --slate: #334155; --light-violet: #EDE9FE; --light-teal: #CCFBF1;
+  --light-pink: #FCE7F3; --light-gold: #FEF3C7;
+  --glass-bg: rgba(255,255,255,0.65); --glass-border: rgba(255,255,255,0.5);
+  --nav-bg: rgba(250,250,249,0.85); --card-shadow: 0 2px 16px rgba(148,130,220,0.10);
+  --bg: #FAFAF9; --text: #334155; --text-secondary: #64748B;
+  --dark-bg: #0F172A; --dark-card: rgba(30,41,59,0.7); --dark-text: #E2E8F0;
+  --dark-nav: rgba(15,23,42,0.9);
+}
+body {
+  font-family: 'Nunito', sans-serif; background: var(--bg); color: var(--text);
+  display: flex; justify-content: center; align-items: flex-start;
+  min-height: 100vh; padding: 20px;
+}
+body.dark {
+  --bg: #0F172A; --text: #E2E8F0; --text-secondary: #94A3B8;
+  --glass-bg: rgba(30,41,59,0.65); --glass-border: rgba(100,116,139,0.3);
+  --nav-bg: rgba(15,23,42,0.9); --card-shadow: 0 2px 20px rgba(100,80,200,0.15);
+  --pearl: #0F172A;
+}
+.phone {
+  width: 375px; height: 812px; background: var(--bg);
+  border-radius: 40px; overflow: hidden; position: relative;
+  box-shadow: 0 20px 60px rgba(0,0,0,0.12), 0 0 0 1px rgba(0,0,0,0.05);
+  transition: background 0.4s;
+}
+.screen { display:none; flex-direction:column; height:100%; position:relative; }
+.screen.active { display:flex; }
+
+/* Aurora header gradient */
+.aurora-header {
+  background: linear-gradient(135deg, var(--violet), var(--teal), var(--pink), var(--violet));
+  background-size: 400% 400%;
+  animation: auroraShift 8s ease infinite;
+  padding: 56px 24px 24px; position: relative; overflow: hidden;
+}
+.aurora-header::after {
+  content: ''; position: absolute; inset: 0;
+  background: linear-gradient(180deg, transparent 60%, var(--bg) 100%);
+  pointer-events: none;
+}
+@keyframes auroraShift {
+  0% { background-position: 0% 50%; }
+  25% { background-position: 50% 0%; }
+  50% { background-position: 100% 50%; }
+  75% { background-position: 50% 100%; }
+  100% { background-position: 0% 50%; }
+}
+
+/* Sparkle animation */
+@keyframes sparkle {
+  0%,100% { opacity:1; transform:scale(1) rotate(0deg); }
+  50% { opacity:0.5; transform:scale(1.3) rotate(15deg); }
+}
+.sparkle { display:inline-block; animation: sparkle 2s ease-in-out infinite; }
+
+/* Shimmer effect */
+@keyframes shimmer {
+  0% { background-position: -200% center; }
+  100% { background-position: 200% center; }
+}
+.shimmer-text {
+  background: linear-gradient(90deg, var(--slate) 40%, var(--violet) 50%, var(--slate) 60%);
+  background-size: 200% auto;
+  -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+  animation: shimmer 3s linear infinite;
+}
+body.dark .shimmer-text {
+  background: linear-gradient(90deg, var(--dark-text) 40%, var(--violet) 50%, var(--dark-text) 60%);
+  background-size: 200% auto;
+  -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+}
+
+/* Glass effect */
+.glass {
+  background: var(--glass-bg); backdrop-filter: blur(16px); -webkit-backdrop-filter: blur(16px);
+  border: 1px solid var(--glass-border); border-radius: 16px;
+}
+.glass-sm { border-radius: 12px; }
+
+/* Content area */
+.content { flex:1; overflow-y:auto; padding: 0 20px 100px; scroll-behavior: smooth; }
+.content::-webkit-scrollbar { display:none; }
+
+/* Bottom nav */
+.bottom-nav {
+  position: absolute; bottom: 0; left: 0; right: 0;
+  background: var(--nav-bg); backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px);
+  border-top: 1px solid var(--glass-border);
+  display: flex; padding: 8px 8px 28px; z-index: 100;
+}
+.nav-item {
+  flex: 1; display: flex; flex-direction: column; align-items: center; gap: 2px;
+  padding: 8px 4px; border-radius: 12px; cursor: pointer;
+  transition: all 0.3s; border: none; background: none;
+  font-family: 'Nunito', sans-serif; color: var(--text-secondary); font-size: 10px; font-weight: 600;
+}
+.nav-item .nav-icon { font-size: 20px; transition: transform 0.3s; }
+.nav-item.active {
+  color: #8B5CF6;
+  background: linear-gradient(135deg, rgba(196,181,253,0.2), rgba(153,246,228,0.15));
+}
+.nav-item.active .nav-icon { transform: scale(1.15); }
+
+/* Stat cards */
+.stat-grid { display: grid; grid-template-columns: repeat(3,1fr); gap: 10px; margin: 16px 0; }
+.stat-card {
+  padding: 14px 10px; text-align: center; transition: transform 0.3s;
+}
+.stat-card:hover { transform: translateY(-2px); }
+.stat-card .stat-emoji { font-size: 20px; margin-bottom: 4px; }
+.stat-card .stat-value { font-size: 20px; font-weight: 800; color: var(--text); }
+.stat-card .stat-label { font-size: 11px; color: var(--text-secondary); font-weight: 600; }
+
+/* Progress ring */
+.progress-container { display:flex; align-items:center; gap:16px; margin: 16px 0; }
+.progress-ring-wrap { position:relative; width:72px; height:72px; flex-shrink:0; }
+.progress-ring { transform: rotate(-90deg); }
+.progress-ring-bg { fill:none; stroke: rgba(196,181,253,0.2); stroke-width:6; }
+.progress-ring-fill {
+  fill:none; stroke: url(#auroraGrad); stroke-width:6;
+  stroke-linecap:round; transition: stroke-dashoffset 0.8s ease;
+}
+.progress-pct {
+  position:absolute; inset:0; display:flex; align-items:center; justify-content:center;
+  font-size:18px; font-weight:800; color: var(--text);
+}
+.progress-info { flex:1; }
+.progress-label { font-size:13px; color: var(--text-secondary); font-weight:600; }
+.progress-detail { font-size:15px; font-weight:700; color: var(--text); }
+
+/* Section header */
+.section-title {
+  font-family:'Playfair Display', serif; font-size:16px; font-weight:700;
+  margin: 20px 0 10px; color: var(--text); display:flex; align-items:center; gap:8px;
+}
+
+/* Task card */
+.task-card {
+  padding: 14px 16px; margin-bottom: 10px; display: flex; align-items: center; gap: 12px;
+  transition: all 0.3s; position: relative; overflow: hidden; cursor: pointer;
+  border-left: 3px solid transparent;
+  background: var(--glass-bg); backdrop-filter: blur(16px); -webkit-backdrop-filter: blur(16px);
+  border-radius: 14px; border: 1px solid var(--glass-border);
+}
+.task-card::before {
+  content: ''; position: absolute; left: 0; top: 0; bottom: 0; width: 3px;
+  background: linear-gradient(180deg, var(--violet), var(--teal));
+  border-radius: 0 2px 2px 0;
+}
+.task-card:hover { box-shadow: 0 4px 20px rgba(139,92,246,0.12); transform: translateY(-1px); }
+.task-card.done { opacity: 0.55; }
+.task-card.done .task-text { text-decoration: line-through; }
+
+/* Checkbox */
+.task-check {
+  width: 22px; height: 22px; border-radius: 50%; flex-shrink: 0; cursor: pointer;
+  border: 2px solid rgba(196,181,253,0.6); position: relative;
+  transition: all 0.3s; display: flex; align-items: center; justify-content: center;
+}
+.task-check.checked {
+  background: linear-gradient(135deg, var(--violet), var(--teal));
+  border-color: transparent;
+}
+.task-check.checked::after {
+  content: ''; width:6px; height:10px;
+  border: solid white; border-width: 0 2px 2px 0;
+  transform: rotate(45deg); margin-top:-2px;
+}
+
+/* Butterfly fly-away */
+.butterfly-fly {
+  position: absolute; font-size: 16px; pointer-events: none; z-index: 50;
+  animation: butterflyAway 1.2s ease-out forwards;
+}
+@keyframes butterflyAway {
+  0% { opacity:1; transform: translate(0,0) rotate(0deg) scale(1); }
+  50% { opacity:0.8; transform: translate(-20px,-30px) rotate(-20deg) scale(1.2); }
+  100% { opacity:0; transform: translate(-40px,-60px) rotate(-40deg) scale(0.5); }
+}
+
+/* Shimmer wave on task completion */
+@keyframes shimmerWave {
+  0% { left: -100%; }
+  100% { left: 100%; }
+}
+.task-card.shimmer-wave::after {
+  content: ''; position: absolute; top: 0; left: -100%; width: 100%; height: 100%;
+  background: linear-gradient(90deg, transparent, rgba(196,181,253,0.3), rgba(153,246,228,0.2), transparent);
+  animation: shimmerWave 0.6s ease-out forwards;
+}
+
+.task-text { flex: 1; font-size: 14px; font-weight: 600; color: var(--text); }
+.task-time {
+  font-size: 11px; font-weight: 600; padding: 3px 8px; border-radius: 8px;
+  background: linear-gradient(135deg, rgba(196,181,253,0.25), rgba(153,246,228,0.2));
+  color: #7C3AED;
+}
+body.dark .task-time { color: var(--violet); }
+
+/* Quote */
+.quote-box {
+  margin: 20px 0; padding: 16px 20px; text-align: center;
+  border-radius: 16px;
+  background: linear-gradient(135deg, rgba(196,181,253,0.1), rgba(153,246,228,0.08));
+  border: 1px solid rgba(196,181,253,0.2);
+}
+.quote-text {
+  font-family:'Playfair Display', serif; font-style:italic; font-size:14px;
+  color: var(--text-secondary); line-height: 1.5;
+}
+
+/* Filter pills */
+.filter-row { display:flex; gap:8px; margin:16px 0; overflow-x:auto; padding-bottom:4px; }
+.filter-row::-webkit-scrollbar { display:none; }
+.filter-pill {
+  padding: 8px 16px; border-radius: 20px; font-size: 13px; font-weight: 600;
+  white-space: nowrap; cursor: pointer; border: 1px solid rgba(196,181,253,0.3);
+  background: var(--glass-bg); color: var(--text-secondary); transition: all 0.3s;
+  font-family: 'Nunito', sans-serif;
+}
+.filter-pill.active {
+  background: linear-gradient(135deg, var(--violet), var(--teal));
+  color: white; border-color: transparent;
+  box-shadow: 0 4px 12px rgba(139,92,246,0.25);
+}
+
+/* Task group */
+.task-group-title { font-size:13px; font-weight:700; color:var(--text-secondary); margin:16px 0 8px; text-transform:uppercase; letter-spacing:0.5px; }
+
+/* Quick add */
+.quick-add {
+  display: flex; gap: 10px; margin: 12px 0;
+}
+.quick-add input {
+  flex: 1; padding: 12px 16px; border-radius: 14px; border: 1px solid var(--glass-border);
+  background: var(--glass-bg); backdrop-filter: blur(12px); font-family: 'Nunito', sans-serif;
+  font-size: 14px; color: var(--text); outline: none; transition: all 0.3s;
+}
+.quick-add input:focus { border-color: var(--violet); box-shadow: 0 0 0 3px rgba(196,181,253,0.2); }
+.quick-add input::placeholder { color: var(--text-secondary); }
+.quick-add-btn {
+  width: 44px; height: 44px; border-radius: 14px; border: none; cursor: pointer;
+  background: linear-gradient(135deg, var(--violet), var(--teal));
+  color: white; font-size: 20px; display: flex; align-items: center; justify-content: center;
+  transition: all 0.3s; box-shadow: 0 4px 12px rgba(139,92,246,0.25);
+}
+.quick-add-btn:hover { transform: scale(1.05); }
+
+/* Calendar */
+.cal-header { display:flex; justify-content:space-between; align-items:center; margin:16px 0 12px; }
+.cal-title { font-family:'Playfair Display',serif; font-size:20px; font-weight:700; }
+.cal-nav { display:flex; gap:8px; }
+.cal-nav button {
+  width:32px; height:32px; border-radius:10px; border:1px solid var(--glass-border);
+  background:var(--glass-bg); cursor:pointer; font-size:14px; color:var(--text);
+  transition:all 0.3s; display:flex; align-items:center; justify-content:center;
+}
+.cal-grid { display:grid; grid-template-columns:repeat(7,1fr); gap:4px; text-align:center; }
+.cal-day-name { font-size:11px; font-weight:700; color:var(--text-secondary); padding:8px 0; }
+.cal-day {
+  aspect-ratio:1; display:flex; flex-direction:column; align-items:center; justify-content:center;
+  border-radius:12px; font-size:14px; font-weight:600; cursor:pointer;
+  transition:all 0.3s; position:relative; color: var(--text);
+}
+.cal-day:hover { background: rgba(196,181,253,0.1); }
+.cal-day.today {
+  background: linear-gradient(135deg, var(--violet), var(--teal));
+  color: white; font-weight: 800;
+  box-shadow: 0 4px 12px rgba(139,92,246,0.3);
+}
+.cal-day.selected { background: rgba(196,181,253,0.2); }
+.cal-day.other { opacity: 0.3; }
+.cal-dot {
+  width:4px; height:4px; border-radius:50%; margin-top:2px;
+  background: linear-gradient(135deg, var(--violet), var(--pink));
+}
+
+/* Profile */
+.profile-header { text-align:center; padding:20px 0; }
+.avatar-wrap {
+  width:88px; height:88px; border-radius:50%; margin:0 auto 12px;
+  padding:3px; background: linear-gradient(135deg, var(--violet), var(--teal), var(--pink), var(--violet));
+  background-size: 300% 300%;
+  animation: auroraShift 4s ease infinite;
+}
+.avatar-inner {
+  width:100%; height:100%; border-radius:50%;
+  background: linear-gradient(135deg, var(--violet), var(--pink));
+  display:flex; align-items:center; justify-content:center;
+  font-size:36px;
+}
+.profile-name { font-family:'Playfair Display',serif; font-size:22px; font-weight:700; }
+.profile-name .sparkle { animation: sparkle 1.5s ease-in-out infinite; }
+.karma-badge {
+  display:inline-flex; align-items:center; gap:6px; margin-top:8px;
+  padding:6px 14px; border-radius:20px;
+  background: linear-gradient(135deg, rgba(196,181,253,0.2), rgba(253,230,138,0.2));
+  font-size:13px; font-weight:700; color:#7C3AED;
+}
+body.dark .karma-badge { color: var(--violet); }
+
+.profile-stats { display:grid; grid-template-columns:repeat(3,1fr); gap:10px; margin:20px 0; }
+.profile-stat {
+  text-align:center; padding:16px 8px;
+}
+.profile-stat .ps-val { font-size:22px; font-weight:800; color: var(--text); }
+.profile-stat .ps-label { font-size:11px; color:var(--text-secondary); font-weight:600; margin-top:2px; }
+
+/* Achievements */
+.achievement-row { display:flex; gap:10px; margin:12px 0; overflow-x:auto; padding-bottom:4px; }
+.achievement-row::-webkit-scrollbar { display:none; }
+.achievement {
+  flex-shrink:0; width:72px; text-align:center; padding:12px 8px; border-radius:14px;
+  background: var(--glass-bg); border:1px solid var(--glass-border);
+}
+.achievement .ach-icon { font-size:24px; }
+.achievement .ach-label { font-size:10px; font-weight:700; color:var(--text-secondary); margin-top:4px; }
+.achievement.unlocked { border-color: rgba(196,181,253,0.5); background: linear-gradient(135deg, rgba(196,181,253,0.15), rgba(253,230,138,0.1)); }
+
+/* Bar chart */
+.bar-chart { display:flex; align-items:flex-end; gap:6px; height:100px; margin:16px 0; padding:0 4px; }
+.bar-col { flex:1; display:flex; flex-direction:column; align-items:center; gap:4px; }
+.bar {
+  width:100%; border-radius:6px 6px 2px 2px; min-height:4px;
+  background: linear-gradient(180deg, var(--violet), var(--teal));
+  transition: height 0.6s ease;
+}
+.bar-label { font-size:10px; font-weight:600; color:var(--text-secondary); }
+
+/* Settings section */
+.settings-section { margin:20px 0; }
+.settings-title { font-size:13px; font-weight:700; color:var(--text-secondary); margin-bottom:10px; text-transform:uppercase; letter-spacing:0.5px; }
+.setting-row {
+  display:flex; align-items:center; justify-content:space-between;
+  padding:14px 16px; margin-bottom:6px; border-radius:14px;
+  background: var(--glass-bg); border:1px solid var(--glass-border);
+  cursor:pointer; transition:all 0.3s;
+}
+.setting-row:hover { border-color: rgba(196,181,253,0.4); }
+.setting-left { display:flex; align-items:center; gap:10px; font-size:14px; font-weight:600; }
+.setting-icon { font-size:18px; }
+
+/* Theme picker */
+.theme-row { display:flex; gap:10px; margin:12px 0; }
+.theme-opt {
+  flex:1; padding:12px 8px; border-radius:14px; text-align:center; cursor:pointer;
+  border:2px solid var(--glass-border); transition:all 0.3s; font-size:12px; font-weight:700;
+}
+.theme-opt.active { border-color: #8B5CF6; background: rgba(139,92,246,0.1); }
+.theme-opt .theme-circle {
+  width:28px; height:28px; border-radius:50%; margin:0 auto 6px;
+}
+
+/* Toggle */
+.toggle {
+  width:44px; height:24px; border-radius:12px; background:rgba(196,181,253,0.3);
+  position:relative; cursor:pointer; transition:all 0.3s;
+}
+.toggle.on { background: linear-gradient(135deg, var(--violet), var(--teal)); }
+.toggle-knob {
+  width:20px; height:20px; border-radius:50%; background:white;
+  position:absolute; top:2px; left:2px; transition:all 0.3s;
+  box-shadow: 0 1px 4px rgba(0,0,0,0.15);
+}
+.toggle.on .toggle-knob { left:22px; }
+
+/* Modal */
+.modal-overlay {
+  position:absolute; inset:0; background:rgba(15,23,42,0.4);
+  backdrop-filter:blur(4px); z-index:200; display:none;
+  align-items:flex-end; justify-content:center;
+}
+.modal-overlay.show { display:flex; }
+.modal {
+  width:100%; max-height:85%; background:var(--bg);
+  border-radius:24px 24px 0 0; overflow:hidden;
+  animation: slideUp 0.3s ease;
+}
+@keyframes slideUp { from { transform:translateY(100%); } to { transform:translateY(0); } }
+.modal-header {
+  padding:20px 24px; text-align:center;
+  background: linear-gradient(135deg, var(--violet), var(--teal), var(--pink));
+  background-size: 300% 300%; animation: auroraShift 6s ease infinite;
+}
+.modal-title { font-family:'Playfair Display',serif; font-size:18px; font-weight:700; color:white; }
+.modal-body { padding:20px 24px 32px; }
+.modal-field { margin-bottom:16px; }
+.modal-label { font-size:12px; font-weight:700; color:var(--text-secondary); margin-bottom:6px; display:block; }
+.modal-input {
+  width:100%; padding:12px 16px; border-radius:12px; border:1px solid var(--glass-border);
+  background:var(--glass-bg); font-family:'Nunito',sans-serif; font-size:14px;
+  color:var(--text); outline:none; transition:all 0.3s;
+}
+.modal-input:focus { border-color:var(--violet); box-shadow:0 0 0 3px rgba(196,181,253,0.2); }
+.priority-row { display:flex; gap:8px; }
+.priority-opt {
+  flex:1; padding:10px; border-radius:12px; text-align:center; cursor:pointer;
+  border:2px solid var(--glass-border); transition:all 0.3s;
+  font-size:13px; font-weight:700; font-family:'Nunito',sans-serif;
+}
+.priority-opt.active-high { border-color:#8B5CF6; background:rgba(139,92,246,0.1); box-shadow:0 0 12px rgba(139,92,246,0.2); }
+.priority-opt.active-med { border-color:#F59E0B; background:rgba(253,230,138,0.2); }
+.priority-opt.active-low { border-color:#10B981; background:rgba(153,246,228,0.2); }
+.modal-submit {
+  width:100%; padding:14px; border:none; border-radius:14px; cursor:pointer;
+  background: linear-gradient(135deg, var(--violet), var(--teal));
+  color:white; font-family:'Nunito',sans-serif; font-size:15px; font-weight:700;
+  transition:all 0.3s; margin-top:8px; position:relative; overflow:hidden;
+}
+.modal-submit::after {
+  content:''; position:absolute; top:0; left:-100%; width:100%; height:100%;
+  background: linear-gradient(90deg, transparent, rgba(255,255,255,0.3), transparent);
+  animation: shimmer 2.5s ease-in-out infinite;
+}
+.modal-submit:hover { transform:scale(1.02); box-shadow:0 4px 16px rgba(139,92,246,0.3); }
+
+/* Celebration overlay */
+.celebration {
+  position:absolute; inset:0; z-index:300; display:none;
+  align-items:center; justify-content:center; flex-direction:column;
+  background:rgba(15,23,42,0.5); backdrop-filter:blur(8px);
+}
+.celebration.show { display:flex; }
+.celebration-text {
+  font-family:'Playfair Display',serif; font-size:28px; font-weight:700;
+  color:white; text-align:center; animation: celebPop 0.5s ease;
+}
+@keyframes celebPop { 0% { transform:scale(0); opacity:0; } 50% { transform:scale(1.2); } 100% { transform:scale(1); opacity:1; } }
+.celebration-sub { color:rgba(255,255,255,0.8); font-size:14px; margin-top:8px; }
+
+/* Particles */
+.particle {
+  position:absolute; pointer-events:none; z-index:10; opacity:0;
+  animation: particleFloat 4s ease-in-out infinite;
+}
+@keyframes particleFloat {
+  0% { opacity:0; transform:translateY(0) scale(0.5); }
+  20% { opacity:0.7; }
+  80% { opacity:0.3; }
+  100% { opacity:0; transform:translateY(-80px) scale(0.2) rotate(180deg); }
+}
+
+/* Stagger fade-in */
+@keyframes fadeInUp {
+  from { opacity:0; transform:translateY(12px); }
+  to { opacity:1; transform:translateY(0); }
+}
+.stagger-item { animation: fadeInUp 0.4s ease both; }
+
+/* Aurora explosion particles */
+.aurora-particle {
+  position:absolute; border-radius:50%; pointer-events:none; z-index:301;
+  animation: auroraExplode 1s ease-out forwards;
+}
+@keyframes auroraExplode {
+  0% { transform:translate(0,0) scale(1); opacity:1; }
+  100% { transform:translate(var(--tx), var(--ty)) scale(0); opacity:0; }
+}
+
+/* Scrollbar */
+.content { scrollbar-width:none; }
+
+/* Empty state */
+.empty-state {
+  text-align:center; padding:60px 20px;
+}
+.empty-icon { font-size:48px; margin-bottom:12px; }
+.empty-text { font-family:'Playfair Display',serif; font-size:16px; color:var(--text-secondary); }
+
+/* Calendar day tasks slide */
+.cal-tasks {
+  margin-top:16px; padding:16px; border-radius:16px;
+  background: var(--glass-bg); backdrop-filter:blur(16px);
+  border:1px solid var(--glass-border);
+  animation: fadeInUp 0.3s ease;
+}
+.cal-tasks-title { font-size:14px; font-weight:700; margin-bottom:10px; }
+</style>
+</head>
+<body>
+<div class="phone" id="phone">
+  <!-- SVG gradient defs -->
+  <svg width="0" height="0"><defs>
+    <linearGradient id="auroraGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#C4B5FD"/>
+      <stop offset="50%" stop-color="#99F6E4"/>
+      <stop offset="100%" stop-color="#FBCFE8"/>
+    </linearGradient>
+  </defs></svg>
+
+  <!-- SCREEN 1: Сегодня -->
+  <div class="screen active" id="screen-today">
+    <div class="aurora-header">
+      <div style="position:relative;z-index:1">
+        <div style="font-size:26px;font-weight:800;color:white;font-family:'Playfair Display',serif;">
+          Привет, Рафаэль <span class="sparkle">✨</span>
+        </div>
+        <div style="font-size:13px;color:rgba(255,255,255,0.85);margin-top:4px;font-weight:600;">
+          Среда, 18 марта 2026
+        </div>
+      </div>
+    </div>
+    <div class="content" id="today-content">
+      <!-- Progress -->
+      <div class="progress-container">
+        <div class="progress-ring-wrap">
+          <svg class="progress-ring" width="72" height="72" viewBox="0 0 72 72">
+            <circle class="progress-ring-bg" cx="36" cy="36" r="30"/>
+            <circle class="progress-ring-fill" id="progress-fill" cx="36" cy="36" r="30"
+              stroke-dasharray="188.5" stroke-dashoffset="118"/>
+          </svg>
+          <div class="progress-pct" id="progress-pct">37%</div>
+        </div>
+        <div class="progress-info">
+          <div class="progress-label">Сегодняшний прогресс</div>
+          <div class="progress-detail" id="progress-detail">3 из 8 задач</div>
+        </div>
+      </div>
+
+      <!-- Stats -->
+      <div class="stat-grid">
+        <div class="stat-card glass">
+          <div class="stat-emoji">✨</div>
+          <div class="stat-value" id="stat-total">8</div>
+          <div class="stat-label">Задачи</div>
+        </div>
+        <div class="stat-card glass">
+          <div class="stat-emoji">✅</div>
+          <div class="stat-value" id="stat-done">3</div>
+          <div class="stat-label">Готово</div>
+        </div>
+        <div class="stat-card glass">
+          <div class="stat-emoji">🔥</div>
+          <div class="stat-value">12</div>
+          <div class="stat-label">Streak</div>
+        </div>
+      </div>
+
+      <!-- Morning -->
+      <div class="section-title">☀️ Утро</div>
+      <div id="morning-tasks"></div>
+
+      <!-- Day -->
+      <div class="section-title">🌤 День</div>
+      <div id="day-tasks"></div>
+
+      <!-- Evening -->
+      <div class="section-title">🌙 Вечер</div>
+      <div id="evening-tasks"></div>
+
+      <!-- Quote -->
+      <div class="quote-box">
+        <div class="quote-text">
+          "Маленькие шаги каждый день приводят к большим переменам"
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- SCREEN 2: Задачи -->
+  <div class="screen" id="screen-tasks">
+    <div class="aurora-header" style="padding-bottom:16px;">
+      <div style="position:relative;z-index:1">
+        <div style="font-family:'Playfair Display',serif;font-size:24px;font-weight:700;color:white;">
+          Задачи 💜
+        </div>
+      </div>
+    </div>
+    <div class="content">
+      <div class="filter-row" id="task-filters">
+        <div class="filter-pill active" data-filter="all">Все</div>
+        <div class="filter-pill" data-filter="active">Активные</div>
+        <div class="filter-pill" data-filter="done">Готовые</div>
+        <div class="filter-pill" data-filter="high">💜 Важные</div>
+      </div>
+      <div class="quick-add">
+        <input type="text" id="quick-input" placeholder="Добавить задачу...">
+        <button class="quick-add-btn" onclick="openModal()">+</button>
+      </div>
+      <div id="tasks-list"></div>
+      <div class="empty-state" id="tasks-empty" style="display:none;">
+        <div class="empty-icon">🦋</div>
+        <div class="empty-text">Всё выполнено! Время для себя</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- SCREEN 3: Календарь -->
+  <div class="screen" id="screen-calendar">
+    <div class="aurora-header" style="padding-bottom:16px;">
+      <div style="position:relative;z-index:1">
+        <div style="font-family:'Playfair Display',serif;font-size:24px;font-weight:700;color:white;">
+          Календарь 📅
+        </div>
+      </div>
+    </div>
+    <div class="content">
+      <div class="cal-header">
+        <div class="cal-title" id="cal-month-title">Март 2026</div>
+        <div class="cal-nav">
+          <button onclick="changeMonth(-1)">‹</button>
+          <button onclick="changeMonth(1)">›</button>
+        </div>
+      </div>
+      <div class="cal-grid" id="cal-grid"></div>
+      <div id="cal-day-tasks"></div>
+    </div>
+  </div>
+
+  <!-- SCREEN 4: Профиль -->
+  <div class="screen" id="screen-profile">
+    <div class="aurora-header" style="padding-bottom:16px;">
+      <div style="position:relative;z-index:1">
+        <div style="font-family:'Playfair Display',serif;font-size:24px;font-weight:700;color:white;">
+          Профиль 🦋
+        </div>
+      </div>
+    </div>
+    <div class="content">
+      <div class="profile-header">
+        <div class="avatar-wrap">
+          <div class="avatar-inner">🦋</div>
+        </div>
+        <div class="profile-name">Рафаэль <span class="sparkle">✨</span></div>
+        <div class="karma-badge">💎 Diamond Level — 2,450 кармы</div>
+      </div>
+
+      <div class="profile-stats">
+        <div class="profile-stat glass">
+          <div class="ps-val">156</div>
+          <div class="ps-label">Выполнено</div>
+        </div>
+        <div class="profile-stat glass">
+          <div class="ps-val">12</div>
+          <div class="ps-label">Streak 🔥</div>
+        </div>
+        <div class="profile-stat glass">
+          <div class="ps-val">89%</div>
+          <div class="ps-label">Эффект.</div>
+        </div>
+      </div>
+
+      <div class="section-title">🏆 Достижения</div>
+      <div class="achievement-row">
+        <div class="achievement unlocked"><div class="ach-icon">💜</div><div class="ach-label">Старт</div></div>
+        <div class="achievement unlocked"><div class="ach-icon">💎</div><div class="ach-label">Diamond</div></div>
+        <div class="achievement unlocked"><div class="ach-icon">🌟</div><div class="ach-label">50 задач</div></div>
+        <div class="achievement unlocked"><div class="ach-icon">🔥</div><div class="ach-label">7 дней</div></div>
+        <div class="achievement"><div class="ach-icon">👑</div><div class="ach-label">Crown</div></div>
+        <div class="achievement"><div class="ach-icon">🎀</div><div class="ach-label">100 дней</div></div>
+      </div>
+
+      <div class="section-title">📊 Продуктивность</div>
+      <div class="bar-chart" id="bar-chart"></div>
+
+      <div class="settings-section">
+        <div class="settings-title">Тема</div>
+        <div class="theme-row">
+          <div class="theme-opt active" data-theme="aurora" onclick="selectTheme(this)">
+            <div class="theme-circle" style="background:linear-gradient(135deg,#C4B5FD,#99F6E4);"></div>
+            Aurora
+          </div>
+          <div class="theme-opt" data-theme="moonlight" onclick="selectTheme(this)">
+            <div class="theme-circle" style="background:linear-gradient(135deg,#1E293B,#475569);"></div>
+            Moon
+          </div>
+          <div class="theme-opt" data-theme="rosegold" onclick="selectTheme(this)">
+            <div class="theme-circle" style="background:linear-gradient(135deg,#FBCFE8,#FDE68A);"></div>
+            Rose
+          </div>
+          <div class="theme-opt" data-theme="ice" onclick="selectTheme(this)">
+            <div class="theme-circle" style="background:linear-gradient(135deg,#BAE6FD,#E0E7FF);"></div>
+            Ice
+          </div>
+        </div>
+      </div>
+
+      <div class="settings-section">
+        <div class="settings-title">Настройки</div>
+        <div class="setting-row" onclick="toggleDark()">
+          <div class="setting-left"><span class="setting-icon">🌙</span> Тёмный режим</div>
+          <div class="toggle" id="dark-toggle"><div class="toggle-knob"></div></div>
+        </div>
+        <div class="setting-row">
+          <div class="setting-left"><span class="setting-icon">🔔</span> Уведомления</div>
+          <div class="toggle on"><div class="toggle-knob"></div></div>
+        </div>
+        <div class="setting-row">
+          <div class="setting-left"><span class="setting-icon">🎵</span> Звуки</div>
+          <div class="toggle on"><div class="toggle-knob"></div></div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Bottom Nav -->
+  <nav class="bottom-nav">
+    <button class="nav-item active" onclick="switchScreen('today')">
+      <span class="nav-icon">✨</span> Сегодня
+    </button>
+    <button class="nav-item" onclick="switchScreen('tasks')">
+      <span class="nav-icon">💜</span> Задачи
+    </button>
+    <button class="nav-item" onclick="switchScreen('calendar')">
+      <span class="nav-icon">📅</span> Календарь
+    </button>
+    <button class="nav-item" onclick="switchScreen('profile')">
+      <span class="nav-icon">🦋</span> Профиль
+    </button>
+  </nav>
+
+  <!-- Modal -->
+  <div class="modal-overlay" id="modal-overlay" onclick="closeModal(event)">
+    <div class="modal" onclick="event.stopPropagation()">
+      <div class="modal-header">
+        <div class="modal-title">Новая задача ✨</div>
+      </div>
+      <div class="modal-body">
+        <div class="modal-field">
+          <label class="modal-label">Название</label>
+          <input class="modal-input" id="modal-name" placeholder="Что нужно сделать?">
+        </div>
+        <div class="modal-field">
+          <label class="modal-label">Время</label>
+          <input class="modal-input" id="modal-time" type="time" value="09:00">
+        </div>
+        <div class="modal-field">
+          <label class="modal-label">Период дня</label>
+          <div class="priority-row">
+            <div class="priority-opt active-med" data-period="morning" onclick="selectPeriod(this)">☀️ Утро</div>
+            <div class="priority-opt" data-period="day" onclick="selectPeriod(this)">🌤 День</div>
+            <div class="priority-opt" data-period="evening" onclick="selectPeriod(this)">🌙 Вечер</div>
+          </div>
+        </div>
+        <div class="modal-field">
+          <label class="modal-label">Приоритет</label>
+          <div class="priority-row">
+            <div class="priority-opt active-high" data-priority="high" onclick="selectPriority(this)">💜 Высокий</div>
+            <div class="priority-opt" data-priority="medium" onclick="selectPriority(this)">💛 Средний</div>
+            <div class="priority-opt" data-priority="low" onclick="selectPriority(this)">💚 Низкий</div>
+          </div>
+        </div>
+        <button class="modal-submit" onclick="addTask()">Создать ✨</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Celebration -->
+  <div class="celebration" id="celebration" onclick="this.classList.remove('show')">
+    <div class="celebration-text">Потрясающе! 🌟</div>
+    <div class="celebration-sub">Все задачи на сегодня выполнены!</div>
+  </div>
+</div>
+
+<script>
+// ---- DATA ----
+let tasks = [
+  { id:1, text:'Утренняя медитация', time:'07:00', period:'morning', priority:'high', done:true, group:'today' },
+  { id:2, text:'Проверить почту', time:'08:30', period:'morning', priority:'medium', done:true, group:'today' },
+  { id:3, text:'Дизайн-ревью проекта', time:'09:00', period:'morning', priority:'high', done:false, group:'today' },
+  { id:4, text:'Код-ревью PR #42', time:'10:30', period:'morning', priority:'high', done:true, group:'today' },
+  { id:5, text:'Обед с командой', time:'13:00', period:'day', priority:'low', done:false, group:'today' },
+  { id:6, text:'Подготовить презентацию', time:'14:00', period:'day', priority:'high', done:false, group:'today' },
+  { id:7, text:'Тренировка', time:'18:00', period:'evening', priority:'medium', done:false, group:'today' },
+  { id:8, text:'Чтение перед сном', time:'22:00', period:'evening', priority:'low', done:false, group:'today' },
+  { id:9, text:'Созвон с клиентом', time:'11:00', period:'morning', priority:'high', done:false, group:'tomorrow' },
+  { id:10, text:'Обновить портфолио', time:'15:00', period:'day', priority:'medium', done:false, group:'week' },
+  { id:11, text:'Изучить SwiftUI', time:'', period:'day', priority:'low', done:false, group:'someday' },
+];
+let nextId = 12;
+let currentFilter = 'all';
+let calMonth = 2; // March (0-indexed)
+let calYear = 2026;
+let selectedCalDay = 18;
+let isDark = false;
+let selectedPriority = 'high';
+let selectedPeriod = 'morning';
+
+// ---- NAVIGATION ----
+function switchScreen(name) {
+  document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+  document.getElementById('screen-' + name).classList.add('active');
+  document.querySelectorAll('.nav-item').forEach((n,i) => {
+    const names = ['today','tasks','calendar','profile'];
+    n.classList.toggle('active', names[i] === name);
+  });
+  if (name === 'today') { renderToday(); spawnParticles(); }
+  if (name === 'tasks') renderTasksList();
+  if (name === 'calendar') renderCalendar();
+}
+
+// ---- RENDER TODAY ----
+function renderToday() {
+  const todayTasks = tasks.filter(t => t.group === 'today');
+  const done = todayTasks.filter(t => t.done).length;
+  const total = todayTasks.length;
+  const pct = total ? Math.round(done / total * 100) : 0;
+  const circumference = 188.5;
+  document.getElementById('progress-fill').style.strokeDashoffset = circumference - (circumference * pct / 100);
+  document.getElementById('progress-pct').textContent = pct + '%';
+  document.getElementById('progress-detail').textContent = done + ' из ' + total + ' задач';
+  document.getElementById('stat-total').textContent = total;
+  document.getElementById('stat-done').textContent = done;
+
+  ['morning','day','evening'].forEach((period, pi) => {
+    const containerId = ['morning-tasks','day-tasks','evening-tasks'][pi];
+    const container = document.getElementById(containerId);
+    const pts = todayTasks.filter(t => t.period === period);
+    container.innerHTML = pts.map((t, i) => taskCardHTML(t, i * 80)).join('');
+  });
+}
+
+function taskCardHTML(t, delay) {
+  return `<div class="task-card stagger-item ${t.done?'done':''}" style="animation-delay:${delay}ms" id="task-${t.id}">
+    <div class="task-check ${t.done?'checked':''}" onclick="toggleTask(${t.id}, event)"></div>
+    <div class="task-text">${t.text}</div>
+    ${t.time ? `<div class="task-time">${t.time}</div>` : ''}
+  </div>`;
+}
+
+// ---- TOGGLE TASK ----
+function toggleTask(id, event) {
+  event.stopPropagation();
+  const task = tasks.find(t => t.id === id);
+  if (!task) return;
+  task.done = !task.done;
+  const card = document.getElementById('task-' + id);
+  if (task.done && card) {
+    card.classList.add('shimmer-wave');
+    // Butterfly fly-away
+    const rect = event.target.getBoundingClientRect();
+    const phoneRect = document.getElementById('phone').getBoundingClientRect();
+    const bf = document.createElement('div');
+    bf.className = 'butterfly-fly';
+    bf.textContent = '🦋';
+    bf.style.left = (rect.left - phoneRect.left) + 'px';
+    bf.style.top = (rect.top - phoneRect.top) + 'px';
+    document.getElementById('phone').appendChild(bf);
+    setTimeout(() => bf.remove(), 1200);
+  }
+  setTimeout(() => {
+    renderToday();
+    renderTasksList();
+    // Check all done
+    const todayTasks = tasks.filter(t => t.group === 'today');
+    if (todayTasks.length > 0 && todayTasks.every(t => t.done)) {
+      showCelebration();
+    }
+  }, 350);
+}
+
+// ---- CELEBRATION ----
+function showCelebration() {
+  const cel = document.getElementById('celebration');
+  cel.classList.add('show');
+  // Aurora explosion particles
+  const phone = document.getElementById('phone');
+  for (let i = 0; i < 20; i++) {
+    const p = document.createElement('div');
+    p.className = 'aurora-particle';
+    const colors = ['#C4B5FD','#99F6E4','#FBCFE8','#FDE68A'];
+    p.style.background = colors[i % 4];
+    p.style.width = p.style.height = (6 + Math.random()*10) + 'px';
+    p.style.left = '50%'; p.style.top = '50%';
+    const angle = (Math.PI * 2 * i) / 20;
+    const dist = 80 + Math.random() * 120;
+    p.style.setProperty('--tx', Math.cos(angle) * dist + 'px');
+    p.style.setProperty('--ty', Math.sin(angle) * dist + 'px');
+    phone.appendChild(p);
+    setTimeout(() => p.remove(), 1000);
+  }
+  setTimeout(() => cel.classList.remove('show'), 3000);
+}
+
+// ---- TASKS LIST ----
+function renderTasksList() {
+  const container = document.getElementById('tasks-list');
+  let filtered = [...tasks];
+  if (currentFilter === 'active') filtered = filtered.filter(t => !t.done);
+  if (currentFilter === 'done') filtered = filtered.filter(t => t.done);
+  if (currentFilter === 'high') filtered = filtered.filter(t => t.priority === 'high' && !t.done);
+
+  if (filtered.length === 0) {
+    container.innerHTML = '';
+    document.getElementById('tasks-empty').style.display = 'block';
+    return;
+  }
+  document.getElementById('tasks-empty').style.display = 'none';
+
+  const groups = { today:'Сегодня', tomorrow:'Завтра', week:'На неделе', someday:'Когда-нибудь' };
+  let html = '';
+  Object.keys(groups).forEach(g => {
+    const gt = filtered.filter(t => t.group === g);
+    if (gt.length === 0) return;
+    html += `<div class="task-group-title">${groups[g]}</div>`;
+    gt.forEach((t,i) => { html += taskCardHTML(t, i * 60); });
+  });
+  container.innerHTML = html;
+}
+
+// Filter pills
+document.getElementById('task-filters').addEventListener('click', e => {
+  if (!e.target.classList.contains('filter-pill')) return;
+  document.querySelectorAll('#task-filters .filter-pill').forEach(p => p.classList.remove('active'));
+  e.target.classList.add('active');
+  currentFilter = e.target.dataset.filter;
+  renderTasksList();
+});
+
+// Quick add
+document.getElementById('quick-input').addEventListener('keydown', e => {
+  if (e.key === 'Enter' && e.target.value.trim()) {
+    tasks.push({ id: nextId++, text: e.target.value.trim(), time:'', period:'morning', priority:'medium', done:false, group:'today' });
+    e.target.value = '';
+    renderToday(); renderTasksList();
+  }
+});
+
+// ---- MODAL ----
+function openModal() {
+  document.getElementById('modal-overlay').classList.add('show');
+  document.getElementById('modal-name').value = '';
+  document.getElementById('modal-name').focus();
+}
+function closeModal(e) {
+  if (e.target === document.getElementById('modal-overlay')) {
+    document.getElementById('modal-overlay').classList.remove('show');
+  }
+}
+function selectPriority(el) {
+  el.parentElement.querySelectorAll('.priority-opt').forEach(o => {
+    o.className = 'priority-opt';
+  });
+  selectedPriority = el.dataset.priority;
+  const cls = { high:'active-high', medium:'active-med', low:'active-low' };
+  el.classList.add(cls[selectedPriority]);
+}
+function selectPeriod(el) {
+  el.parentElement.querySelectorAll('.priority-opt').forEach(o => {
+    o.className = 'priority-opt';
+  });
+  selectedPeriod = el.dataset.period;
+  el.classList.add('active-med');
+}
+function addTask() {
+  const name = document.getElementById('modal-name').value.trim();
+  if (!name) return;
+  const time = document.getElementById('modal-time').value;
+  tasks.push({ id: nextId++, text: name, time, period: selectedPeriod, priority: selectedPriority, done: false, group:'today' });
+  document.getElementById('modal-overlay').classList.remove('show');
+  renderToday(); renderTasksList();
+}
+
+// ---- CALENDAR ----
+const monthNames = ['Январь','Февраль','Март','Апрель','Май','Июнь','Июль','Август','Сентябрь','Октябрь','Ноябрь','Декабрь'];
+const dayNames = ['Пн','Вт','Ср','Чт','Пт','Сб','Вс'];
+
+function renderCalendar() {
+  document.getElementById('cal-month-title').textContent = monthNames[calMonth] + ' ' + calYear;
+  const grid = document.getElementById('cal-grid');
+  let html = dayNames.map(d => `<div class="cal-day-name">${d}</div>`).join('');
+  const firstDay = new Date(calYear, calMonth, 1).getDay();
+  const daysInMonth = new Date(calYear, calMonth + 1, 0).getDate();
+  const prevDays = new Date(calYear, calMonth, 0).getDate();
+  const startDay = firstDay === 0 ? 6 : firstDay - 1;
+
+  // task days
+  const taskDays = [1,3,5,8,10,12,15,18,20,22,25,27];
+
+  for (let i = startDay - 1; i >= 0; i--) {
+    html += `<div class="cal-day other">${prevDays - i}</div>`;
+  }
+  for (let d = 1; d <= daysInMonth; d++) {
+    const isToday = d === 18 && calMonth === 2 && calYear === 2026;
+    const isSel = d === selectedCalDay && !isToday;
+    const hasTask = taskDays.includes(d);
+    html += `<div class="cal-day${isToday?' today':''}${isSel?' selected':''}" onclick="selectCalDay(${d})">
+      ${d}${hasTask ? '<div class="cal-dot"></div>' : ''}
+    </div>`;
+  }
+  const totalCells = startDay + daysInMonth;
+  const remaining = (7 - totalCells % 7) % 7;
+  for (let i = 1; i <= remaining; i++) {
+    html += `<div class="cal-day other">${i}</div>`;
+  }
+  grid.innerHTML = html;
+  renderCalDayTasks();
+}
+
+function selectCalDay(d) {
+  selectedCalDay = d;
+  renderCalendar();
+}
+
+function renderCalDayTasks() {
+  const container = document.getElementById('cal-day-tasks');
+  const dayTasks = tasks.filter(t => t.group === 'today').slice(0, 3);
+  if (selectedCalDay !== 18 || calMonth !== 2) {
+    container.innerHTML = `<div class="cal-tasks"><div class="cal-tasks-title">${selectedCalDay} ${monthNames[calMonth]}</div><div style="color:var(--text-secondary);font-size:13px;">Нет задач на этот день</div></div>`;
+    return;
+  }
+  let html = `<div class="cal-tasks"><div class="cal-tasks-title">📋 ${selectedCalDay} ${monthNames[calMonth]}</div>`;
+  dayTasks.forEach(t => {
+    html += `<div style="display:flex;align-items:center;gap:8px;padding:8px 0;border-bottom:1px solid var(--glass-border);">
+      <div class="task-check ${t.done?'checked':''}" style="width:18px;height:18px;" onclick="toggleTask(${t.id},event)"></div>
+      <span style="font-size:13px;font-weight:600;flex:1;${t.done?'text-decoration:line-through;opacity:0.5;':''}">${t.text}</span>
+      ${t.time?`<span class="task-time" style="font-size:10px;">${t.time}</span>`:''}
+    </div>`;
+  });
+  html += '</div>';
+  container.innerHTML = html;
+}
+
+function changeMonth(dir) {
+  calMonth += dir;
+  if (calMonth > 11) { calMonth = 0; calYear++; }
+  if (calMonth < 0) { calMonth = 11; calYear--; }
+  selectedCalDay = 1;
+  renderCalendar();
+}
+
+// ---- BAR CHART ----
+function renderBarChart() {
+  const data = [
+    {label:'Пн', val:75}, {label:'Вт', val:90}, {label:'Ср', val:37},
+    {label:'Чт', val:60}, {label:'Пт', val:85}, {label:'Сб', val:40}, {label:'Вс', val:55}
+  ];
+  document.getElementById('bar-chart').innerHTML = data.map(d =>
+    `<div class="bar-col"><div class="bar" style="height:${d.val}%"></div><div class="bar-label">${d.label}</div></div>`
+  ).join('');
+}
+
+// ---- DARK MODE ----
+function toggleDark() {
+  isDark = !isDark;
+  document.body.classList.toggle('dark', isDark);
+  document.getElementById('dark-toggle').classList.toggle('on', isDark);
+}
+
+// ---- THEME ----
+function selectTheme(el) {
+  document.querySelectorAll('.theme-opt').forEach(o => o.classList.remove('active'));
+  el.classList.add('active');
+}
+
+// ---- SPARKLE PARTICLES ----
+function spawnParticles() {
+  const container = document.getElementById('today-content');
+  if (!container) return;
+  for (let i = 0; i < 6; i++) {
+    setTimeout(() => {
+      const p = document.createElement('div');
+      p.className = 'particle';
+      p.textContent = ['✨','🌟','💫','⭐'][Math.floor(Math.random()*4)];
+      p.style.fontSize = (10 + Math.random()*8) + 'px';
+      p.style.left = (20 + Math.random()*300) + 'px';
+      p.style.top = (100 + Math.random()*400) + 'px';
+      p.style.animationDelay = (Math.random()*3) + 's';
+      container.appendChild(p);
+      setTimeout(() => p.remove(), 5000);
+    }, i * 600);
+  }
+}
+
+// ---- INIT ----
+renderToday();
+renderBarChart();
+spawnParticles();
+// Continuous particles
+setInterval(spawnParticles, 6000);
+</script>
+</body>
+</html>

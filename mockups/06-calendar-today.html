@@ -1,0 +1,2133 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Planer — Календарь и Сегодня</title>
+<style>
+  :root {
+    --red: #DB4C3F;
+    --red-light: #ff7066;
+    --bg: #FAFAFA;
+    --text: #202020;
+    --text-secondary: #808080;
+    --card-bg: #FFFFFF;
+    --border: #E8E8E8;
+    --hover: #F0F0F0;
+    --shadow: 0 1px 3px rgba(0,0,0,0.08);
+    --shadow-md: 0 2px 8px rgba(0,0,0,0.1);
+    --green: #058527;
+    --blue: #246FE0;
+    --orange: #FF9933;
+    --purple: #8F4BCA;
+    --teal: #14AAF5;
+    --priority-1: #DB4C3F;
+    --priority-2: #FF9933;
+    --priority-3: #246FE0;
+    --priority-4: #808080;
+  }
+
+  .dark {
+    --bg: #1E1E1E;
+    --text: #E8E8E8;
+    --text-secondary: #999;
+    --card-bg: #282828;
+    --border: #383838;
+    --hover: #333;
+    --shadow: 0 1px 3px rgba(0,0,0,0.3);
+    --shadow-md: 0 2px 8px rgba(0,0,0,0.4);
+  }
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  body {
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+    background: #E0E0E0;
+    color: var(--text);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding: 20px;
+    min-height: 100vh;
+  }
+
+  .dark body { background: #111; }
+
+  .page-header {
+    text-align: center;
+    margin-bottom: 24px;
+    max-width: 1400px;
+    width: 100%;
+  }
+
+  .page-header h1 {
+    font-size: 28px;
+    font-weight: 700;
+    color: var(--text);
+    margin-bottom: 6px;
+  }
+
+  .page-header p {
+    font-size: 14px;
+    color: var(--text-secondary);
+  }
+
+  .controls {
+    display: flex;
+    justify-content: center;
+    gap: 10px;
+    margin-bottom: 30px;
+    flex-wrap: wrap;
+  }
+
+  .controls button {
+    padding: 8px 18px;
+    border: 1px solid var(--border);
+    background: var(--card-bg);
+    color: var(--text);
+    border-radius: 8px;
+    cursor: pointer;
+    font-size: 13px;
+    font-weight: 500;
+    transition: all 0.2s;
+  }
+
+  .controls button:hover { background: var(--hover); }
+  .controls button.active {
+    background: var(--red);
+    color: #fff;
+    border-color: var(--red);
+  }
+
+  .theme-toggle {
+    position: fixed;
+    top: 16px;
+    right: 16px;
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    border: 1px solid var(--border);
+    background: var(--card-bg);
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 18px;
+    z-index: 1000;
+    transition: all 0.3s;
+    box-shadow: var(--shadow);
+  }
+
+  .theme-toggle:hover { transform: scale(1.1); }
+
+  .frames-grid {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 32px;
+    justify-content: center;
+    max-width: 1600px;
+  }
+
+  .frame-wrapper {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    transition: opacity 0.3s, transform 0.3s;
+  }
+
+  .frame-wrapper.hidden {
+    display: none;
+  }
+
+  .frame-label {
+    font-size: 13px;
+    font-weight: 600;
+    color: var(--text);
+    margin-bottom: 10px;
+    text-align: center;
+    max-width: 375px;
+  }
+
+  .frame-sublabel {
+    font-size: 11px;
+    color: var(--text-secondary);
+    margin-top: 2px;
+    font-weight: 400;
+  }
+
+  .phone-frame {
+    width: 375px;
+    height: 812px;
+    background: var(--bg);
+    border-radius: 40px;
+    overflow: hidden;
+    box-shadow: 0 8px 40px rgba(0,0,0,0.15);
+    position: relative;
+    display: flex;
+    flex-direction: column;
+  }
+
+  .dark .phone-frame {
+    box-shadow: 0 8px 40px rgba(0,0,0,0.5);
+  }
+
+  .status-bar {
+    height: 44px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 0 24px;
+    font-size: 14px;
+    font-weight: 600;
+    flex-shrink: 0;
+  }
+
+  .status-icons {
+    display: flex;
+    gap: 5px;
+    font-size: 12px;
+  }
+
+  /* ========== TODAY VARIANT A ========== */
+  .today-a .screen-content {
+    flex: 1;
+    overflow-y: auto;
+    padding-bottom: 80px;
+  }
+
+  .today-a .screen-content::-webkit-scrollbar { width: 0; }
+
+  .today-header {
+    padding: 8px 20px 16px;
+    border-bottom: 1px solid var(--border);
+  }
+
+  .today-header h1 {
+    font-size: 26px;
+    font-weight: 700;
+    color: var(--text);
+  }
+
+  .today-header .date-info {
+    font-size: 13px;
+    color: var(--text-secondary);
+    margin-top: 2px;
+  }
+
+  .today-header .task-count {
+    font-size: 12px;
+    color: var(--text-secondary);
+    margin-top: 4px;
+  }
+
+  .progress-bar-container {
+    padding: 0 20px;
+    margin: 12px 0 4px;
+  }
+
+  .progress-bar {
+    height: 3px;
+    background: var(--border);
+    border-radius: 2px;
+    overflow: hidden;
+  }
+
+  .progress-fill {
+    height: 100%;
+    background: var(--red);
+    border-radius: 2px;
+    transition: width 0.5s ease;
+  }
+
+  .progress-text {
+    font-size: 11px;
+    color: var(--text-secondary);
+    margin-top: 4px;
+    text-align: right;
+  }
+
+  .overdue-section {
+    margin: 12px 20px;
+    padding: 12px;
+    background: rgba(219,76,63,0.06);
+    border-radius: 10px;
+    border-left: 3px solid var(--red);
+  }
+
+  .dark .overdue-section {
+    background: rgba(219,76,63,0.12);
+  }
+
+  .overdue-title {
+    font-size: 13px;
+    font-weight: 600;
+    color: var(--red);
+    margin-bottom: 8px;
+  }
+
+  .section-title {
+    font-size: 13px;
+    font-weight: 700;
+    color: var(--text-secondary);
+    padding: 14px 20px 6px;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+  }
+
+  .task-item {
+    display: flex;
+    align-items: center;
+    padding: 10px 20px;
+    gap: 12px;
+    transition: background 0.15s;
+    cursor: pointer;
+    border-bottom: 1px solid var(--border);
+  }
+
+  .task-item:hover { background: var(--hover); }
+
+  .task-checkbox {
+    width: 20px;
+    height: 20px;
+    border-radius: 50%;
+    border: 2px solid var(--text-secondary);
+    flex-shrink: 0;
+    cursor: pointer;
+    transition: all 0.2s;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+
+  .task-checkbox.p1 { border-color: var(--priority-1); }
+  .task-checkbox.p2 { border-color: var(--priority-2); }
+  .task-checkbox.p3 { border-color: var(--priority-3); }
+
+  .task-checkbox.checked {
+    background: var(--text-secondary);
+    border-color: var(--text-secondary);
+  }
+
+  .task-checkbox.checked::after {
+    content: '✓';
+    color: #fff;
+    font-size: 11px;
+    font-weight: 700;
+  }
+
+  .task-info { flex: 1; min-width: 0; }
+
+  .task-title {
+    font-size: 14px;
+    color: var(--text);
+    line-height: 1.3;
+  }
+
+  .task-title.completed {
+    text-decoration: line-through;
+    color: var(--text-secondary);
+  }
+
+  .task-meta {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin-top: 2px;
+  }
+
+  .project-dot {
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    flex-shrink: 0;
+  }
+
+  .task-project {
+    font-size: 12px;
+    color: var(--text-secondary);
+  }
+
+  .task-time {
+    font-size: 12px;
+    color: var(--text-secondary);
+  }
+
+  .task-time.overdue { color: var(--red); }
+
+  .add-task-btn {
+    position: absolute;
+    bottom: 30px;
+    left: 50%;
+    transform: translateX(-50%);
+    background: var(--red);
+    color: #fff;
+    border: none;
+    border-radius: 28px;
+    padding: 14px 28px;
+    font-size: 15px;
+    font-weight: 600;
+    cursor: pointer;
+    box-shadow: 0 4px 16px rgba(219,76,63,0.35);
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    transition: all 0.2s;
+    z-index: 10;
+  }
+
+  .add-task-btn:hover {
+    transform: translateX(-50%) translateY(-2px);
+    box-shadow: 0 6px 20px rgba(219,76,63,0.45);
+  }
+
+  .add-task-btn .plus {
+    font-size: 20px;
+    font-weight: 300;
+  }
+
+  /* ========== TODAY VARIANT B - TIMELINE ========== */
+  .today-b .screen-content {
+    flex: 1;
+    overflow-y: auto;
+    padding-bottom: 20px;
+  }
+
+  .today-b .screen-content::-webkit-scrollbar { width: 0; }
+
+  .timeline-header {
+    padding: 8px 20px 12px;
+    border-bottom: 1px solid var(--border);
+  }
+
+  .timeline-header h1 {
+    font-size: 22px;
+    font-weight: 700;
+  }
+
+  .timeline-tabs {
+    display: flex;
+    gap: 0;
+    padding: 0 20px;
+    border-bottom: 1px solid var(--border);
+  }
+
+  .timeline-tab {
+    padding: 10px 16px;
+    font-size: 13px;
+    font-weight: 500;
+    color: var(--text-secondary);
+    cursor: pointer;
+    border-bottom: 2px solid transparent;
+    transition: all 0.2s;
+  }
+
+  .timeline-tab.active {
+    color: var(--red);
+    border-bottom-color: var(--red);
+  }
+
+  .timeline-container {
+    position: relative;
+    padding: 10px 0;
+  }
+
+  .time-slot {
+    display: flex;
+    min-height: 60px;
+    position: relative;
+  }
+
+  .time-label {
+    width: 56px;
+    font-size: 12px;
+    color: var(--text-secondary);
+    text-align: right;
+    padding-right: 12px;
+    padding-top: 0;
+    flex-shrink: 0;
+    font-weight: 500;
+  }
+
+  .time-slot-content {
+    flex: 1;
+    border-top: 1px dashed var(--border);
+    padding: 4px 16px 4px 8px;
+    min-height: 60px;
+  }
+
+  .time-block {
+    background: rgba(219,76,63,0.08);
+    border-left: 3px solid var(--red);
+    border-radius: 6px;
+    padding: 8px 10px;
+    margin: 2px 0;
+    cursor: pointer;
+    transition: all 0.2s;
+  }
+
+  .time-block:hover {
+    background: rgba(219,76,63,0.14);
+    transform: translateX(2px);
+  }
+
+  .time-block.blue {
+    background: rgba(36,111,224,0.08);
+    border-left-color: var(--blue);
+  }
+  .time-block.blue:hover { background: rgba(36,111,224,0.14); }
+
+  .time-block.green {
+    background: rgba(5,133,39,0.08);
+    border-left-color: var(--green);
+  }
+  .time-block.green:hover { background: rgba(5,133,39,0.14); }
+
+  .time-block.orange {
+    background: rgba(255,153,51,0.08);
+    border-left-color: var(--orange);
+  }
+  .time-block.orange:hover { background: rgba(255,153,51,0.14); }
+
+  .time-block.purple {
+    background: rgba(143,75,202,0.08);
+    border-left-color: var(--purple);
+  }
+  .time-block.purple:hover { background: rgba(143,75,202,0.14); }
+
+  .time-block-title {
+    font-size: 13px;
+    font-weight: 600;
+    color: var(--text);
+  }
+
+  .time-block-sub {
+    font-size: 11px;
+    color: var(--text-secondary);
+    margin-top: 2px;
+  }
+
+  .current-time-line {
+    position: absolute;
+    left: 56px;
+    right: 16px;
+    height: 2px;
+    background: var(--red);
+    z-index: 5;
+  }
+
+  .current-time-line::before {
+    content: '';
+    position: absolute;
+    left: -5px;
+    top: -4px;
+    width: 10px;
+    height: 10px;
+    background: var(--red);
+    border-radius: 50%;
+  }
+
+  /* ========== TODAY VARIANT C - CARDS ========== */
+  .today-c .screen-content {
+    flex: 1;
+    overflow-y: auto;
+    padding: 0 16px 80px;
+  }
+
+  .today-c .screen-content::-webkit-scrollbar { width: 0; }
+
+  .card-header {
+    padding: 8px 4px 12px;
+  }
+
+  .card-header h1 {
+    font-size: 24px;
+    font-weight: 700;
+  }
+
+  .card-header .subtitle {
+    font-size: 13px;
+    color: var(--text-secondary);
+  }
+
+  .task-card {
+    background: var(--card-bg);
+    border-radius: 14px;
+    padding: 16px;
+    margin-bottom: 10px;
+    box-shadow: var(--shadow);
+    cursor: pointer;
+    transition: all 0.25s;
+    position: relative;
+    overflow: hidden;
+    border: 1px solid var(--border);
+  }
+
+  .task-card:hover {
+    box-shadow: var(--shadow-md);
+    transform: translateY(-1px);
+  }
+
+  .task-card::before {
+    content: '';
+    position: absolute;
+    left: 0;
+    top: 0;
+    bottom: 0;
+    width: 4px;
+  }
+
+  .task-card.cat-red::before { background: var(--red); }
+  .task-card.cat-blue::before { background: var(--blue); }
+  .task-card.cat-green::before { background: var(--green); }
+  .task-card.cat-orange::before { background: var(--orange); }
+  .task-card.cat-purple::before { background: var(--purple); }
+
+  .card-top {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    margin-bottom: 6px;
+  }
+
+  .card-title {
+    font-size: 15px;
+    font-weight: 600;
+    color: var(--text);
+    flex: 1;
+  }
+
+  .card-priority {
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    flex-shrink: 0;
+    margin-top: 5px;
+    margin-left: 8px;
+  }
+
+  .card-details {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    margin-top: 8px;
+  }
+
+  .card-time {
+    font-size: 12px;
+    color: var(--text-secondary);
+    display: flex;
+    align-items: center;
+    gap: 4px;
+  }
+
+  .card-category {
+    font-size: 11px;
+    padding: 2px 8px;
+    border-radius: 10px;
+    font-weight: 500;
+  }
+
+  .card-category.work {
+    background: rgba(36,111,224,0.1);
+    color: var(--blue);
+  }
+
+  .card-category.personal {
+    background: rgba(5,133,39,0.1);
+    color: var(--green);
+  }
+
+  .card-category.health {
+    background: rgba(219,76,63,0.1);
+    color: var(--red);
+  }
+
+  .card-category.study {
+    background: rgba(143,75,202,0.1);
+    color: var(--purple);
+  }
+
+  .card-swipe-hint {
+    display: flex;
+    justify-content: space-between;
+    padding: 10px 20px;
+    font-size: 11px;
+    color: var(--text-secondary);
+    margin-top: 4px;
+  }
+
+  .swipe-left { color: var(--green); }
+  .swipe-right { color: var(--blue); }
+
+  /* ========== CALENDAR MONTHLY ========== */
+  .cal-monthly .screen-content {
+    flex: 1;
+    overflow-y: auto;
+  }
+
+  .cal-monthly .screen-content::-webkit-scrollbar { width: 0; }
+
+  .cal-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 8px 20px 12px;
+  }
+
+  .cal-header h2 {
+    font-size: 20px;
+    font-weight: 700;
+  }
+
+  .cal-nav {
+    display: flex;
+    gap: 4px;
+  }
+
+  .cal-nav button {
+    width: 32px;
+    height: 32px;
+    border: none;
+    background: var(--hover);
+    border-radius: 8px;
+    cursor: pointer;
+    font-size: 16px;
+    color: var(--text);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.2s;
+  }
+
+  .cal-nav button:hover { background: var(--border); }
+
+  .cal-weekdays {
+    display: grid;
+    grid-template-columns: repeat(7, 1fr);
+    padding: 0 12px;
+    margin-bottom: 4px;
+  }
+
+  .cal-weekday {
+    text-align: center;
+    font-size: 12px;
+    font-weight: 600;
+    color: var(--text-secondary);
+    padding: 6px 0;
+  }
+
+  .cal-grid {
+    display: grid;
+    grid-template-columns: repeat(7, 1fr);
+    padding: 0 12px;
+    gap: 2px;
+  }
+
+  .cal-day {
+    text-align: center;
+    padding: 8px 0 6px;
+    font-size: 14px;
+    cursor: pointer;
+    border-radius: 10px;
+    transition: all 0.2s;
+    position: relative;
+  }
+
+  .cal-day:hover { background: var(--hover); }
+
+  .cal-day.other-month { color: var(--text-secondary); opacity: 0.4; }
+
+  .cal-day.today {
+    background: var(--red);
+    color: #fff;
+    font-weight: 700;
+  }
+
+  .cal-day.selected {
+    background: rgba(219,76,63,0.1);
+    color: var(--red);
+    font-weight: 600;
+  }
+
+  .cal-day.today.selected {
+    background: var(--red);
+    color: #fff;
+  }
+
+  .cal-dots {
+    display: flex;
+    justify-content: center;
+    gap: 3px;
+    margin-top: 3px;
+    height: 5px;
+  }
+
+  .cal-dot {
+    width: 5px;
+    height: 5px;
+    border-radius: 50%;
+  }
+
+  .day-tasks-panel {
+    margin: 12px 16px;
+    padding: 14px;
+    background: var(--card-bg);
+    border-radius: 12px;
+    box-shadow: var(--shadow);
+    border: 1px solid var(--border);
+    transition: all 0.3s;
+  }
+
+  .day-tasks-title {
+    font-size: 14px;
+    font-weight: 700;
+    margin-bottom: 10px;
+    color: var(--text);
+  }
+
+  .day-task-item {
+    display: flex;
+    align-items: center;
+    padding: 8px 0;
+    gap: 10px;
+    border-bottom: 1px solid var(--border);
+  }
+
+  .day-task-item:last-child { border-bottom: none; }
+
+  /* ========== CALENDAR WEEKLY ========== */
+  .cal-weekly .screen-content {
+    flex: 1;
+    overflow-y: auto;
+  }
+
+  .cal-weekly .screen-content::-webkit-scrollbar { width: 0; }
+
+  .week-header {
+    padding: 8px 16px 0;
+  }
+
+  .week-header h2 {
+    font-size: 18px;
+    font-weight: 700;
+    margin-bottom: 8px;
+  }
+
+  .week-days-bar {
+    display: grid;
+    grid-template-columns: 40px repeat(7, 1fr);
+    border-bottom: 1px solid var(--border);
+  }
+
+  .week-day-col {
+    text-align: center;
+    padding: 6px 0 8px;
+  }
+
+  .week-day-name {
+    font-size: 11px;
+    color: var(--text-secondary);
+    font-weight: 600;
+    text-transform: uppercase;
+  }
+
+  .week-day-num {
+    font-size: 16px;
+    font-weight: 600;
+    margin-top: 2px;
+    width: 28px;
+    height: 28px;
+    border-radius: 50%;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+  }
+
+  .week-day-col.today .week-day-num {
+    background: var(--red);
+    color: #fff;
+  }
+
+  .week-grid {
+    display: grid;
+    grid-template-columns: 40px repeat(7, 1fr);
+    position: relative;
+  }
+
+  .week-time-col {
+    border-right: 1px solid var(--border);
+  }
+
+  .week-time-label {
+    height: 50px;
+    font-size: 10px;
+    color: var(--text-secondary);
+    text-align: right;
+    padding-right: 6px;
+    padding-top: 0;
+  }
+
+  .week-col {
+    border-right: 1px solid var(--border);
+    position: relative;
+  }
+
+  .week-col:last-child { border-right: none; }
+
+  .week-cell {
+    height: 50px;
+    border-bottom: 1px solid var(--border);
+  }
+
+  .week-event {
+    position: absolute;
+    left: 2px;
+    right: 2px;
+    border-radius: 4px;
+    padding: 3px 4px;
+    font-size: 10px;
+    font-weight: 600;
+    overflow: hidden;
+    cursor: pointer;
+    transition: opacity 0.2s;
+    line-height: 1.2;
+  }
+
+  .week-event:hover { opacity: 0.85; }
+
+  .week-current-line {
+    position: absolute;
+    left: 40px;
+    right: 0;
+    height: 2px;
+    background: var(--red);
+    z-index: 5;
+  }
+
+  .week-current-line::before {
+    content: '';
+    position: absolute;
+    left: -4px;
+    top: -3px;
+    width: 8px;
+    height: 8px;
+    background: var(--red);
+    border-radius: 50%;
+  }
+
+  /* ========== CALENDAR AGENDA ========== */
+  .cal-agenda .screen-content {
+    flex: 1;
+    overflow-y: auto;
+    padding-bottom: 20px;
+  }
+
+  .cal-agenda .screen-content::-webkit-scrollbar { width: 0; }
+
+  .agenda-header {
+    padding: 8px 20px 12px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+  }
+
+  .agenda-header h2 {
+    font-size: 20px;
+    font-weight: 700;
+  }
+
+  .agenda-date-header {
+    padding: 12px 20px 6px;
+    display: flex;
+    align-items: baseline;
+    gap: 8px;
+    position: sticky;
+    top: 0;
+    background: var(--bg);
+    z-index: 2;
+    border-bottom: 1px solid var(--border);
+  }
+
+  .agenda-day-name {
+    font-size: 15px;
+    font-weight: 700;
+    color: var(--text);
+  }
+
+  .agenda-day-name.today { color: var(--red); }
+
+  .agenda-date-full {
+    font-size: 13px;
+    color: var(--text-secondary);
+  }
+
+  .agenda-task {
+    display: flex;
+    align-items: center;
+    padding: 12px 20px;
+    gap: 12px;
+    border-bottom: 1px solid var(--border);
+    cursor: pointer;
+    transition: background 0.15s;
+  }
+
+  .agenda-task:hover { background: var(--hover); }
+
+  .agenda-color-bar {
+    width: 3px;
+    height: 36px;
+    border-radius: 2px;
+    flex-shrink: 0;
+  }
+
+  .agenda-task-info { flex: 1; }
+
+  .agenda-task-title {
+    font-size: 14px;
+    font-weight: 500;
+    color: var(--text);
+  }
+
+  .agenda-task-time {
+    font-size: 12px;
+    color: var(--text-secondary);
+    margin-top: 2px;
+  }
+
+  .agenda-empty {
+    padding: 16px 20px;
+    font-size: 13px;
+    color: var(--text-secondary);
+    font-style: italic;
+  }
+
+  /* ========== Bottom nav ========== */
+  .bottom-nav {
+    display: flex;
+    justify-content: space-around;
+    align-items: center;
+    height: 54px;
+    border-top: 1px solid var(--border);
+    background: var(--card-bg);
+    flex-shrink: 0;
+    padding-bottom: 4px;
+  }
+
+  .nav-item {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 2px;
+    cursor: pointer;
+    color: var(--text-secondary);
+    font-size: 10px;
+    transition: color 0.2s;
+  }
+
+  .nav-item.active { color: var(--red); }
+  .nav-item .nav-icon { font-size: 20px; }
+
+  /* ========== ANIMATIONS ========== */
+  @keyframes fadeIn {
+    from { opacity: 0; transform: translateY(10px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+
+  .task-item, .task-card, .agenda-task, .day-task-item {
+    animation: fadeIn 0.3s ease;
+  }
+
+  /* ========== RESPONSIVE ========== */
+  @media (max-width: 768px) {
+    .frames-grid {
+      gap: 24px;
+    }
+    body { padding: 10px; }
+    .phone-frame {
+      width: 340px;
+      height: 740px;
+    }
+  }
+</style>
+</head>
+<body>
+
+<button class="theme-toggle" onclick="toggleTheme()" title="Сменить тему">🌙</button>
+
+<div class="page-header">
+  <h1>Календарь и Сегодня</h1>
+  <p>Варианты экранов планировщика</p>
+</div>
+
+<div class="controls">
+  <button class="active" data-filter="all">Все</button>
+  <button data-filter="today">Сегодня</button>
+  <button data-filter="calendar">Календарь</button>
+</div>
+
+<div class="frames-grid">
+
+  <!-- ============================== -->
+  <!--  1. TODAY - VARIANT A: Todoist -->
+  <!-- ============================== -->
+  <div class="frame-wrapper" data-group="today">
+    <div class="frame-label">Вариант A: Стиль Todoist<br><span class="frame-sublabel">Группировка по времени суток</span></div>
+    <div class="phone-frame today-a">
+      <div class="status-bar">
+        <span>9:41</span>
+        <div class="status-icons">
+          <span>●●●</span>
+          <span>WiFi</span>
+          <span>🔋</span>
+        </div>
+      </div>
+
+      <div class="today-header">
+        <h1>Сегодня</h1>
+        <div class="date-info">Среда, 18 марта</div>
+        <div class="task-count">12 задач · 3 выполнено</div>
+      </div>
+
+      <div class="progress-bar-container">
+        <div class="progress-bar">
+          <div class="progress-fill" style="width:25%"></div>
+        </div>
+        <div class="progress-text">3 из 12</div>
+      </div>
+
+      <div class="screen-content">
+        <div class="overdue-section">
+          <div class="overdue-title">⚠ Просрочено (2)</div>
+          <div class="task-item" style="padding:6px 0;border:none">
+            <div class="task-checkbox p1"></div>
+            <div class="task-info">
+              <div class="task-title">Отправить отчёт клиенту</div>
+              <div class="task-meta">
+                <div class="project-dot" style="background:var(--blue)"></div>
+                <span class="task-project">Работа</span>
+                <span class="task-time overdue">Вчера</span>
+              </div>
+            </div>
+          </div>
+          <div class="task-item" style="padding:6px 0;border:none">
+            <div class="task-checkbox p2"></div>
+            <div class="task-info">
+              <div class="task-title">Позвонить врачу</div>
+              <div class="task-meta">
+                <div class="project-dot" style="background:var(--green)"></div>
+                <span class="task-project">Личное</span>
+                <span class="task-time overdue">2 дня назад</span>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="section-title">☀ Утро</div>
+        <div class="task-item" onclick="toggleTask(this)">
+          <div class="task-checkbox p1"></div>
+          <div class="task-info">
+            <div class="task-title">Утренняя пробежка</div>
+            <div class="task-meta">
+              <div class="project-dot" style="background:var(--red)"></div>
+              <span class="task-project">Здоровье</span>
+              <span class="task-time">07:00</span>
+            </div>
+          </div>
+        </div>
+        <div class="task-item" onclick="toggleTask(this)">
+          <div class="task-checkbox checked"></div>
+          <div class="task-info">
+            <div class="task-title completed">Медитация 10 минут</div>
+            <div class="task-meta">
+              <div class="project-dot" style="background:var(--purple)"></div>
+              <span class="task-project">Привычки</span>
+              <span class="task-time">07:30</span>
+            </div>
+          </div>
+        </div>
+        <div class="task-item" onclick="toggleTask(this)">
+          <div class="task-checkbox p3"></div>
+          <div class="task-info">
+            <div class="task-title">Подготовить презентацию</div>
+            <div class="task-meta">
+              <div class="project-dot" style="background:var(--blue)"></div>
+              <span class="task-project">Работа</span>
+              <span class="task-time">09:00</span>
+            </div>
+          </div>
+        </div>
+
+        <div class="section-title">🌤 День</div>
+        <div class="task-item" onclick="toggleTask(this)">
+          <div class="task-checkbox p2"></div>
+          <div class="task-info">
+            <div class="task-title">Встреча с командой</div>
+            <div class="task-meta">
+              <div class="project-dot" style="background:var(--blue)"></div>
+              <span class="task-project">Работа</span>
+              <span class="task-time">11:00</span>
+            </div>
+          </div>
+        </div>
+        <div class="task-item" onclick="toggleTask(this)">
+          <div class="task-checkbox checked"></div>
+          <div class="task-info">
+            <div class="task-title completed">Обед с партнёром</div>
+            <div class="task-meta">
+              <div class="project-dot" style="background:var(--orange)"></div>
+              <span class="task-project">Нетворкинг</span>
+              <span class="task-time">13:00</span>
+            </div>
+          </div>
+        </div>
+        <div class="task-item" onclick="toggleTask(this)">
+          <div class="task-checkbox p1"></div>
+          <div class="task-info">
+            <div class="task-title">Ревью кода PR #142</div>
+            <div class="task-meta">
+              <div class="project-dot" style="background:var(--blue)"></div>
+              <span class="task-project">Работа</span>
+              <span class="task-time">15:00</span>
+            </div>
+          </div>
+        </div>
+        <div class="task-item" onclick="toggleTask(this)">
+          <div class="task-checkbox p3"></div>
+          <div class="task-info">
+            <div class="task-title">Заказать продукты</div>
+            <div class="task-meta">
+              <div class="project-dot" style="background:var(--green)"></div>
+              <span class="task-project">Дом</span>
+              <span class="task-time">16:00</span>
+            </div>
+          </div>
+        </div>
+
+        <div class="section-title">🌙 Вечер</div>
+        <div class="task-item" onclick="toggleTask(this)">
+          <div class="task-checkbox checked"></div>
+          <div class="task-info">
+            <div class="task-title completed">Тренировка в зале</div>
+            <div class="task-meta">
+              <div class="project-dot" style="background:var(--red)"></div>
+              <span class="task-project">Здоровье</span>
+              <span class="task-time">18:00</span>
+            </div>
+          </div>
+        </div>
+        <div class="task-item" onclick="toggleTask(this)">
+          <div class="task-checkbox p2"></div>
+          <div class="task-info">
+            <div class="task-title">Чтение: 30 страниц</div>
+            <div class="task-meta">
+              <div class="project-dot" style="background:var(--purple)"></div>
+              <span class="task-project">Саморазвитие</span>
+              <span class="task-time">21:00</span>
+            </div>
+          </div>
+        </div>
+        <div class="task-item" onclick="toggleTask(this)">
+          <div class="task-checkbox"></div>
+          <div class="task-info">
+            <div class="task-title">Планирование завтрашнего дня</div>
+            <div class="task-meta">
+              <div class="project-dot" style="background:var(--text-secondary)"></div>
+              <span class="task-project">Входящие</span>
+              <span class="task-time">22:00</span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <button class="add-task-btn"><span class="plus">+</span> Добавить задачу</button>
+
+      <div class="bottom-nav">
+        <div class="nav-item active"><span class="nav-icon">📋</span>Сегодня</div>
+        <div class="nav-item"><span class="nav-icon">📁</span>Проекты</div>
+        <div class="nav-item"><span class="nav-icon">📅</span>Календарь</div>
+        <div class="nav-item"><span class="nav-icon">🔍</span>Поиск</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ============================== -->
+  <!--  2. TODAY - VARIANT B: Timeline -->
+  <!-- ============================== -->
+  <div class="frame-wrapper" data-group="today">
+    <div class="frame-label">Вариант B: Таймлайн<br><span class="frame-sublabel">Часовая шкала с блоками задач</span></div>
+    <div class="phone-frame today-b">
+      <div class="status-bar">
+        <span>9:41</span>
+        <div class="status-icons">
+          <span>●●●</span>
+          <span>WiFi</span>
+          <span>🔋</span>
+        </div>
+      </div>
+
+      <div class="timeline-header">
+        <h1>Сегодня, 18 марта</h1>
+      </div>
+
+      <div class="timeline-tabs">
+        <div class="timeline-tab active">Расписание</div>
+        <div class="timeline-tab">Список</div>
+        <div class="timeline-tab">Фокус</div>
+      </div>
+
+      <div class="screen-content">
+        <div class="timeline-container">
+          <!-- Current time indicator -->
+          <div class="current-time-line" style="top:170px"></div>
+
+          <div class="time-slot">
+            <div class="time-label">07:00</div>
+            <div class="time-slot-content">
+              <div class="time-block">
+                <div class="time-block-title">Утренняя пробежка</div>
+                <div class="time-block-sub">07:00 — 07:45 · Здоровье</div>
+              </div>
+            </div>
+          </div>
+
+          <div class="time-slot">
+            <div class="time-label">08:00</div>
+            <div class="time-slot-content">
+              <div class="time-block purple">
+                <div class="time-block-title">Медитация</div>
+                <div class="time-block-sub">08:00 — 08:15 · Привычки</div>
+              </div>
+            </div>
+          </div>
+
+          <div class="time-slot">
+            <div class="time-label">09:00</div>
+            <div class="time-slot-content">
+              <div class="time-block blue">
+                <div class="time-block-title">Подготовка презентации</div>
+                <div class="time-block-sub">09:00 — 10:30 · Работа</div>
+              </div>
+            </div>
+          </div>
+
+          <div class="time-slot">
+            <div class="time-label">10:00</div>
+            <div class="time-slot-content"></div>
+          </div>
+
+          <div class="time-slot">
+            <div class="time-label">11:00</div>
+            <div class="time-slot-content">
+              <div class="time-block blue">
+                <div class="time-block-title">Встреча с командой</div>
+                <div class="time-block-sub">11:00 — 12:00 · Работа</div>
+              </div>
+            </div>
+          </div>
+
+          <div class="time-slot">
+            <div class="time-label">12:00</div>
+            <div class="time-slot-content"></div>
+          </div>
+
+          <div class="time-slot">
+            <div class="time-label">13:00</div>
+            <div class="time-slot-content">
+              <div class="time-block orange">
+                <div class="time-block-title">Обед с партнёром</div>
+                <div class="time-block-sub">13:00 — 14:00 · Нетворкинг</div>
+              </div>
+            </div>
+          </div>
+
+          <div class="time-slot">
+            <div class="time-label">14:00</div>
+            <div class="time-slot-content"></div>
+          </div>
+
+          <div class="time-slot">
+            <div class="time-label">15:00</div>
+            <div class="time-slot-content">
+              <div class="time-block blue">
+                <div class="time-block-title">Ревью кода PR #142</div>
+                <div class="time-block-sub">15:00 — 16:00 · Работа</div>
+              </div>
+            </div>
+          </div>
+
+          <div class="time-slot">
+            <div class="time-label">16:00</div>
+            <div class="time-slot-content">
+              <div class="time-block green">
+                <div class="time-block-title">Заказать продукты</div>
+                <div class="time-block-sub">16:00 — 16:30 · Дом</div>
+              </div>
+            </div>
+          </div>
+
+          <div class="time-slot">
+            <div class="time-label">17:00</div>
+            <div class="time-slot-content"></div>
+          </div>
+
+          <div class="time-slot">
+            <div class="time-label">18:00</div>
+            <div class="time-slot-content">
+              <div class="time-block">
+                <div class="time-block-title">Тренировка в зале</div>
+                <div class="time-block-sub">18:00 — 19:30 · Здоровье</div>
+              </div>
+            </div>
+          </div>
+
+          <div class="time-slot">
+            <div class="time-label">19:00</div>
+            <div class="time-slot-content"></div>
+          </div>
+
+          <div class="time-slot">
+            <div class="time-label">20:00</div>
+            <div class="time-slot-content"></div>
+          </div>
+
+          <div class="time-slot">
+            <div class="time-label">21:00</div>
+            <div class="time-slot-content">
+              <div class="time-block purple">
+                <div class="time-block-title">Чтение: 30 страниц</div>
+                <div class="time-block-sub">21:00 — 21:45 · Саморазвитие</div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="bottom-nav">
+        <div class="nav-item active"><span class="nav-icon">📋</span>Сегодня</div>
+        <div class="nav-item"><span class="nav-icon">📁</span>Проекты</div>
+        <div class="nav-item"><span class="nav-icon">📅</span>Календарь</div>
+        <div class="nav-item"><span class="nav-icon">🔍</span>Поиск</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ============================== -->
+  <!--  3. TODAY - VARIANT C: Cards   -->
+  <!-- ============================== -->
+  <div class="frame-wrapper" data-group="today">
+    <div class="frame-label">Вариант C: Карточки<br><span class="frame-sublabel">Swipeable-карточки с категориями</span></div>
+    <div class="phone-frame today-c">
+      <div class="status-bar">
+        <span>9:41</span>
+        <div class="status-icons">
+          <span>●●●</span>
+          <span>WiFi</span>
+          <span>🔋</span>
+        </div>
+      </div>
+
+      <div class="screen-content">
+        <div class="card-header">
+          <h1>Сегодня</h1>
+          <div class="subtitle">Среда, 18 марта · 9 задач</div>
+        </div>
+
+        <div class="card-swipe-hint">
+          <span class="swipe-left">← Свайп: Готово</span>
+          <span class="swipe-right">Свайп: Перенести →</span>
+        </div>
+
+        <div class="task-card cat-red" onclick="swipeCard(this)">
+          <div class="card-top">
+            <div class="card-title">Утренняя пробежка</div>
+            <div class="card-priority" style="background:var(--priority-1)"></div>
+          </div>
+          <div class="card-details">
+            <span class="card-time">⏰ 07:00 — 07:45</span>
+            <span class="card-category health">Здоровье</span>
+          </div>
+        </div>
+
+        <div class="task-card cat-purple" onclick="swipeCard(this)">
+          <div class="card-top">
+            <div class="card-title">Медитация 10 минут</div>
+            <div class="card-priority" style="background:var(--priority-3)"></div>
+          </div>
+          <div class="card-details">
+            <span class="card-time">⏰ 08:00 — 08:10</span>
+            <span class="card-category study">Привычки</span>
+          </div>
+        </div>
+
+        <div class="task-card cat-blue" onclick="swipeCard(this)">
+          <div class="card-top">
+            <div class="card-title">Подготовить презентацию для клиента</div>
+            <div class="card-priority" style="background:var(--priority-1)"></div>
+          </div>
+          <div class="card-details">
+            <span class="card-time">⏰ 09:00 — 10:30</span>
+            <span class="card-category work">Работа</span>
+          </div>
+        </div>
+
+        <div class="task-card cat-blue" onclick="swipeCard(this)">
+          <div class="card-top">
+            <div class="card-title">Встреча с командой</div>
+            <div class="card-priority" style="background:var(--priority-2)"></div>
+          </div>
+          <div class="card-details">
+            <span class="card-time">⏰ 11:00 — 12:00</span>
+            <span class="card-category work">Работа</span>
+          </div>
+        </div>
+
+        <div class="task-card cat-orange" onclick="swipeCard(this)">
+          <div class="card-top">
+            <div class="card-title">Обед с партнёром</div>
+            <div class="card-priority" style="background:var(--priority-3)"></div>
+          </div>
+          <div class="card-details">
+            <span class="card-time">⏰ 13:00 — 14:00</span>
+            <span class="card-category personal">Нетворкинг</span>
+          </div>
+        </div>
+
+        <div class="task-card cat-blue" onclick="swipeCard(this)">
+          <div class="card-top">
+            <div class="card-title">Ревью кода PR #142</div>
+            <div class="card-priority" style="background:var(--priority-1)"></div>
+          </div>
+          <div class="card-details">
+            <span class="card-time">⏰ 15:00 — 16:00</span>
+            <span class="card-category work">Работа</span>
+          </div>
+        </div>
+
+        <div class="task-card cat-green" onclick="swipeCard(this)">
+          <div class="card-top">
+            <div class="card-title">Заказать продукты</div>
+            <div class="card-priority" style="background:var(--priority-4)"></div>
+          </div>
+          <div class="card-details">
+            <span class="card-time">⏰ 16:00 — 16:30</span>
+            <span class="card-category personal">Дом</span>
+          </div>
+        </div>
+
+        <div class="task-card cat-red" onclick="swipeCard(this)">
+          <div class="card-top">
+            <div class="card-title">Тренировка в зале</div>
+            <div class="card-priority" style="background:var(--priority-2)"></div>
+          </div>
+          <div class="card-details">
+            <span class="card-time">⏰ 18:00 — 19:30</span>
+            <span class="card-category health">Здоровье</span>
+          </div>
+        </div>
+
+        <div class="task-card cat-purple" onclick="swipeCard(this)">
+          <div class="card-top">
+            <div class="card-title">Чтение: 30 страниц</div>
+            <div class="card-priority" style="background:var(--priority-2)"></div>
+          </div>
+          <div class="card-details">
+            <span class="card-time">⏰ 21:00 — 21:45</span>
+            <span class="card-category study">Саморазвитие</span>
+          </div>
+        </div>
+      </div>
+
+      <button class="add-task-btn"><span class="plus">+</span> Добавить задачу</button>
+
+      <div class="bottom-nav">
+        <div class="nav-item active"><span class="nav-icon">📋</span>Сегодня</div>
+        <div class="nav-item"><span class="nav-icon">📁</span>Проекты</div>
+        <div class="nav-item"><span class="nav-icon">📅</span>Календарь</div>
+        <div class="nav-item"><span class="nav-icon">🔍</span>Поиск</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ============================== -->
+  <!--  4. CALENDAR - Monthly View    -->
+  <!-- ============================== -->
+  <div class="frame-wrapper" data-group="calendar">
+    <div class="frame-label">Календарь: Месяц<br><span class="frame-sublabel">Сетка с точками задач</span></div>
+    <div class="phone-frame cal-monthly">
+      <div class="status-bar">
+        <span>9:41</span>
+        <div class="status-icons">
+          <span>●●●</span>
+          <span>WiFi</span>
+          <span>🔋</span>
+        </div>
+      </div>
+
+      <div class="cal-header">
+        <h2>Март 2026</h2>
+        <div class="cal-nav">
+          <button>‹</button>
+          <button>›</button>
+        </div>
+      </div>
+
+      <div class="cal-weekdays">
+        <div class="cal-weekday">Пн</div>
+        <div class="cal-weekday">Вт</div>
+        <div class="cal-weekday">Ср</div>
+        <div class="cal-weekday">Чт</div>
+        <div class="cal-weekday">Пт</div>
+        <div class="cal-weekday">Сб</div>
+        <div class="cal-weekday">Вс</div>
+      </div>
+
+      <div class="cal-grid" id="calGrid">
+        <!-- Filled by JS -->
+      </div>
+
+      <div class="screen-content">
+        <div class="day-tasks-panel" id="dayTasksPanel">
+          <div class="day-tasks-title" id="dayTasksTitle">18 марта — Среда</div>
+          <div id="dayTasksList">
+            <div class="day-task-item">
+              <div class="task-checkbox p1"></div>
+              <div class="task-info">
+                <div class="task-title">Утренняя пробежка</div>
+                <div class="task-meta"><span class="task-time">07:00</span></div>
+              </div>
+            </div>
+            <div class="day-task-item">
+              <div class="task-checkbox p3"></div>
+              <div class="task-info">
+                <div class="task-title">Подготовить презентацию</div>
+                <div class="task-meta"><span class="task-time">09:00</span></div>
+              </div>
+            </div>
+            <div class="day-task-item">
+              <div class="task-checkbox p2"></div>
+              <div class="task-info">
+                <div class="task-title">Встреча с командой</div>
+                <div class="task-meta"><span class="task-time">11:00</span></div>
+              </div>
+            </div>
+            <div class="day-task-item">
+              <div class="task-checkbox p1"></div>
+              <div class="task-info">
+                <div class="task-title">Ревью кода</div>
+                <div class="task-meta"><span class="task-time">15:00</span></div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="bottom-nav">
+        <div class="nav-item"><span class="nav-icon">📋</span>Сегодня</div>
+        <div class="nav-item"><span class="nav-icon">📁</span>Проекты</div>
+        <div class="nav-item active"><span class="nav-icon">📅</span>Календарь</div>
+        <div class="nav-item"><span class="nav-icon">🔍</span>Поиск</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ============================== -->
+  <!--  5. CALENDAR - Weekly View     -->
+  <!-- ============================== -->
+  <div class="frame-wrapper" data-group="calendar">
+    <div class="frame-label">Календарь: Неделя<br><span class="frame-sublabel">7-колоночная сетка с блоками</span></div>
+    <div class="phone-frame cal-weekly">
+      <div class="status-bar">
+        <span>9:41</span>
+        <div class="status-icons">
+          <span>●●●</span>
+          <span>WiFi</span>
+          <span>🔋</span>
+        </div>
+      </div>
+
+      <div class="week-header">
+        <h2>16 — 22 марта</h2>
+      </div>
+
+      <div class="week-days-bar">
+        <div></div>
+        <div class="week-day-col"><div class="week-day-name">Пн</div><div class="week-day-num">16</div></div>
+        <div class="week-day-col"><div class="week-day-name">Вт</div><div class="week-day-num">17</div></div>
+        <div class="week-day-col today"><div class="week-day-name">Ср</div><div class="week-day-num">18</div></div>
+        <div class="week-day-col"><div class="week-day-name">Чт</div><div class="week-day-num">19</div></div>
+        <div class="week-day-col"><div class="week-day-name">Пт</div><div class="week-day-num">20</div></div>
+        <div class="week-day-col"><div class="week-day-name">Сб</div><div class="week-day-num">21</div></div>
+        <div class="week-day-col"><div class="week-day-name">Вс</div><div class="week-day-num">22</div></div>
+      </div>
+
+      <div class="screen-content" style="position:relative">
+        <div class="week-grid">
+          <!-- Current time line -->
+          <div class="week-current-line" style="top:130px"></div>
+
+          <!-- Time column -->
+          <div class="week-time-col">
+            <div class="week-time-label">07:00</div>
+            <div class="week-time-label">08:00</div>
+            <div class="week-time-label">09:00</div>
+            <div class="week-time-label">10:00</div>
+            <div class="week-time-label">11:00</div>
+            <div class="week-time-label">12:00</div>
+            <div class="week-time-label">13:00</div>
+            <div class="week-time-label">14:00</div>
+            <div class="week-time-label">15:00</div>
+            <div class="week-time-label">16:00</div>
+            <div class="week-time-label">17:00</div>
+            <div class="week-time-label">18:00</div>
+            <div class="week-time-label">19:00</div>
+            <div class="week-time-label">20:00</div>
+          </div>
+
+          <!-- Mon -->
+          <div class="week-col">
+            <div class="week-cell"></div><div class="week-cell"></div><div class="week-cell"></div><div class="week-cell"></div><div class="week-cell"></div><div class="week-cell"></div><div class="week-cell"></div><div class="week-cell"></div><div class="week-cell"></div><div class="week-cell"></div><div class="week-cell"></div><div class="week-cell"></div><div class="week-cell"></div><div class="week-cell"></div>
+            <div class="week-event" style="top:100px;height:45px;background:rgba(36,111,224,0.2);color:var(--blue)">Планёрка</div>
+            <div class="week-event" style="top:350px;height:40px;background:rgba(219,76,63,0.15);color:var(--red)">Спорт</div>
+          </div>
+
+          <!-- Tue -->
+          <div class="week-col">
+            <div class="week-cell"></div><div class="week-cell"></div><div class="week-cell"></div><div class="week-cell"></div><div class="week-cell"></div><div class="week-cell"></div><div class="week-cell"></div><div class="week-cell"></div><div class="week-cell"></div><div class="week-cell"></div><div class="week-cell"></div><div class="week-cell"></div><div class="week-cell"></div><div class="week-cell"></div>
+            <div class="week-event" style="top:50px;height:40px;background:rgba(143,75,202,0.2);color:var(--purple)">Учёба</div>
+            <div class="week-event" style="top:200px;height:50px;background:rgba(255,153,51,0.2);color:var(--orange)">Обед</div>
+          </div>
+
+          <!-- Wed (today) -->
+          <div class="week-col" style="background:rgba(219,76,63,0.03)">
+            <div class="week-cell"></div><div class="week-cell"></div><div class="week-cell"></div><div class="week-cell"></div><div class="week-cell"></div><div class="week-cell"></div><div class="week-cell"></div><div class="week-cell"></div><div class="week-cell"></div><div class="week-cell"></div><div class="week-cell"></div><div class="week-cell"></div><div class="week-cell"></div><div class="week-cell"></div>
+            <div class="week-event" style="top:0;height:40px;background:rgba(219,76,63,0.15);color:var(--red)">Бег</div>
+            <div class="week-event" style="top:100px;height:70px;background:rgba(36,111,224,0.2);color:var(--blue)">Презент.</div>
+            <div class="week-event" style="top:200px;height:50px;background:rgba(36,111,224,0.2);color:var(--blue)">Встреча</div>
+            <div class="week-event" style="top:300px;height:40px;background:rgba(255,153,51,0.2);color:var(--orange)">Обед</div>
+            <div class="week-event" style="top:400px;height:50px;background:rgba(36,111,224,0.2);color:var(--blue)">Ревью</div>
+            <div class="week-event" style="top:550px;height:60px;background:rgba(219,76,63,0.15);color:var(--red)">Зал</div>
+          </div>
+
+          <!-- Thu -->
+          <div class="week-col">
+            <div class="week-cell"></div><div class="week-cell"></div><div class="week-cell"></div><div class="week-cell"></div><div class="week-cell"></div><div class="week-cell"></div><div class="week-cell"></div><div class="week-cell"></div><div class="week-cell"></div><div class="week-cell"></div><div class="week-cell"></div><div class="week-cell"></div><div class="week-cell"></div><div class="week-cell"></div>
+            <div class="week-event" style="top:100px;height:50px;background:rgba(36,111,224,0.2);color:var(--blue)">Митинг</div>
+            <div class="week-event" style="top:450px;height:40px;background:rgba(5,133,39,0.2);color:var(--green)">Магазин</div>
+          </div>
+
+          <!-- Fri -->
+          <div class="week-col">
+            <div class="week-cell"></div><div class="week-cell"></div><div class="week-cell"></div><div class="week-cell"></div><div class="week-cell"></div><div class="week-cell"></div><div class="week-cell"></div><div class="week-cell"></div><div class="week-cell"></div><div class="week-cell"></div><div class="week-cell"></div><div class="week-cell"></div><div class="week-cell"></div><div class="week-cell"></div>
+            <div class="week-event" style="top:50px;height:90px;background:rgba(36,111,224,0.2);color:var(--blue)">Проект</div>
+            <div class="week-event" style="top:350px;height:50px;background:rgba(219,76,63,0.15);color:var(--red)">Спорт</div>
+          </div>
+
+          <!-- Sat -->
+          <div class="week-col">
+            <div class="week-cell"></div><div class="week-cell"></div><div class="week-cell"></div><div class="week-cell"></div><div class="week-cell"></div><div class="week-cell"></div><div class="week-cell"></div><div class="week-cell"></div><div class="week-cell"></div><div class="week-cell"></div><div class="week-cell"></div><div class="week-cell"></div><div class="week-cell"></div><div class="week-cell"></div>
+            <div class="week-event" style="top:150px;height:50px;background:rgba(5,133,39,0.2);color:var(--green)">Уборка</div>
+          </div>
+
+          <!-- Sun -->
+          <div class="week-col">
+            <div class="week-cell"></div><div class="week-cell"></div><div class="week-cell"></div><div class="week-cell"></div><div class="week-cell"></div><div class="week-cell"></div><div class="week-cell"></div><div class="week-cell"></div><div class="week-cell"></div><div class="week-cell"></div><div class="week-cell"></div><div class="week-cell"></div><div class="week-cell"></div><div class="week-cell"></div>
+            <div class="week-event" style="top:200px;height:60px;background:rgba(143,75,202,0.2);color:var(--purple)">Чтение</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="bottom-nav">
+        <div class="nav-item"><span class="nav-icon">📋</span>Сегодня</div>
+        <div class="nav-item"><span class="nav-icon">📁</span>Проекты</div>
+        <div class="nav-item active"><span class="nav-icon">📅</span>Календарь</div>
+        <div class="nav-item"><span class="nav-icon">🔍</span>Поиск</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ============================== -->
+  <!--  6. CALENDAR - Agenda View     -->
+  <!-- ============================== -->
+  <div class="frame-wrapper" data-group="calendar">
+    <div class="frame-label">Календарь: Повестка<br><span class="frame-sublabel">Бесконечный список по дням</span></div>
+    <div class="phone-frame cal-agenda">
+      <div class="status-bar">
+        <span>9:41</span>
+        <div class="status-icons">
+          <span>●●●</span>
+          <span>WiFi</span>
+          <span>🔋</span>
+        </div>
+      </div>
+
+      <div class="agenda-header">
+        <h2>Повестка</h2>
+        <div class="cal-nav">
+          <button style="width:32px;height:32px;border:none;background:var(--hover);border-radius:8px;cursor:pointer;font-size:14px;color:var(--text)">📅</button>
+        </div>
+      </div>
+
+      <div class="screen-content">
+        <!-- Today -->
+        <div class="agenda-date-header">
+          <span class="agenda-day-name today">Сегодня</span>
+          <span class="agenda-date-full">Среда, 18 марта</span>
+        </div>
+        <div class="agenda-task">
+          <div class="agenda-color-bar" style="background:var(--red)"></div>
+          <div class="agenda-task-info">
+            <div class="agenda-task-title">Утренняя пробежка</div>
+            <div class="agenda-task-time">07:00 — 07:45 · Здоровье</div>
+          </div>
+        </div>
+        <div class="agenda-task">
+          <div class="agenda-color-bar" style="background:var(--blue)"></div>
+          <div class="agenda-task-info">
+            <div class="agenda-task-title">Подготовить презентацию</div>
+            <div class="agenda-task-time">09:00 — 10:30 · Работа</div>
+          </div>
+        </div>
+        <div class="agenda-task">
+          <div class="agenda-color-bar" style="background:var(--blue)"></div>
+          <div class="agenda-task-info">
+            <div class="agenda-task-title">Встреча с командой</div>
+            <div class="agenda-task-time">11:00 — 12:00 · Работа</div>
+          </div>
+        </div>
+        <div class="agenda-task">
+          <div class="agenda-color-bar" style="background:var(--orange)"></div>
+          <div class="agenda-task-info">
+            <div class="agenda-task-title">Обед с партнёром</div>
+            <div class="agenda-task-time">13:00 — 14:00 · Нетворкинг</div>
+          </div>
+        </div>
+        <div class="agenda-task">
+          <div class="agenda-color-bar" style="background:var(--blue)"></div>
+          <div class="agenda-task-info">
+            <div class="agenda-task-title">Ревью кода PR #142</div>
+            <div class="agenda-task-time">15:00 — 16:00 · Работа</div>
+          </div>
+        </div>
+        <div class="agenda-task">
+          <div class="agenda-color-bar" style="background:var(--red)"></div>
+          <div class="agenda-task-info">
+            <div class="agenda-task-title">Тренировка в зале</div>
+            <div class="agenda-task-time">18:00 — 19:30 · Здоровье</div>
+          </div>
+        </div>
+
+        <!-- Tomorrow -->
+        <div class="agenda-date-header">
+          <span class="agenda-day-name">Завтра</span>
+          <span class="agenda-date-full">Четверг, 19 марта</span>
+        </div>
+        <div class="agenda-task">
+          <div class="agenda-color-bar" style="background:var(--purple)"></div>
+          <div class="agenda-task-info">
+            <div class="agenda-task-title">Медитация</div>
+            <div class="agenda-task-time">08:00 — 08:15 · Привычки</div>
+          </div>
+        </div>
+        <div class="agenda-task">
+          <div class="agenda-color-bar" style="background:var(--blue)"></div>
+          <div class="agenda-task-info">
+            <div class="agenda-task-title">Статус-митинг</div>
+            <div class="agenda-task-time">10:00 — 10:30 · Работа</div>
+          </div>
+        </div>
+        <div class="agenda-task">
+          <div class="agenda-color-bar" style="background:var(--green)"></div>
+          <div class="agenda-task-info">
+            <div class="agenda-task-title">Визит к стоматологу</div>
+            <div class="agenda-task-time">14:00 — 15:00 · Личное</div>
+          </div>
+        </div>
+        <div class="agenda-task">
+          <div class="agenda-color-bar" style="background:var(--green)"></div>
+          <div class="agenda-task-info">
+            <div class="agenda-task-title">Забрать посылку</div>
+            <div class="agenda-task-time">17:00 · Дом</div>
+          </div>
+        </div>
+
+        <!-- Friday -->
+        <div class="agenda-date-header">
+          <span class="agenda-day-name">Пятница</span>
+          <span class="agenda-date-full">20 марта</span>
+        </div>
+        <div class="agenda-task">
+          <div class="agenda-color-bar" style="background:var(--blue)"></div>
+          <div class="agenda-task-info">
+            <div class="agenda-task-title">Демо для клиента</div>
+            <div class="agenda-task-time">09:00 — 10:30 · Работа</div>
+          </div>
+        </div>
+        <div class="agenda-task">
+          <div class="agenda-color-bar" style="background:var(--blue)"></div>
+          <div class="agenda-task-info">
+            <div class="agenda-task-title">Ретроспектива спринта</div>
+            <div class="agenda-task-time">11:00 — 12:00 · Работа</div>
+          </div>
+        </div>
+        <div class="agenda-task">
+          <div class="agenda-color-bar" style="background:var(--red)"></div>
+          <div class="agenda-task-info">
+            <div class="agenda-task-title">Тренировка</div>
+            <div class="agenda-task-time">18:00 — 19:30 · Здоровье</div>
+          </div>
+        </div>
+
+        <!-- Saturday -->
+        <div class="agenda-date-header">
+          <span class="agenda-day-name">Суббота</span>
+          <span class="agenda-date-full">21 марта</span>
+        </div>
+        <div class="agenda-task">
+          <div class="agenda-color-bar" style="background:var(--green)"></div>
+          <div class="agenda-task-info">
+            <div class="agenda-task-title">Генеральная уборка</div>
+            <div class="agenda-task-time">10:00 — 12:00 · Дом</div>
+          </div>
+        </div>
+        <div class="agenda-task">
+          <div class="agenda-color-bar" style="background:var(--orange)"></div>
+          <div class="agenda-task-info">
+            <div class="agenda-task-title">Ужин с друзьями</div>
+            <div class="agenda-task-time">19:00 · Личное</div>
+          </div>
+        </div>
+
+        <!-- Sunday -->
+        <div class="agenda-date-header">
+          <span class="agenda-day-name">Воскресенье</span>
+          <span class="agenda-date-full">22 марта</span>
+        </div>
+        <div class="agenda-empty">Нет запланированных задач</div>
+      </div>
+
+      <div class="bottom-nav">
+        <div class="nav-item"><span class="nav-icon">📋</span>Сегодня</div>
+        <div class="nav-item"><span class="nav-icon">📁</span>Проекты</div>
+        <div class="nav-item active"><span class="nav-icon">📅</span>Календарь</div>
+        <div class="nav-item"><span class="nav-icon">🔍</span>Поиск</div>
+      </div>
+    </div>
+  </div>
+
+</div>
+
+<script>
+// ===== Theme Toggle =====
+function toggleTheme() {
+  document.documentElement.classList.toggle('dark');
+  const btn = document.querySelector('.theme-toggle');
+  btn.textContent = document.documentElement.classList.contains('dark') ? '☀️' : '🌙';
+}
+
+// ===== Filter Controls =====
+document.querySelectorAll('.controls button').forEach(btn => {
+  btn.addEventListener('click', () => {
+    document.querySelectorAll('.controls button').forEach(b => b.classList.remove('active'));
+    btn.classList.add('active');
+    const filter = btn.dataset.filter;
+    document.querySelectorAll('.frame-wrapper').forEach(fw => {
+      if (filter === 'all' || fw.dataset.group === filter) {
+        fw.classList.remove('hidden');
+      } else {
+        fw.classList.add('hidden');
+      }
+    });
+  });
+});
+
+// ===== Task Checkbox Toggle =====
+function toggleTask(el) {
+  const cb = el.querySelector('.task-checkbox');
+  const title = el.querySelector('.task-title');
+  cb.classList.toggle('checked');
+  title.classList.toggle('completed');
+
+  // Update progress bar
+  const frame = el.closest('.phone-frame');
+  if (frame) {
+    const total = frame.querySelectorAll('.screen-content .task-checkbox').length;
+    const done = frame.querySelectorAll('.screen-content .task-checkbox.checked').length;
+    const fill = frame.querySelector('.progress-fill');
+    const text = frame.querySelector('.progress-text');
+    if (fill) fill.style.width = Math.round((done / total) * 100) + '%';
+    if (text) text.textContent = done + ' из ' + total;
+    const countEl = frame.querySelector('.task-count');
+    if (countEl) countEl.textContent = total + ' задач · ' + done + ' выполнено';
+  }
+}
+
+// ===== Card Swipe Animation =====
+function swipeCard(card) {
+  card.style.transition = 'transform 0.4s ease, opacity 0.4s ease';
+  card.style.transform = 'translateX(-120%)';
+  card.style.opacity = '0';
+  setTimeout(() => {
+    card.style.transform = 'translateX(0)';
+    card.style.opacity = '1';
+  }, 800);
+}
+
+// ===== Calendar Monthly Grid =====
+function buildCalendar() {
+  const grid = document.getElementById('calGrid');
+  if (!grid) return;
+
+  // March 2026 starts on Sunday (day 0), so Mon-based grid: offset = 6
+  const daysInMonth = 31;
+  const startDay = 6; // Sunday = 6 offset in Mon-first grid
+  const today = 18;
+
+  // Task dots data: day -> colors
+  const taskDots = {
+    1: ['#DB4C3F'],
+    3: ['#246FE0'],
+    5: ['#246FE0', '#058527'],
+    7: ['#DB4C3F'],
+    8: ['#246FE0', '#FF9933'],
+    10: ['#246FE0'],
+    11: ['#8F4BCA', '#246FE0'],
+    12: ['#DB4C3F', '#246FE0'],
+    14: ['#058527'],
+    15: ['#246FE0'],
+    16: ['#246FE0', '#DB4C3F'],
+    17: ['#8F4BCA', '#FF9933'],
+    18: ['#DB4C3F', '#246FE0', '#FF9933'],
+    19: ['#8F4BCA', '#246FE0', '#058527'],
+    20: ['#246FE0', '#DB4C3F'],
+    21: ['#058527', '#FF9933'],
+    23: ['#246FE0'],
+    24: ['#246FE0', '#8F4BCA'],
+    25: ['#DB4C3F'],
+    26: ['#246FE0'],
+    27: ['#058527', '#246FE0'],
+    28: ['#DB4C3F'],
+    30: ['#246FE0'],
+    31: ['#8F4BCA'],
+  };
+
+  // Day tasks data for panel
+  const dayTasks = {
+    16: [
+      {title: 'Планёрка', time: '10:00', p: 'p3'},
+      {title: 'Тренировка', time: '18:00', p: 'p2'},
+    ],
+    17: [
+      {title: 'Курс по Flutter', time: '09:00', p: 'p3'},
+      {title: 'Обед с коллегой', time: '13:00', p: 'p2'},
+    ],
+    18: [
+      {title: 'Утренняя пробежка', time: '07:00', p: 'p1'},
+      {title: 'Подготовить презентацию', time: '09:00', p: 'p3'},
+      {title: 'Встреча с командой', time: '11:00', p: 'p2'},
+      {title: 'Ревью кода', time: '15:00', p: 'p1'},
+    ],
+    19: [
+      {title: 'Медитация', time: '08:00', p: 'p3'},
+      {title: 'Статус-митинг', time: '10:00', p: 'p2'},
+      {title: 'Визит к стоматологу', time: '14:00', p: 'p1'},
+    ],
+    20: [
+      {title: 'Демо для клиента', time: '09:00', p: 'p1'},
+      {title: 'Тренировка', time: '18:00', p: 'p2'},
+    ],
+    21: [
+      {title: 'Генеральная уборка', time: '10:00', p: 'p3'},
+      {title: 'Ужин с друзьями', time: '19:00', p: 'p2'},
+    ],
+  };
+
+  const dayNames = ['Воскресенье', 'Понедельник', 'Вторник', 'Среда', 'Четверг', 'Пятница', 'Суббота'];
+  const monthNames = ['января', 'февраля', 'марта', 'апреля', 'мая', 'июня', 'июля', 'августа', 'сентября', 'октября', 'ноября', 'декабря'];
+
+  let selectedDay = today;
+  grid.innerHTML = '';
+
+  // Previous month days (Feb 2026 has 28 days)
+  for (let i = 0; i < startDay; i++) {
+    const d = 28 - startDay + 1 + i;
+    const el = document.createElement('div');
+    el.className = 'cal-day other-month';
+    el.innerHTML = d + '<div class="cal-dots"></div>';
+    grid.appendChild(el);
+  }
+
+  // Current month
+  for (let d = 1; d <= daysInMonth; d++) {
+    const el = document.createElement('div');
+    el.className = 'cal-day';
+    if (d === today) el.classList.add('today', 'selected');
+
+    let dotsHTML = '<div class="cal-dots">';
+    if (taskDots[d]) {
+      taskDots[d].forEach(color => {
+        dotsHTML += `<div class="cal-dot" style="background:${color}"></div>`;
+      });
+    }
+    dotsHTML += '</div>';
+
+    el.innerHTML = d + dotsHTML;
+
+    el.addEventListener('click', () => {
+      grid.querySelectorAll('.cal-day').forEach(c => {
+        if (!c.classList.contains('today')) c.classList.remove('selected');
+        else if (c !== el) c.classList.remove('selected');
+      });
+      el.classList.add('selected');
+      selectedDay = d;
+      showDayTasks(d, dayTasks, dayNames, monthNames);
+    });
+
+    grid.appendChild(el);
+  }
+
+  // Next month
+  const totalCells = startDay + daysInMonth;
+  const remaining = (7 - (totalCells % 7)) % 7;
+  for (let i = 1; i <= remaining; i++) {
+    const el = document.createElement('div');
+    el.className = 'cal-day other-month';
+    el.innerHTML = i + '<div class="cal-dots"></div>';
+    grid.appendChild(el);
+  }
+
+  showDayTasks(today, dayTasks, dayNames, monthNames);
+}
+
+function showDayTasks(day, dayTasks, dayNames, monthNames) {
+  const titleEl = document.getElementById('dayTasksTitle');
+  const listEl = document.getElementById('dayTasksList');
+
+  // Calculate day of week for March 2026
+  // March 1, 2026 is a Sunday
+  const dow = (day % 7); // approximate
+  const dayOfWeek = new Date(2026, 2, day).getDay();
+
+  titleEl.textContent = day + ' марта — ' + dayNames[dayOfWeek];
+
+  const tasks = dayTasks[day];
+  if (!tasks || tasks.length === 0) {
+    listEl.innerHTML = '<div style="padding:10px 0;font-size:13px;color:var(--text-secondary);font-style:italic">Нет задач на этот день</div>';
+    return;
+  }
+
+  listEl.innerHTML = tasks.map(t => `
+    <div class="day-task-item" onclick="toggleTask(this)">
+      <div class="task-checkbox ${t.p}"></div>
+      <div class="task-info">
+        <div class="task-title">${t.title}</div>
+        <div class="task-meta"><span class="task-time">${t.time}</span></div>
+      </div>
+    </div>
+  `).join('');
+}
+
+// Initialize
+buildCalendar();
+</script>
+</body>
+</html>

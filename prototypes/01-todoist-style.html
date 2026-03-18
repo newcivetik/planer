@@ -1,0 +1,1428 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Planer — Todoist Style Prototype</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+:root {
+  --bg: #FAFAFA;
+  --bg-card: #FFFFFF;
+  --text: #1a1a1a;
+  --text-secondary: #808080;
+  --text-tertiary: #b3b3b3;
+  --accent: #DB4C3F;
+  --accent-hover: #c4352a;
+  --border: #f0f0f0;
+  --nav-bg: #FFFFFF;
+  --nav-border: #e8e8e8;
+  --input-bg: #f5f5f5;
+  --checkbox-border: #d1d1d1;
+  --overdue-bg: #fef2f1;
+  --section-header: #808080;
+  --modal-overlay: rgba(0,0,0,0.4);
+  --priority-1: #DB4C3F;
+  --priority-2: #F5A623;
+  --priority-3: #4A90D9;
+  --priority-4: #b3b3b3;
+  --project-personal: #4A90D9;
+  --project-work: #F5A623;
+  --project-study: #4CAF50;
+  --project-shopping: #9C27B0;
+  --fab-shadow: 0 4px 12px rgba(219,76,63,0.35);
+  --transition: 0.2s ease;
+}
+
+[data-theme="dark"] {
+  --bg: #1e1e1e;
+  --bg-card: #282828;
+  --text: #e0e0e0;
+  --text-secondary: #999;
+  --text-tertiary: #666;
+  --border: #383838;
+  --nav-bg: #282828;
+  --nav-border: #383838;
+  --input-bg: #333;
+  --checkbox-border: #555;
+  --overdue-bg: #3a2020;
+  --section-header: #999;
+  --modal-overlay: rgba(0,0,0,0.6);
+}
+
+* { margin:0; padding:0; box-sizing:border-box; }
+
+body {
+  font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+  background: #2c2c2c;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  min-height: 100vh;
+  -webkit-font-smoothing: antialiased;
+}
+
+.device {
+  width: 375px;
+  height: 812px;
+  background: var(--bg);
+  position: relative;
+  overflow: hidden;
+  border-radius: 40px;
+  box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+  transition: background var(--transition);
+}
+
+.status-bar {
+  height: 47px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0 28px;
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--text);
+  background: var(--bg);
+  transition: background var(--transition), color var(--transition);
+}
+
+.status-bar-right {
+  display: flex;
+  gap: 6px;
+  align-items: center;
+}
+
+.screen {
+  position: absolute;
+  top: 47px;
+  left: 0;
+  right: 0;
+  bottom: 80px;
+  overflow-y: auto;
+  overflow-x: hidden;
+  background: var(--bg);
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.25s ease, background var(--transition);
+  -webkit-overflow-scrolling: touch;
+}
+
+.screen.active {
+  opacity: 1;
+  pointer-events: auto;
+}
+
+.screen::-webkit-scrollbar { display: none; }
+
+/* Bottom Navigation */
+.bottom-nav {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  height: 80px;
+  background: var(--nav-bg);
+  border-top: 1px solid var(--nav-border);
+  display: flex;
+  align-items: flex-start;
+  padding-top: 8px;
+  padding-bottom: 28px;
+  z-index: 100;
+  transition: background var(--transition), border-color var(--transition);
+}
+
+.nav-item {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 3px;
+  cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+  user-select: none;
+}
+
+.nav-item svg {
+  width: 24px;
+  height: 24px;
+  fill: none;
+  stroke: var(--text-tertiary);
+  stroke-width: 1.8;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  transition: stroke var(--transition);
+}
+
+.nav-item span {
+  font-size: 10px;
+  font-weight: 500;
+  color: var(--text-tertiary);
+  transition: color var(--transition);
+}
+
+.nav-item.active svg { stroke: var(--accent); }
+.nav-item.active span { color: var(--accent); }
+
+/* Header styles */
+.screen-header {
+  padding: 12px 20px 16px;
+  position: sticky;
+  top: 0;
+  background: var(--bg);
+  z-index: 10;
+  transition: background var(--transition);
+}
+
+.screen-header h1 {
+  font-size: 26px;
+  font-weight: 700;
+  color: var(--text);
+  transition: color var(--transition);
+}
+
+.header-sub {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-top: 4px;
+}
+
+.header-date {
+  font-size: 13px;
+  color: var(--text-secondary);
+  transition: color var(--transition);
+}
+
+.header-progress {
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--accent);
+  background: var(--overdue-bg);
+  padding: 2px 8px;
+  border-radius: 10px;
+}
+
+/* Section */
+.section {
+  margin-bottom: 8px;
+}
+
+.section-header {
+  display: flex;
+  align-items: center;
+  padding: 10px 20px 6px;
+  font-size: 12px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  color: var(--section-header);
+  transition: color var(--transition);
+}
+
+.section-header.overdue {
+  color: var(--accent);
+}
+
+.section-header .section-count {
+  margin-left: 6px;
+  font-weight: 400;
+  opacity: 0.7;
+}
+
+/* Task item */
+.task-item {
+  display: flex;
+  align-items: center;
+  padding: 12px 20px;
+  border-bottom: 1px solid var(--border);
+  cursor: default;
+  transition: background var(--transition), border-color var(--transition);
+  position: relative;
+  animation: taskIn 0.3s ease;
+}
+
+@keyframes taskIn {
+  from { opacity: 0; transform: translateY(-8px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+.task-item:hover {
+  background: var(--input-bg);
+}
+
+.task-checkbox {
+  width: 20px;
+  height: 20px;
+  border-radius: 50%;
+  border: 2px solid var(--checkbox-border);
+  flex-shrink: 0;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.2s ease;
+  position: relative;
+}
+
+.task-checkbox:hover {
+  border-color: var(--accent);
+}
+
+.task-checkbox.priority-1 { border-color: var(--priority-1); }
+.task-checkbox.priority-2 { border-color: var(--priority-2); }
+.task-checkbox.priority-3 { border-color: var(--priority-3); }
+
+.task-checkbox.checked {
+  background: var(--text-tertiary);
+  border-color: var(--text-tertiary);
+}
+
+.task-checkbox.checked::after {
+  content: '';
+  width: 6px;
+  height: 10px;
+  border: solid white;
+  border-width: 0 2px 2px 0;
+  transform: rotate(45deg);
+  margin-top: -2px;
+}
+
+.task-content {
+  flex: 1;
+  margin-left: 12px;
+  min-width: 0;
+}
+
+.task-title {
+  font-size: 14px;
+  color: var(--text);
+  transition: color var(--transition);
+  line-height: 1.3;
+}
+
+.task-item.completed .task-title {
+  text-decoration: line-through;
+  color: var(--text-tertiary);
+}
+
+.task-meta {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-top: 3px;
+}
+
+.task-time {
+  font-size: 11px;
+  color: var(--text-secondary);
+  transition: color var(--transition);
+}
+
+.task-project-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  flex-shrink: 0;
+}
+
+.task-project-name {
+  font-size: 11px;
+  color: var(--text-tertiary);
+}
+
+.task-delete {
+  width: 28px;
+  height: 28px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  opacity: 0;
+  transition: opacity 0.2s;
+  color: var(--text-tertiary);
+  font-size: 18px;
+  flex-shrink: 0;
+  border-radius: 4px;
+}
+
+.task-item:hover .task-delete {
+  opacity: 1;
+}
+
+.task-delete:hover {
+  color: var(--accent);
+  background: var(--overdue-bg);
+}
+
+/* FAB */
+.fab {
+  position: absolute;
+  bottom: 96px;
+  right: 20px;
+  width: 56px;
+  height: 56px;
+  background: var(--accent);
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  box-shadow: var(--fab-shadow);
+  z-index: 50;
+  transition: transform 0.2s, background 0.2s;
+}
+
+.fab:hover { transform: scale(1.08); }
+.fab:active { transform: scale(0.95); }
+
+.fab svg {
+  width: 24px;
+  height: 24px;
+  stroke: white;
+  stroke-width: 2.5;
+  stroke-linecap: round;
+}
+
+/* Quick add */
+.quick-add {
+  padding: 12px 20px;
+}
+
+.quick-add input {
+  width: 100%;
+  padding: 12px 16px;
+  background: var(--input-bg);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  font-size: 14px;
+  font-family: inherit;
+  color: var(--text);
+  outline: none;
+  transition: border-color 0.2s, background var(--transition), color var(--transition);
+}
+
+.quick-add input:focus {
+  border-color: var(--accent);
+}
+
+.quick-add input::placeholder {
+  color: var(--text-tertiary);
+}
+
+/* Search */
+.search-wrap {
+  padding: 12px 20px;
+}
+
+.search-input-wrap {
+  display: flex;
+  align-items: center;
+  background: var(--input-bg);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  padding: 0 14px;
+  transition: border-color 0.2s, background var(--transition);
+}
+
+.search-input-wrap:focus-within {
+  border-color: var(--accent);
+}
+
+.search-input-wrap svg {
+  width: 18px;
+  height: 18px;
+  stroke: var(--text-tertiary);
+  stroke-width: 2;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  fill: none;
+  flex-shrink: 0;
+}
+
+.search-input-wrap input {
+  flex: 1;
+  padding: 12px 10px;
+  border: none;
+  background: transparent;
+  font-size: 14px;
+  font-family: inherit;
+  color: var(--text);
+  outline: none;
+}
+
+.search-input-wrap input::placeholder {
+  color: var(--text-tertiary);
+}
+
+.recent-label {
+  padding: 16px 20px 8px;
+  font-size: 12px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  color: var(--text-tertiary);
+}
+
+.recent-item {
+  padding: 12px 20px;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  cursor: pointer;
+  transition: background 0.15s;
+}
+
+.recent-item:hover { background: var(--input-bg); }
+
+.recent-item svg {
+  width: 16px;
+  height: 16px;
+  stroke: var(--text-tertiary);
+  stroke-width: 2;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  fill: none;
+}
+
+.recent-item span {
+  font-size: 14px;
+  color: var(--text);
+  transition: color var(--transition);
+}
+
+.search-results { display: none; }
+.search-results.show { display: block; }
+
+/* Projects */
+.project-item {
+  display: flex;
+  align-items: center;
+  padding: 14px 20px;
+  border-bottom: 1px solid var(--border);
+  cursor: pointer;
+  transition: background 0.15s, border-color var(--transition);
+}
+
+.project-item:hover { background: var(--input-bg); }
+
+.project-dot {
+  width: 12px;
+  height: 12px;
+  border-radius: 50%;
+  flex-shrink: 0;
+}
+
+.project-info {
+  flex: 1;
+  margin-left: 14px;
+}
+
+.project-name {
+  font-size: 15px;
+  font-weight: 500;
+  color: var(--text);
+  transition: color var(--transition);
+}
+
+.project-count {
+  font-size: 13px;
+  color: var(--text-secondary);
+  margin-left: auto;
+  transition: color var(--transition);
+}
+
+.project-arrow {
+  margin-left: 8px;
+  color: var(--text-tertiary);
+  font-size: 18px;
+}
+
+/* Project detail */
+.project-detail-header {
+  display: flex;
+  align-items: center;
+  padding: 12px 20px 16px;
+  position: sticky;
+  top: 0;
+  background: var(--bg);
+  z-index: 10;
+}
+
+.back-btn {
+  width: 32px;
+  height: 32px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  margin-right: 10px;
+  border-radius: 6px;
+  transition: background 0.15s;
+}
+
+.back-btn:hover { background: var(--input-bg); }
+
+.back-btn svg {
+  width: 20px;
+  height: 20px;
+  stroke: var(--text);
+  stroke-width: 2;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  fill: none;
+}
+
+/* Settings */
+.settings-group {
+  margin: 12px 20px;
+  background: var(--bg-card);
+  border-radius: 12px;
+  border: 1px solid var(--border);
+  overflow: hidden;
+  transition: background var(--transition), border-color var(--transition);
+}
+
+.settings-item {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 14px 16px;
+  border-bottom: 1px solid var(--border);
+  transition: border-color var(--transition);
+}
+
+.settings-item:last-child { border-bottom: none; }
+
+.settings-left {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.settings-icon {
+  width: 32px;
+  height: 32px;
+  border-radius: 8px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 16px;
+}
+
+.settings-label {
+  font-size: 15px;
+  color: var(--text);
+  transition: color var(--transition);
+}
+
+.settings-value {
+  font-size: 13px;
+  color: var(--text-secondary);
+  transition: color var(--transition);
+}
+
+/* Toggle switch */
+.toggle {
+  width: 48px;
+  height: 28px;
+  background: var(--checkbox-border);
+  border-radius: 14px;
+  position: relative;
+  cursor: pointer;
+  transition: background 0.25s;
+}
+
+.toggle.on { background: var(--accent); }
+
+.toggle-knob {
+  width: 24px;
+  height: 24px;
+  background: white;
+  border-radius: 50%;
+  position: absolute;
+  top: 2px;
+  left: 2px;
+  transition: transform 0.25s;
+  box-shadow: 0 1px 3px rgba(0,0,0,0.15);
+}
+
+.toggle.on .toggle-knob {
+  transform: translateX(20px);
+}
+
+/* Modal overlay */
+.modal-overlay {
+  position: absolute;
+  inset: 0;
+  background: var(--modal-overlay);
+  z-index: 200;
+  display: none;
+  align-items: flex-end;
+  justify-content: center;
+}
+
+.modal-overlay.show {
+  display: flex;
+}
+
+.modal {
+  width: 100%;
+  background: var(--bg-card);
+  border-radius: 16px 16px 0 0;
+  padding: 20px;
+  max-height: 75%;
+  overflow-y: auto;
+  animation: slideUp 0.3s ease;
+  transition: background var(--transition);
+}
+
+@keyframes slideUp {
+  from { transform: translateY(100%); }
+  to { transform: translateY(0); }
+}
+
+.modal-handle {
+  width: 36px;
+  height: 4px;
+  background: var(--border);
+  border-radius: 2px;
+  margin: 0 auto 16px;
+}
+
+.modal h2 {
+  font-size: 18px;
+  font-weight: 700;
+  color: var(--text);
+  margin-bottom: 16px;
+  transition: color var(--transition);
+}
+
+.modal-field {
+  margin-bottom: 14px;
+}
+
+.modal-field label {
+  display: block;
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--text-secondary);
+  margin-bottom: 6px;
+  text-transform: uppercase;
+  letter-spacing: 0.3px;
+}
+
+.modal-field input,
+.modal-field select,
+.modal-field textarea {
+  width: 100%;
+  padding: 10px 14px;
+  background: var(--input-bg);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  font-size: 14px;
+  font-family: inherit;
+  color: var(--text);
+  outline: none;
+  transition: border-color 0.2s, background var(--transition), color var(--transition);
+}
+
+.modal-field input:focus,
+.modal-field select:focus,
+.modal-field textarea:focus {
+  border-color: var(--accent);
+}
+
+.modal-field textarea {
+  resize: none;
+  height: 60px;
+}
+
+.priority-selector {
+  display: flex;
+  gap: 8px;
+}
+
+.priority-btn {
+  flex: 1;
+  padding: 8px;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  background: var(--input-bg);
+  cursor: pointer;
+  text-align: center;
+  font-size: 13px;
+  font-weight: 600;
+  font-family: inherit;
+  transition: all 0.15s;
+  color: var(--text);
+}
+
+.priority-btn:hover { opacity: 0.85; }
+
+.priority-btn.selected {
+  color: white;
+}
+
+.priority-btn[data-p="1"].selected { background: var(--priority-1); border-color: var(--priority-1); }
+.priority-btn[data-p="2"].selected { background: var(--priority-2); border-color: var(--priority-2); }
+.priority-btn[data-p="3"].selected { background: var(--priority-3); border-color: var(--priority-3); }
+.priority-btn[data-p="4"].selected { background: var(--priority-4); border-color: var(--priority-4); }
+
+.modal-actions {
+  display: flex;
+  gap: 10px;
+  margin-top: 18px;
+}
+
+.btn {
+  flex: 1;
+  padding: 12px;
+  border-radius: 10px;
+  border: none;
+  font-size: 15px;
+  font-weight: 600;
+  font-family: inherit;
+  cursor: pointer;
+  transition: all 0.15s;
+}
+
+.btn-primary {
+  background: var(--accent);
+  color: white;
+}
+
+.btn-primary:hover { background: var(--accent-hover); }
+
+.btn-secondary {
+  background: var(--input-bg);
+  color: var(--text);
+  border: 1px solid var(--border);
+}
+
+.btn-secondary:hover { background: var(--border); }
+
+/* Empty state */
+.empty-state {
+  text-align: center;
+  padding: 60px 40px;
+  color: var(--text-tertiary);
+}
+
+.empty-state svg {
+  width: 48px;
+  height: 48px;
+  stroke: var(--text-tertiary);
+  stroke-width: 1.5;
+  fill: none;
+  margin-bottom: 12px;
+}
+
+.empty-state p {
+  font-size: 14px;
+}
+
+/* About */
+.about-section {
+  text-align: center;
+  padding: 30px 20px;
+}
+
+.about-logo {
+  width: 48px;
+  height: 48px;
+  background: var(--accent);
+  border-radius: 12px;
+  margin: 0 auto 12px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 22px;
+  color: white;
+  font-weight: 700;
+}
+
+.about-name {
+  font-size: 16px;
+  font-weight: 600;
+  color: var(--text);
+  transition: color var(--transition);
+}
+
+.about-version {
+  font-size: 12px;
+  color: var(--text-tertiary);
+  margin-top: 2px;
+}
+
+/* Completion animation */
+@keyframes checkPop {
+  0% { transform: scale(1); }
+  50% { transform: scale(1.3); }
+  100% { transform: scale(1); }
+}
+
+.task-checkbox.animating {
+  animation: checkPop 0.3s ease;
+}
+
+/* Overdue task styling */
+.task-item.overdue .task-time {
+  color: var(--accent);
+  font-weight: 500;
+}
+</style>
+</head>
+<body>
+
+<div class="device" id="app">
+  <!-- Status Bar -->
+  <div class="status-bar">
+    <span>9:41</span>
+    <div class="status-bar-right">
+      <svg width="16" height="12" viewBox="0 0 16 12" fill="currentColor"><rect x="0" y="4" width="3" height="8" rx="0.5"/><rect x="4.5" y="2.5" width="3" height="9.5" rx="0.5"/><rect x="9" y="0.5" width="3" height="11.5" rx="0.5"/><rect x="13.5" y="3" width="2.5" height="9" rx="0.5" opacity="0.3"/></svg>
+      <svg width="16" height="12" viewBox="0 0 16 12" fill="currentColor"><path d="M8 2.4C5.6 2.4 3.4 3.3 1.8 4.8L0 3C2 1.1 4.9 0 8 0s6 1.1 8 3l-1.8 1.8C12.6 3.3 10.4 2.4 8 2.4zM8 7.2c-1.6 0-3 .6-4.1 1.6L2.1 7C3.6 5.6 5.7 4.8 8 4.8s4.4.8 5.9 2.2l-1.8 1.8C11 7.8 9.6 7.2 8 7.2zM8 12l-2.2-2.2C6.6 9 7.2 8.6 8 8.6s1.4.4 2.2 1.2L8 12z"/></svg>
+      <svg width="25" height="12" viewBox="0 0 25 12"><rect x="0" y="1" width="21" height="10" rx="2" stroke="currentColor" stroke-width="1" fill="none"/><rect x="22" y="4" width="2" height="4" rx="0.5" fill="currentColor" opacity="0.4"/><rect x="1.5" y="2.5" width="14" height="7" rx="1" fill="currentColor"/></svg>
+    </div>
+  </div>
+
+  <!-- SCREEN 1: Today -->
+  <div class="screen active" id="screen-today">
+    <div class="screen-header">
+      <h1>Сегодня</h1>
+      <div class="header-sub">
+        <span class="header-date">18 марта, среда</span>
+        <span class="header-progress" id="progress-badge">3/7</span>
+      </div>
+    </div>
+
+    <div class="section">
+      <div class="section-header overdue">Просрочено <span class="section-count">2</span></div>
+      <div id="overdue-tasks"></div>
+    </div>
+
+    <div class="section">
+      <div class="section-header">Утро <span class="section-count">3</span></div>
+      <div id="morning-tasks"></div>
+    </div>
+
+    <div class="section">
+      <div class="section-header">День <span class="section-count">2</span></div>
+      <div id="afternoon-tasks"></div>
+    </div>
+
+    <div class="section">
+      <div class="section-header">Вечер <span class="section-count">2</span></div>
+      <div id="evening-tasks"></div>
+    </div>
+  </div>
+
+  <!-- SCREEN 2: Inbox -->
+  <div class="screen" id="screen-inbox">
+    <div class="screen-header">
+      <h1>Входящие</h1>
+    </div>
+    <div class="quick-add">
+      <input type="text" id="inbox-input" placeholder="Быстрое добавление задачи..." />
+    </div>
+    <div id="inbox-tasks"></div>
+  </div>
+
+  <!-- SCREEN 3: Search -->
+  <div class="screen" id="screen-search">
+    <div class="screen-header">
+      <h1>Поиск</h1>
+    </div>
+    <div class="search-wrap">
+      <div class="search-input-wrap">
+        <svg viewBox="0 0 24 24"><circle cx="11" cy="11" r="7"/><line x1="16.5" y1="16.5" x2="21" y2="21"/></svg>
+        <input type="text" id="search-input" placeholder="Поиск задач..." />
+      </div>
+    </div>
+    <div id="search-recent">
+      <div class="recent-label">Недавние запросы</div>
+      <div class="recent-item" onclick="fillSearch('Купить продукты')">
+        <svg viewBox="0 0 24 24"><polyline points="1 4 1 10 7 10"/><path d="M3.51 15a9 9 0 1 0 2.13-9.36L1 10"/></svg>
+        <span>Купить продукты</span>
+      </div>
+      <div class="recent-item" onclick="fillSearch('Презентация')">
+        <svg viewBox="0 0 24 24"><polyline points="1 4 1 10 7 10"/><path d="M3.51 15a9 9 0 1 0 2.13-9.36L1 10"/></svg>
+        <span>Презентация</span>
+      </div>
+      <div class="recent-item" onclick="fillSearch('Тренировка')">
+        <svg viewBox="0 0 24 24"><polyline points="1 4 1 10 7 10"/><path d="M3.51 15a9 9 0 1 0 2.13-9.36L1 10"/></svg>
+        <span>Тренировка</span>
+      </div>
+    </div>
+    <div class="search-results" id="search-results"></div>
+  </div>
+
+  <!-- SCREEN 4: Projects -->
+  <div class="screen" id="screen-projects">
+    <div class="screen-header" id="projects-header">
+      <h1>Проекты</h1>
+    </div>
+    <div id="projects-list"></div>
+    <div id="project-detail" style="display:none;"></div>
+  </div>
+
+  <!-- SCREEN 5: More -->
+  <div class="screen" id="screen-more">
+    <div class="screen-header">
+      <h1>Настройки</h1>
+    </div>
+
+    <div class="settings-group">
+      <div class="settings-item">
+        <div class="settings-left">
+          <div class="settings-icon" style="background:#f0e6ff;">🌙</div>
+          <span class="settings-label">Тёмная тема</span>
+        </div>
+        <div class="toggle" id="theme-toggle" onclick="toggleTheme()">
+          <div class="toggle-knob"></div>
+        </div>
+      </div>
+      <div class="settings-item">
+        <div class="settings-left">
+          <div class="settings-icon" style="background:#e6f3ff;">🔔</div>
+          <span class="settings-label">Уведомления</span>
+        </div>
+        <div class="toggle on" id="notif-toggle" onclick="this.classList.toggle('on')">
+          <div class="toggle-knob"></div>
+        </div>
+      </div>
+    </div>
+
+    <div class="settings-group">
+      <div class="settings-item">
+        <div class="settings-left">
+          <div class="settings-icon" style="background:#fff3e0;">🎯</div>
+          <span class="settings-label">Ежедневная цель</span>
+        </div>
+        <span class="settings-value" id="daily-goal-value" style="cursor:pointer;" onclick="cycleDailyGoal()">5 задач</span>
+      </div>
+      <div class="settings-item">
+        <div class="settings-left">
+          <div class="settings-icon" style="background:#e8f5e9;">📅</div>
+          <span class="settings-label">Начало недели</span>
+        </div>
+        <span class="settings-value">Понедельник</span>
+      </div>
+    </div>
+
+    <div class="settings-group">
+      <div class="settings-item">
+        <div class="settings-left">
+          <div class="settings-icon" style="background:#fce4ec;">❤️</div>
+          <span class="settings-label">Оценить приложение</span>
+        </div>
+        <span class="project-arrow">›</span>
+      </div>
+      <div class="settings-item">
+        <div class="settings-left">
+          <div class="settings-icon" style="background:#e0f7fa;">💬</div>
+          <span class="settings-label">Обратная связь</span>
+        </div>
+        <span class="project-arrow">›</span>
+      </div>
+    </div>
+
+    <div class="about-section">
+      <div class="about-logo">P</div>
+      <div class="about-name">Planer</div>
+      <div class="about-version">Версия 1.0.0 — Прототип</div>
+    </div>
+  </div>
+
+  <!-- FAB -->
+  <div class="fab" id="fab" onclick="openModal()">
+    <svg viewBox="0 0 24 24"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+  </div>
+
+  <!-- Bottom Navigation -->
+  <div class="bottom-nav">
+    <div class="nav-item active" data-screen="today" onclick="switchScreen('today')">
+      <svg viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
+      <span>Сегодня</span>
+    </div>
+    <div class="nav-item" data-screen="inbox" onclick="switchScreen('inbox')">
+      <svg viewBox="0 0 24 24"><polyline points="22 12 16 12 14 15 10 15 8 12 2 12"/><path d="M5.45 5.11L2 12v6a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2v-6l-3.45-6.89A2 2 0 0 0 16.76 4H7.24a2 2 0 0 0-1.79 1.11z"/></svg>
+      <span>Входящие</span>
+    </div>
+    <div class="nav-item" data-screen="search" onclick="switchScreen('search')">
+      <svg viewBox="0 0 24 24"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+      <span>Поиск</span>
+    </div>
+    <div class="nav-item" data-screen="projects" onclick="switchScreen('projects')">
+      <svg viewBox="0 0 24 24"><path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"/></svg>
+      <span>Проекты</span>
+    </div>
+    <div class="nav-item" data-screen="more" onclick="switchScreen('more')">
+      <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="1.5"/><circle cx="12" cy="5" r="1.5"/><circle cx="12" cy="19" r="1.5"/></svg>
+      <span>Ещё</span>
+    </div>
+  </div>
+
+  <!-- Modal -->
+  <div class="modal-overlay" id="modal-overlay" onclick="closeModal(event)">
+    <div class="modal" onclick="event.stopPropagation()">
+      <div class="modal-handle"></div>
+      <h2>Новая задача</h2>
+
+      <div class="modal-field">
+        <label>Название</label>
+        <input type="text" id="modal-title" placeholder="Что нужно сделать?" />
+      </div>
+
+      <div class="modal-field">
+        <label>Описание</label>
+        <textarea id="modal-desc" placeholder="Подробности (необязательно)"></textarea>
+      </div>
+
+      <div class="modal-field">
+        <label>Дата</label>
+        <input type="date" id="modal-date" value="2026-03-18" />
+      </div>
+
+      <div class="modal-field">
+        <label>Время</label>
+        <input type="time" id="modal-time" value="12:00" />
+      </div>
+
+      <div class="modal-field">
+        <label>Приоритет</label>
+        <div class="priority-selector">
+          <button class="priority-btn selected" data-p="1" onclick="selectPriority(this)">P1</button>
+          <button class="priority-btn" data-p="2" onclick="selectPriority(this)">P2</button>
+          <button class="priority-btn" data-p="3" onclick="selectPriority(this)">P3</button>
+          <button class="priority-btn" data-p="4" onclick="selectPriority(this)">P4</button>
+        </div>
+      </div>
+
+      <div class="modal-field">
+        <label>Проект</label>
+        <select id="modal-project">
+          <option value="personal">Личное</option>
+          <option value="work">Работа</option>
+          <option value="study">Учёба</option>
+          <option value="shopping">Покупки</option>
+        </select>
+      </div>
+
+      <div class="modal-actions">
+        <button class="btn btn-secondary" onclick="closeModal()">Отмена</button>
+        <button class="btn btn-primary" onclick="addTaskFromModal()">Добавить</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+// ==================== DATA ====================
+const projectColors = {
+  personal: 'var(--project-personal)',
+  work: 'var(--project-work)',
+  study: 'var(--project-study)',
+  shopping: 'var(--project-shopping)'
+};
+
+const projectNames = {
+  personal: 'Личное',
+  work: 'Работа',
+  study: 'Учёба',
+  shopping: 'Покупки'
+};
+
+let taskIdCounter = 100;
+
+let tasks = [
+  // Overdue
+  { id: 1, title: 'Оплатить счёт за интернет', time: 'Вчера', project: 'personal', priority: 1, completed: false, section: 'overdue', screen: 'today' },
+  { id: 2, title: 'Отправить отчёт руководителю', time: 'Вчера', project: 'work', priority: 1, completed: false, section: 'overdue', screen: 'today' },
+  // Morning
+  { id: 3, title: 'Утренняя пробежка в парке', time: '07:00', project: 'personal', priority: 3, completed: true, section: 'morning', screen: 'today' },
+  { id: 4, title: 'Позавтракать и принять витамины', time: '08:00', project: 'personal', priority: 4, completed: true, section: 'morning', screen: 'today' },
+  { id: 5, title: 'Созвон с командой дизайна', time: '09:30', project: 'work', priority: 2, completed: false, section: 'morning', screen: 'today' },
+  // Afternoon
+  { id: 6, title: 'Подготовить презентацию', time: '13:00', project: 'work', priority: 1, completed: false, section: 'afternoon', screen: 'today' },
+  { id: 7, title: 'Обед с коллегами', time: '14:00', project: 'work', priority: 4, completed: true, section: 'afternoon', screen: 'today' },
+  // Evening
+  { id: 8, title: 'Купить продукты на ужин', time: '18:00', project: 'shopping', priority: 2, completed: false, section: 'evening', screen: 'today' },
+  { id: 9, title: 'Прочитать главу учебника', time: '20:00', project: 'study', priority: 3, completed: false, section: 'evening', screen: 'today' },
+  // Inbox
+  { id: 10, title: 'Записаться к стоматологу', time: '', project: 'personal', priority: 4, completed: false, section: 'inbox', screen: 'inbox' },
+  { id: 11, title: 'Разобрать почту за неделю', time: '', project: 'work', priority: 3, completed: false, section: 'inbox', screen: 'inbox' },
+  { id: 12, title: 'Купить подарок маме', time: '', project: 'shopping', priority: 2, completed: false, section: 'inbox', screen: 'inbox' },
+  { id: 13, title: 'Найти курсы по Python', time: '', project: 'study', priority: 3, completed: false, section: 'inbox', screen: 'inbox' },
+  { id: 14, title: 'Починить кран в ванной', time: '', project: 'personal', priority: 4, completed: false, section: 'inbox', screen: 'inbox' },
+  // Extra tasks for projects
+  { id: 15, title: 'Полить цветы', time: '', project: 'personal', priority: 4, completed: false, section: 'inbox', screen: 'inbox' },
+  { id: 16, title: 'Купить тетрадки', time: '', project: 'shopping', priority: 4, completed: false, section: 'inbox', screen: 'inbox' },
+  { id: 17, title: 'Сделать домашнее задание', time: '', project: 'study', priority: 2, completed: false, section: 'inbox', screen: 'inbox' },
+  { id: 18, title: 'Купить молоко и хлеб', time: '', project: 'shopping', priority: 3, completed: false, section: 'inbox', screen: 'inbox' },
+];
+
+// ==================== RENDER ====================
+function renderTasks() {
+  renderTodayTasks();
+  renderInboxTasks();
+  updateProgress();
+  renderProjectsList();
+}
+
+function createTaskHTML(task) {
+  const priorityClass = task.priority <= 3 ? ` priority-${task.priority}` : '';
+  const completedClass = task.completed ? ' completed' : '';
+  const checkedClass = task.completed ? ' checked' : '';
+  const overdueClass = task.section === 'overdue' && !task.completed ? ' overdue' : '';
+
+  return `<div class="task-item${completedClass}${overdueClass}" data-id="${task.id}">
+    <div class="task-checkbox${priorityClass}${checkedClass}" onclick="toggleTask(${task.id})"></div>
+    <div class="task-content">
+      <div class="task-title">${task.title}</div>
+      <div class="task-meta">
+        ${task.time ? `<span class="task-time">${task.time}</span>` : ''}
+        <div class="task-project-dot" style="background:${projectColors[task.project]}"></div>
+        <span class="task-project-name">${projectNames[task.project]}</span>
+      </div>
+    </div>
+    <div class="task-delete" onclick="deleteTask(${task.id})">×</div>
+  </div>`;
+}
+
+function renderTodayTasks() {
+  const sections = { overdue: 'overdue-tasks', morning: 'morning-tasks', afternoon: 'afternoon-tasks', evening: 'evening-tasks' };
+  for (const [section, containerId] of Object.entries(sections)) {
+    const container = document.getElementById(containerId);
+    const sectionTasks = tasks.filter(t => t.section === section && t.screen === 'today');
+    container.innerHTML = sectionTasks.map(createTaskHTML).join('');
+  }
+}
+
+function renderInboxTasks() {
+  const container = document.getElementById('inbox-tasks');
+  const inboxTasks = tasks.filter(t => t.screen === 'inbox');
+  container.innerHTML = inboxTasks.map(createTaskHTML).join('');
+}
+
+function updateProgress() {
+  const todayTasks = tasks.filter(t => t.screen === 'today');
+  const completed = todayTasks.filter(t => t.completed).length;
+  const total = todayTasks.length;
+  document.getElementById('progress-badge').textContent = `${completed}/${total}`;
+}
+
+// ==================== PROJECTS ====================
+function renderProjectsList() {
+  const container = document.getElementById('projects-list');
+  const projectKeys = ['personal', 'work', 'study', 'shopping'];
+  container.innerHTML = projectKeys.map(key => {
+    const count = tasks.filter(t => t.project === key && !t.completed).length;
+    return `<div class="project-item" onclick="openProject('${key}')">
+      <div class="project-dot" style="background:${projectColors[key]}"></div>
+      <div class="project-info">
+        <div class="project-name">${projectNames[key]}</div>
+      </div>
+      <span class="project-count">${count}</span>
+      <span class="project-arrow">›</span>
+    </div>`;
+  }).join('');
+}
+
+function openProject(key) {
+  document.getElementById('projects-list').style.display = 'none';
+  document.getElementById('projects-header').style.display = 'none';
+  const detail = document.getElementById('project-detail');
+  detail.style.display = 'block';
+
+  const projectTasks = tasks.filter(t => t.project === key);
+  detail.innerHTML = `
+    <div class="project-detail-header">
+      <div class="back-btn" onclick="closeProject()">
+        <svg viewBox="0 0 24 24"><polyline points="15 18 9 12 15 6"/></svg>
+      </div>
+      <h1 style="font-size:22px;font-weight:700;color:var(--text);">${projectNames[key]}</h1>
+      <div class="project-dot" style="background:${projectColors[key]};width:10px;height:10px;margin-left:10px;"></div>
+    </div>
+    ${projectTasks.length ? projectTasks.map(createTaskHTML).join('') : '<div class="empty-state"><p>Нет задач в этом проекте</p></div>'}
+  `;
+}
+
+function closeProject() {
+  document.getElementById('projects-list').style.display = '';
+  document.getElementById('projects-header').style.display = '';
+  document.getElementById('project-detail').style.display = 'none';
+}
+
+// ==================== ACTIONS ====================
+function toggleTask(id) {
+  const task = tasks.find(t => t.id === id);
+  if (!task) return;
+  task.completed = !task.completed;
+
+  // Animate checkbox
+  const el = document.querySelector(`.task-item[data-id="${id}"] .task-checkbox`);
+  if (el) {
+    el.classList.add('animating');
+    setTimeout(() => el.classList.remove('animating'), 300);
+  }
+
+  renderTasks();
+}
+
+function deleteTask(id) {
+  tasks = tasks.filter(t => t.id !== id);
+  renderTasks();
+}
+
+function addTaskFromModal() {
+  const title = document.getElementById('modal-title').value.trim();
+  if (!title) return;
+
+  const time = document.getElementById('modal-time').value;
+  const project = document.getElementById('modal-project').value;
+  const selectedP = document.querySelector('.priority-btn.selected');
+  const priority = selectedP ? parseInt(selectedP.dataset.p) : 4;
+
+  // Determine section by time
+  const hour = parseInt(time.split(':')[0]);
+  let section = 'morning';
+  if (hour >= 12 && hour < 17) section = 'afternoon';
+  else if (hour >= 17) section = 'evening';
+
+  const formattedTime = time;
+
+  tasks.push({
+    id: ++taskIdCounter,
+    title,
+    time: formattedTime,
+    project,
+    priority,
+    completed: false,
+    section,
+    screen: 'today'
+  });
+
+  // Reset modal
+  document.getElementById('modal-title').value = '';
+  document.getElementById('modal-desc').value = '';
+  document.getElementById('modal-time').value = '12:00';
+  document.querySelectorAll('.priority-btn').forEach(b => b.classList.remove('selected'));
+  document.querySelector('.priority-btn[data-p="1"]').classList.add('selected');
+
+  closeModal();
+  switchScreen('today');
+  renderTasks();
+}
+
+// ==================== INBOX QUICK ADD ====================
+document.addEventListener('DOMContentLoaded', () => {
+  document.getElementById('inbox-input').addEventListener('keydown', e => {
+    if (e.key === 'Enter') {
+      const input = e.target;
+      const title = input.value.trim();
+      if (!title) return;
+      tasks.push({
+        id: ++taskIdCounter,
+        title,
+        time: '',
+        project: 'personal',
+        priority: 4,
+        completed: false,
+        section: 'inbox',
+        screen: 'inbox'
+      });
+      input.value = '';
+      renderTasks();
+    }
+  });
+
+  // Search
+  document.getElementById('search-input').addEventListener('input', e => {
+    const q = e.target.value.trim().toLowerCase();
+    const recentEl = document.getElementById('search-recent');
+    const resultsEl = document.getElementById('search-results');
+
+    if (!q) {
+      recentEl.style.display = '';
+      resultsEl.classList.remove('show');
+      return;
+    }
+
+    recentEl.style.display = 'none';
+    resultsEl.classList.add('show');
+
+    const matched = tasks.filter(t => t.title.toLowerCase().includes(q));
+    if (matched.length) {
+      resultsEl.innerHTML = matched.map(createTaskHTML).join('');
+    } else {
+      resultsEl.innerHTML = '<div class="empty-state"><p>Ничего не найдено</p></div>';
+    }
+  });
+
+  renderTasks();
+});
+
+function fillSearch(text) {
+  const input = document.getElementById('search-input');
+  input.value = text;
+  input.dispatchEvent(new Event('input'));
+  input.focus();
+}
+
+// ==================== NAVIGATION ====================
+function switchScreen(name) {
+  // Close project detail if open
+  if (name === 'projects') closeProject();
+
+  document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+  document.getElementById(`screen-${name}`).classList.add('active');
+
+  document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
+  document.querySelector(`.nav-item[data-screen="${name}"]`).classList.add('active');
+
+  // Show/hide FAB on relevant screens
+  const fab = document.getElementById('fab');
+  fab.style.display = (name === 'search' || name === 'more') ? 'none' : 'flex';
+}
+
+// ==================== MODAL ====================
+function openModal() {
+  document.getElementById('modal-overlay').classList.add('show');
+}
+
+function closeModal(e) {
+  if (e && e.target !== document.getElementById('modal-overlay')) return;
+  document.getElementById('modal-overlay').classList.remove('show');
+}
+
+function selectPriority(btn) {
+  document.querySelectorAll('.priority-btn').forEach(b => b.classList.remove('selected'));
+  btn.classList.add('selected');
+}
+
+// ==================== THEME ====================
+function toggleTheme() {
+  const app = document.getElementById('app');
+  const toggle = document.getElementById('theme-toggle');
+  const isDark = app.getAttribute('data-theme') === 'dark';
+
+  if (isDark) {
+    app.removeAttribute('data-theme');
+    toggle.classList.remove('on');
+  } else {
+    app.setAttribute('data-theme', 'dark');
+    toggle.classList.add('on');
+  }
+}
+
+// ==================== DAILY GOAL ====================
+let dailyGoalValues = [3, 5, 7, 10];
+let dailyGoalIndex = 1;
+
+function cycleDailyGoal() {
+  dailyGoalIndex = (dailyGoalIndex + 1) % dailyGoalValues.length;
+  document.getElementById('daily-goal-value').textContent = dailyGoalValues[dailyGoalIndex] + ' задач';
+}
+</script>
+</body>
+</html>

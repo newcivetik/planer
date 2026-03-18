@@ -1,0 +1,1949 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Phase 2 — Halo Effect (Эффект ореола)</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --red: #DB4C3F;
+    --red-light: #FF7066;
+    --red-dark: #C13B2F;
+    --bg: #FAFAFA;
+    --bg-card: #FFFFFF;
+    --text: #202020;
+    --text-secondary: #808080;
+    --text-tertiary: #B3B3B3;
+    --border: #F0F0F0;
+    --shadow: 0 1px 3px rgba(0,0,0,0.06);
+    --shadow-md: 0 4px 12px rgba(0,0,0,0.08);
+    --green: #4CAF50;
+    --orange: #FF9800;
+    --blue: #2196F3;
+  }
+
+  [data-theme="dark"] {
+    --bg: #1A1A1A;
+    --bg-card: #262626;
+    --text: #E8E8E8;
+    --text-secondary: #999999;
+    --text-tertiary: #666666;
+    --border: #333333;
+    --shadow: 0 1px 3px rgba(0,0,0,0.3);
+    --shadow-md: 0 4px 12px rgba(0,0,0,0.4);
+  }
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  body {
+    font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+    background: #E8E8E8;
+    color: var(--text);
+    line-height: 1.5;
+    padding: 20px;
+  }
+
+  [data-theme="dark"] body { background: #111; }
+
+  .controls {
+    position: fixed;
+    top: 20px;
+    right: 20px;
+    z-index: 1000;
+    display: flex;
+    gap: 10px;
+    align-items: center;
+  }
+
+  .theme-toggle {
+    background: var(--bg-card);
+    border: 1px solid var(--border);
+    border-radius: 24px;
+    padding: 8px 16px;
+    cursor: pointer;
+    font-family: inherit;
+    font-size: 13px;
+    color: var(--text);
+    box-shadow: var(--shadow);
+    transition: all 0.3s;
+  }
+
+  .theme-toggle:hover { box-shadow: var(--shadow-md); }
+
+  h1 {
+    text-align: center;
+    font-size: 28px;
+    font-weight: 700;
+    color: var(--text);
+    margin: 20px 0 8px;
+  }
+
+  .subtitle {
+    text-align: center;
+    font-size: 15px;
+    color: var(--text-secondary);
+    margin-bottom: 40px;
+    max-width: 600px;
+    margin-left: auto;
+    margin-right: auto;
+  }
+
+  .section {
+    margin-bottom: 60px;
+  }
+
+  .section-title {
+    font-size: 20px;
+    font-weight: 600;
+    color: var(--text);
+    margin-bottom: 6px;
+    text-align: center;
+  }
+
+  .section-desc {
+    font-size: 14px;
+    color: var(--text-secondary);
+    text-align: center;
+    margin-bottom: 24px;
+  }
+
+  .comparison {
+    display: flex;
+    justify-content: center;
+    gap: 32px;
+    flex-wrap: wrap;
+  }
+
+  .variant {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+  }
+
+  .variant-label {
+    font-size: 13px;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 1.5px;
+    margin-bottom: 12px;
+    padding: 4px 16px;
+    border-radius: 12px;
+  }
+
+  .variant-label.bad {
+    color: #C62828;
+    background: #FFEBEE;
+  }
+
+  .variant-label.good {
+    color: #2E7D32;
+    background: #E8F5E9;
+  }
+
+  [data-theme="dark"] .variant-label.bad { background: #3E1A1A; color: #EF9A9A; }
+  [data-theme="dark"] .variant-label.good { background: #1A3E1A; color: #A5D6A7; }
+
+  /* Phone Frame */
+  .phone {
+    width: 375px;
+    height: 812px;
+    border-radius: 44px;
+    overflow: hidden;
+    background: var(--bg);
+    box-shadow: 0 20px 60px rgba(0,0,0,0.15), inset 0 0 0 2px rgba(0,0,0,0.1);
+    position: relative;
+    flex-shrink: 0;
+  }
+
+  [data-theme="dark"] .phone {
+    box-shadow: 0 20px 60px rgba(0,0,0,0.5), inset 0 0 0 2px rgba(255,255,255,0.08);
+  }
+
+  .phone .notch {
+    position: absolute;
+    top: 0;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 160px;
+    height: 34px;
+    background: #000;
+    border-radius: 0 0 20px 20px;
+    z-index: 10;
+  }
+
+  .phone .status-bar {
+    height: 54px;
+    padding: 14px 24px 0;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    font-size: 14px;
+    font-weight: 600;
+    position: relative;
+    z-index: 5;
+  }
+
+  .phone .status-bar .time { margin-left: 8px; }
+  .phone .status-bar .icons { display: flex; gap: 6px; margin-right: 8px; font-size: 12px; }
+
+  .phone .screen {
+    height: calc(100% - 54px);
+    overflow: hidden;
+    position: relative;
+  }
+
+  /* ===== SPLASH SCREENS ===== */
+
+  /* Bad Splash */
+  .splash-bad .screen {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    background: linear-gradient(180deg, #333 0%, #111 100%);
+  }
+
+  .splash-bad .logo-bad {
+    width: 120px;
+    height: 120px;
+    background: #666;
+    border-radius: 20px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 48px;
+    color: #aaa;
+    font-weight: 700;
+  }
+
+  .splash-bad .app-name-bad {
+    margin-top: 16px;
+    font-size: 20px;
+    color: #888;
+    font-weight: 400;
+  }
+
+  .splash-bad .loading-bar {
+    margin-top: 40px;
+    width: 200px;
+    height: 4px;
+    background: #444;
+    border-radius: 2px;
+    overflow: hidden;
+  }
+
+  .splash-bad .loading-bar-fill {
+    width: 35%;
+    height: 100%;
+    background: #777;
+    border-radius: 2px;
+  }
+
+  .splash-bad .loading-text {
+    margin-top: 12px;
+    font-size: 11px;
+    color: #666;
+  }
+
+  /* Good Splash */
+  .splash-good .screen {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    background: var(--bg);
+  }
+
+  .splash-good .logo-container {
+    animation: splashFadeIn 1.5s ease-out;
+  }
+
+  @keyframes splashFadeIn {
+    0% { opacity: 0; transform: scale(0.8); }
+    60% { opacity: 1; transform: scale(1.05); }
+    100% { opacity: 1; transform: scale(1); }
+  }
+
+  .splash-good .logo-icon {
+    width: 96px;
+    height: 96px;
+    background: var(--red);
+    border-radius: 24px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin: 0 auto;
+    box-shadow: 0 8px 32px rgba(219,76,63,0.3);
+  }
+
+  .splash-good .logo-icon .checkmark {
+    width: 40px;
+    height: 40px;
+    border: 3px solid #fff;
+    border-radius: 50%;
+    position: relative;
+  }
+
+  .splash-good .logo-icon .checkmark::after {
+    content: '';
+    position: absolute;
+    left: 10px;
+    top: 5px;
+    width: 10px;
+    height: 18px;
+    border: solid #fff;
+    border-width: 0 3px 3px 0;
+    transform: rotate(45deg);
+  }
+
+  .splash-good .app-name-good {
+    margin-top: 20px;
+    font-size: 22px;
+    font-weight: 600;
+    color: var(--text);
+    letter-spacing: -0.3px;
+    animation: splashFadeIn 1.8s ease-out;
+  }
+
+  .splash-good .tagline {
+    margin-top: 6px;
+    font-size: 14px;
+    color: var(--text-secondary);
+    animation: splashFadeIn 2.1s ease-out;
+  }
+
+  /* ===== ONBOARDING SCREENS ===== */
+
+  /* Bad Onboarding */
+  .onboarding-bad .screen {
+    background: #f5f5f5;
+    padding: 40px 20px 20px;
+    display: flex;
+    flex-direction: column;
+  }
+
+  .onboarding-bad .ob-illustration-bad {
+    width: 100%;
+    height: 260px;
+    background: #ddd;
+    border-radius: 8px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: #999;
+    font-size: 14px;
+    margin-top: 20px;
+  }
+
+  .onboarding-bad .ob-title-bad {
+    margin-top: 24px;
+    font-size: 16px;
+    font-weight: 600;
+    color: #333;
+    text-align: center;
+  }
+
+  .onboarding-bad .ob-text-bad {
+    margin-top: 8px;
+    font-size: 12px;
+    color: #999;
+    text-align: center;
+    line-height: 1.4;
+  }
+
+  .onboarding-bad .ob-dots-bad {
+    display: flex;
+    gap: 8px;
+    justify-content: center;
+    margin-top: 20px;
+  }
+
+  .onboarding-bad .ob-dots-bad span {
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    background: #ccc;
+  }
+
+  .onboarding-bad .ob-dots-bad span.active { background: #999; }
+
+  .onboarding-bad .ob-buttons-bad {
+    margin-top: auto;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+  }
+
+  .onboarding-bad .ob-btn-bad {
+    padding: 12px;
+    border-radius: 6px;
+    text-align: center;
+    font-size: 14px;
+    background: #999;
+    color: #fff;
+  }
+
+  .onboarding-bad .ob-skip-bad {
+    text-align: center;
+    font-size: 12px;
+    color: #bbb;
+    padding: 8px;
+  }
+
+  /* Good Onboarding */
+  .onboarding-good .screen {
+    background: var(--bg);
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+  }
+
+  .onboarding-good .ob-slides {
+    flex: 1;
+    position: relative;
+  }
+
+  .onboarding-good .ob-slide {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding: 40px 32px;
+    transition: all 0.5s cubic-bezier(0.4, 0, 0.2, 1);
+  }
+
+  .onboarding-good .ob-slide:nth-child(1) { opacity: 1; transform: translateX(0); }
+  .onboarding-good .ob-slide:nth-child(2) { opacity: 0; transform: translateX(100%); }
+  .onboarding-good .ob-slide:nth-child(3) { opacity: 0; transform: translateX(200%); }
+
+  .onboarding-good .ob-illustration {
+    width: 220px;
+    height: 220px;
+    margin-top: 40px;
+    position: relative;
+    animation: floatIllustration 3s ease-in-out infinite;
+  }
+
+  @keyframes floatIllustration {
+    0%, 100% { transform: translateY(0); }
+    50% { transform: translateY(-8px); }
+  }
+
+  /* CSS Illustration: Task list */
+  .illust-tasks {
+    position: relative;
+  }
+
+  .illust-tasks .task-card {
+    position: absolute;
+    background: var(--bg-card);
+    border-radius: 12px;
+    box-shadow: var(--shadow-md);
+    padding: 14px 16px;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    width: 200px;
+    left: 10px;
+  }
+
+  .illust-tasks .task-card:nth-child(1) { top: 20px; animation: slideInCard 0.6s 0.2s both; }
+  .illust-tasks .task-card:nth-child(2) { top: 75px; animation: slideInCard 0.6s 0.4s both; }
+  .illust-tasks .task-card:nth-child(3) { top: 130px; animation: slideInCard 0.6s 0.6s both; }
+
+  @keyframes slideInCard {
+    from { opacity: 0; transform: translateX(30px); }
+    to { opacity: 1; transform: translateX(0); }
+  }
+
+  .illust-tasks .task-circle {
+    width: 22px;
+    height: 22px;
+    border-radius: 50%;
+    border: 2px solid var(--red);
+    flex-shrink: 0;
+  }
+
+  .illust-tasks .task-circle.done {
+    background: var(--red);
+    position: relative;
+  }
+
+  .illust-tasks .task-circle.done::after {
+    content: '';
+    position: absolute;
+    left: 5px;
+    top: 2px;
+    width: 5px;
+    height: 10px;
+    border: solid #fff;
+    border-width: 0 2px 2px 0;
+    transform: rotate(45deg);
+  }
+
+  .illust-tasks .task-line {
+    height: 8px;
+    background: var(--border);
+    border-radius: 4px;
+    flex: 1;
+  }
+
+  .illust-tasks .task-line.short { width: 60%; flex: none; }
+
+  /* CSS Illustration: Calendar */
+  .illust-calendar {
+    position: relative;
+  }
+
+  .illust-calendar .cal-box {
+    position: absolute;
+    top: 20px;
+    left: 20px;
+    width: 180px;
+    background: var(--bg-card);
+    border-radius: 16px;
+    box-shadow: var(--shadow-md);
+    overflow: hidden;
+    animation: scaleIn 0.5s 0.3s both;
+  }
+
+  @keyframes scaleIn {
+    from { opacity: 0; transform: scale(0.85); }
+    to { opacity: 1; transform: scale(1); }
+  }
+
+  .illust-calendar .cal-header {
+    background: var(--red);
+    color: #fff;
+    padding: 12px 16px;
+    font-size: 13px;
+    font-weight: 600;
+    text-align: center;
+  }
+
+  .illust-calendar .cal-grid {
+    display: grid;
+    grid-template-columns: repeat(7, 1fr);
+    gap: 2px;
+    padding: 10px;
+  }
+
+  .illust-calendar .cal-day {
+    width: 20px;
+    height: 20px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 9px;
+    color: var(--text-secondary);
+  }
+
+  .illust-calendar .cal-day.today {
+    background: var(--red);
+    color: #fff;
+    font-weight: 600;
+  }
+
+  .illust-calendar .cal-day.has-task::after {
+    content: '';
+    width: 3px;
+    height: 3px;
+    background: var(--red);
+    border-radius: 50%;
+    position: absolute;
+    margin-top: 16px;
+  }
+
+  /* CSS Illustration: Achievement */
+  .illust-achieve {
+    position: relative;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+
+  .illust-achieve .trophy {
+    width: 100px;
+    height: 120px;
+    position: relative;
+    animation: trophyBounce 2s ease-in-out infinite;
+  }
+
+  @keyframes trophyBounce {
+    0%, 100% { transform: translateY(0) rotate(0); }
+    25% { transform: translateY(-5px) rotate(-2deg); }
+    75% { transform: translateY(-5px) rotate(2deg); }
+  }
+
+  .illust-achieve .trophy-cup {
+    width: 70px;
+    height: 60px;
+    background: #FFD54F;
+    border-radius: 0 0 35px 35px;
+    margin: 0 auto;
+    position: relative;
+    box-shadow: inset 0 -10px 20px rgba(0,0,0,0.1);
+  }
+
+  .illust-achieve .trophy-cup::before {
+    content: '';
+    position: absolute;
+    left: -18px;
+    top: 10px;
+    width: 20px;
+    height: 30px;
+    border: 4px solid #FFD54F;
+    border-right: none;
+    border-radius: 20px 0 0 20px;
+  }
+
+  .illust-achieve .trophy-cup::after {
+    content: '';
+    position: absolute;
+    right: -18px;
+    top: 10px;
+    width: 20px;
+    height: 30px;
+    border: 4px solid #FFD54F;
+    border-left: none;
+    border-radius: 0 20px 20px 0;
+  }
+
+  .illust-achieve .trophy-base {
+    width: 20px;
+    height: 20px;
+    background: #FFC107;
+    margin: 0 auto;
+    border-radius: 0 0 2px 2px;
+  }
+
+  .illust-achieve .trophy-foot {
+    width: 50px;
+    height: 10px;
+    background: #FFC107;
+    margin: 0 auto;
+    border-radius: 0 0 4px 4px;
+  }
+
+  .illust-achieve .star {
+    position: absolute;
+    color: #FFD54F;
+    font-size: 20px;
+    animation: starTwinkle 1.5s ease-in-out infinite;
+  }
+
+  .illust-achieve .star:nth-child(2) { top: 10px; left: 30px; animation-delay: 0.3s; }
+  .illust-achieve .star:nth-child(3) { top: 20px; right: 30px; animation-delay: 0.6s; }
+  .illust-achieve .star:nth-child(4) { bottom: 40px; left: 20px; animation-delay: 0.9s; }
+  .illust-achieve .star:nth-child(5) { bottom: 30px; right: 20px; animation-delay: 1.2s; }
+
+  @keyframes starTwinkle {
+    0%, 100% { opacity: 0.3; transform: scale(0.8); }
+    50% { opacity: 1; transform: scale(1.2); }
+  }
+
+  .onboarding-good .ob-title {
+    font-size: 24px;
+    font-weight: 700;
+    color: var(--text);
+    text-align: center;
+    margin-top: 32px;
+    letter-spacing: -0.3px;
+  }
+
+  .onboarding-good .ob-desc {
+    font-size: 15px;
+    color: var(--text-secondary);
+    text-align: center;
+    margin-top: 12px;
+    line-height: 1.6;
+    padding: 0 8px;
+  }
+
+  .onboarding-good .ob-footer {
+    padding: 20px 32px 40px;
+  }
+
+  .onboarding-good .ob-dots {
+    display: flex;
+    gap: 8px;
+    justify-content: center;
+    margin-bottom: 24px;
+  }
+
+  .onboarding-good .ob-dots span {
+    width: 8px;
+    height: 8px;
+    border-radius: 4px;
+    background: var(--border);
+    transition: all 0.3s;
+  }
+
+  .onboarding-good .ob-dots span.active {
+    width: 24px;
+    background: var(--red);
+  }
+
+  .onboarding-good .ob-btn {
+    width: 100%;
+    padding: 16px;
+    background: var(--red);
+    color: #fff;
+    border: none;
+    border-radius: 12px;
+    font-size: 16px;
+    font-weight: 600;
+    font-family: inherit;
+    cursor: pointer;
+    transition: all 0.2s;
+    box-shadow: 0 4px 12px rgba(219,76,63,0.3);
+  }
+
+  .onboarding-good .ob-btn:hover {
+    background: var(--red-dark);
+    transform: translateY(-1px);
+  }
+
+  .onboarding-good .ob-skip {
+    text-align: center;
+    margin-top: 16px;
+    font-size: 14px;
+    color: var(--text-secondary);
+    cursor: pointer;
+  }
+
+  /* ===== EMPTY STATE SCREENS ===== */
+
+  /* Bad Empty */
+  .empty-bad .screen {
+    background: #f9f9f9;
+    display: flex;
+    flex-direction: column;
+  }
+
+  .empty-bad .header-bad {
+    padding: 10px 16px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    border-bottom: 1px solid #eee;
+  }
+
+  .empty-bad .header-bad h2 {
+    font-size: 16px;
+    color: #333;
+    font-weight: 600;
+  }
+
+  .empty-bad .empty-content-bad {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: 20px;
+  }
+
+  .empty-bad .empty-icon-bad {
+    width: 60px;
+    height: 60px;
+    background: #eee;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 24px;
+    color: #ccc;
+  }
+
+  .empty-bad .empty-text-bad {
+    margin-top: 16px;
+    font-size: 14px;
+    color: #aaa;
+    text-align: center;
+  }
+
+  .empty-bad .nav-bad {
+    display: flex;
+    justify-content: space-around;
+    padding: 12px 0;
+    border-top: 1px solid #eee;
+    background: #fff;
+  }
+
+  .empty-bad .nav-bad .nav-item-bad {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 4px;
+    font-size: 10px;
+    color: #bbb;
+  }
+
+  .empty-bad .nav-bad .nav-icon-bad {
+    width: 24px;
+    height: 24px;
+    background: #ddd;
+    border-radius: 6px;
+  }
+
+  /* Good Empty */
+  .empty-good .screen {
+    background: var(--bg);
+    display: flex;
+    flex-direction: column;
+  }
+
+  .empty-good .header-good {
+    padding: 16px 24px;
+  }
+
+  .empty-good .header-good .greeting {
+    font-size: 14px;
+    color: var(--text-secondary);
+  }
+
+  .empty-good .header-good .date {
+    font-size: 22px;
+    font-weight: 700;
+    color: var(--text);
+    margin-top: 2px;
+  }
+
+  .empty-good .empty-hero {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: 32px;
+    animation: fadeInUp 0.6s ease-out;
+  }
+
+  @keyframes fadeInUp {
+    from { opacity: 0; transform: translateY(20px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+
+  .empty-good .empty-illust {
+    width: 160px;
+    height: 160px;
+    position: relative;
+  }
+
+  .empty-good .sun-circle {
+    width: 80px;
+    height: 80px;
+    background: #FFF3E0;
+    border-radius: 50%;
+    position: absolute;
+    top: 20px;
+    left: 40px;
+    animation: sunPulse 3s ease-in-out infinite;
+  }
+
+  @keyframes sunPulse {
+    0%, 100% { transform: scale(1); opacity: 0.8; }
+    50% { transform: scale(1.1); opacity: 1; }
+  }
+
+  .empty-good .sun-core {
+    width: 50px;
+    height: 50px;
+    background: #FFB74D;
+    border-radius: 50%;
+    position: absolute;
+    top: 35px;
+    left: 55px;
+  }
+
+  .empty-good .cloud {
+    position: absolute;
+    background: var(--bg-card);
+    border-radius: 20px;
+    box-shadow: var(--shadow);
+  }
+
+  .empty-good .cloud-1 {
+    width: 60px;
+    height: 24px;
+    top: 10px;
+    left: 10px;
+    animation: cloudFloat 4s ease-in-out infinite;
+  }
+
+  .empty-good .cloud-2 {
+    width: 50px;
+    height: 20px;
+    top: 50px;
+    right: 10px;
+    animation: cloudFloat 4s ease-in-out infinite 1s;
+  }
+
+  @keyframes cloudFloat {
+    0%, 100% { transform: translateX(0); }
+    50% { transform: translateX(8px); }
+  }
+
+  .empty-good .landscape {
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    height: 50px;
+    background: #E8F5E9;
+    border-radius: 50% 50% 0 0;
+  }
+
+  [data-theme="dark"] .empty-good .landscape { background: #1B3A1B; }
+  [data-theme="dark"] .empty-good .sun-circle { background: #3E2A10; }
+  [data-theme="dark"] .empty-good .sun-core { background: #FF8F00; }
+
+  .empty-good .empty-title {
+    font-size: 20px;
+    font-weight: 600;
+    color: var(--text);
+    margin-top: 24px;
+    text-align: center;
+  }
+
+  .empty-good .empty-desc {
+    font-size: 14px;
+    color: var(--text-secondary);
+    text-align: center;
+    margin-top: 8px;
+    line-height: 1.5;
+  }
+
+  .empty-good .add-task-btn {
+    margin-top: 28px;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 14px 28px;
+    background: var(--red);
+    color: #fff;
+    border-radius: 12px;
+    font-size: 15px;
+    font-weight: 600;
+    box-shadow: 0 4px 16px rgba(219,76,63,0.3);
+    cursor: pointer;
+    transition: all 0.2s;
+  }
+
+  .empty-good .add-task-btn:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 6px 20px rgba(219,76,63,0.4);
+  }
+
+  .empty-good .add-task-btn .plus {
+    width: 24px;
+    height: 24px;
+    background: rgba(255,255,255,0.25);
+    border-radius: 8px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 18px;
+    font-weight: 300;
+  }
+
+  .empty-good .bottom-nav {
+    display: flex;
+    justify-content: space-around;
+    align-items: center;
+    padding: 12px 0 28px;
+    background: var(--bg-card);
+    border-top: 1px solid var(--border);
+    position: relative;
+  }
+
+  .empty-good .nav-item {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 4px;
+    cursor: pointer;
+    position: relative;
+  }
+
+  .empty-good .nav-item .nav-icon {
+    width: 24px;
+    height: 24px;
+    position: relative;
+  }
+
+  .empty-good .nav-item.active { color: var(--red); }
+  .empty-good .nav-item:not(.active) { color: var(--text-tertiary); }
+
+  .empty-good .nav-label {
+    font-size: 10px;
+    font-weight: 500;
+  }
+
+  /* Nav Icons (CSS) */
+  .icon-inbox { border: 2px solid currentColor; border-radius: 4px; width: 20px !important; height: 16px !important; margin-top: 4px; }
+  .icon-today { width: 20px !important; height: 20px !important; border: 2px solid currentColor; border-radius: 50%; position: relative; margin-top: 2px; }
+  .icon-today::after { content: ''; position: absolute; top: 50%; left: 50%; width: 6px; height: 6px; background: currentColor; border-radius: 50%; transform: translate(-50%, -50%); }
+  .icon-calendar { border: 2px solid currentColor; border-radius: 4px; width: 20px !important; height: 18px !important; margin-top: 3px; border-top-width: 4px; }
+  .icon-search { width: 16px !important; height: 16px !important; border: 2px solid currentColor; border-radius: 50%; margin-top: 3px; position: relative; }
+  .icon-search::after { content: ''; position: absolute; bottom: -5px; right: -4px; width: 6px; height: 2px; background: currentColor; transform: rotate(45deg); }
+
+  /* FAB */
+  .empty-good .fab {
+    position: absolute;
+    bottom: 60px;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 56px;
+    height: 56px;
+    background: var(--red);
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    box-shadow: 0 4px 16px rgba(219,76,63,0.4);
+    cursor: pointer;
+    z-index: 10;
+    transition: transform 0.2s;
+  }
+
+  .empty-good .fab:hover { transform: translateX(-50%) scale(1.1); }
+
+  .empty-good .fab::before,
+  .empty-good .fab::after {
+    content: '';
+    position: absolute;
+    background: #fff;
+    border-radius: 2px;
+  }
+
+  .empty-good .fab::before { width: 24px; height: 3px; }
+  .empty-good .fab::after { width: 3px; height: 24px; }
+
+  /* ===== HERO SECTION SCREENS ===== */
+
+  /* Bad Hero */
+  .hero-bad .screen {
+    background: #f5f5f5;
+    display: flex;
+    flex-direction: column;
+  }
+
+  .hero-bad .header-hero-bad {
+    padding: 10px 16px;
+    border-bottom: 1px solid #eee;
+    background: #fff;
+  }
+
+  .hero-bad .header-hero-bad h2 { font-size: 16px; color: #333; }
+
+  .hero-bad .tasks-bad {
+    padding: 12px;
+    flex: 1;
+    overflow-y: auto;
+  }
+
+  .hero-bad .task-item-bad {
+    background: #fff;
+    padding: 10px 12px;
+    border: 1px solid #eee;
+    margin-bottom: 6px;
+    border-radius: 4px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 13px;
+    color: #666;
+  }
+
+  .hero-bad .task-item-bad .checkbox-bad {
+    width: 16px;
+    height: 16px;
+    border: 2px solid #ccc;
+    border-radius: 2px;
+    flex-shrink: 0;
+  }
+
+  .hero-bad .priority-bad {
+    font-size: 10px;
+    padding: 2px 6px;
+    background: #eee;
+    border-radius: 2px;
+    color: #999;
+    margin-left: auto;
+  }
+
+  /* Good Hero */
+  .hero-good .screen {
+    background: var(--bg);
+    display: flex;
+    flex-direction: column;
+  }
+
+  .hero-good .header-hero {
+    padding: 16px 24px 12px;
+  }
+
+  .hero-good .header-top {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+  }
+
+  .hero-good .avatar {
+    width: 36px;
+    height: 36px;
+    background: var(--red);
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: #fff;
+    font-size: 14px;
+    font-weight: 600;
+  }
+
+  .hero-good .header-actions {
+    display: flex;
+    gap: 12px;
+  }
+
+  .hero-good .header-action-btn {
+    width: 36px;
+    height: 36px;
+    border-radius: 50%;
+    background: var(--bg-card);
+    border: 1px solid var(--border);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: var(--text-secondary);
+    font-size: 16px;
+  }
+
+  .hero-good .greeting-section {
+    margin-top: 16px;
+  }
+
+  .hero-good .greeting-text {
+    font-size: 14px;
+    color: var(--text-secondary);
+  }
+
+  .hero-good .greeting-name {
+    font-size: 24px;
+    font-weight: 700;
+    color: var(--text);
+    margin-top: 2px;
+  }
+
+  .hero-good .summary-cards {
+    display: flex;
+    gap: 12px;
+    padding: 16px 24px;
+    animation: fadeInUp 0.5s 0.2s both;
+  }
+
+  .hero-good .summary-card {
+    flex: 1;
+    background: var(--bg-card);
+    border-radius: 14px;
+    padding: 14px;
+    box-shadow: var(--shadow);
+    border: 1px solid var(--border);
+  }
+
+  .hero-good .summary-card .sc-number {
+    font-size: 28px;
+    font-weight: 700;
+    color: var(--text);
+  }
+
+  .hero-good .summary-card .sc-label {
+    font-size: 12px;
+    color: var(--text-secondary);
+    margin-top: 2px;
+  }
+
+  .hero-good .summary-card .sc-icon {
+    width: 32px;
+    height: 32px;
+    border-radius: 10px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 16px;
+    margin-bottom: 8px;
+  }
+
+  .hero-good .sc-icon.red { background: #FFEBEE; color: var(--red); }
+  .hero-good .sc-icon.green { background: #E8F5E9; color: var(--green); }
+  .hero-good .sc-icon.blue { background: #E3F2FD; color: var(--blue); }
+
+  [data-theme="dark"] .hero-good .sc-icon.red { background: #3E1A1A; }
+  [data-theme="dark"] .hero-good .sc-icon.green { background: #1A3E1A; }
+  [data-theme="dark"] .hero-good .sc-icon.blue { background: #1A2A3E; }
+
+  .hero-good .section-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 8px 24px;
+  }
+
+  .hero-good .section-header h3 {
+    font-size: 16px;
+    font-weight: 600;
+    color: var(--text);
+  }
+
+  .hero-good .section-header .see-all {
+    font-size: 13px;
+    color: var(--red);
+    font-weight: 500;
+    cursor: pointer;
+  }
+
+  .hero-good .task-list {
+    padding: 0 24px;
+    flex: 1;
+    overflow-y: auto;
+  }
+
+  .hero-good .task-item {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    padding: 14px 0;
+    border-bottom: 1px solid var(--border);
+    animation: fadeInUp 0.4s both;
+  }
+
+  .hero-good .task-item:nth-child(1) { animation-delay: 0.1s; }
+  .hero-good .task-item:nth-child(2) { animation-delay: 0.2s; }
+  .hero-good .task-item:nth-child(3) { animation-delay: 0.3s; }
+  .hero-good .task-item:nth-child(4) { animation-delay: 0.4s; }
+
+  .hero-good .task-checkbox {
+    width: 22px;
+    height: 22px;
+    border-radius: 50%;
+    border: 2px solid var(--red);
+    flex-shrink: 0;
+    cursor: pointer;
+    transition: all 0.2s;
+  }
+
+  .hero-good .task-checkbox.p2 { border-color: var(--orange); }
+  .hero-good .task-checkbox.p3 { border-color: var(--blue); }
+  .hero-good .task-checkbox.p4 { border-color: var(--text-tertiary); }
+
+  .hero-good .task-checkbox:hover {
+    background: rgba(219,76,63,0.1);
+  }
+
+  .hero-good .task-content {
+    flex: 1;
+    min-width: 0;
+  }
+
+  .hero-good .task-title {
+    font-size: 14px;
+    color: var(--text);
+    font-weight: 400;
+  }
+
+  .hero-good .task-meta {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin-top: 4px;
+  }
+
+  .hero-good .task-tag {
+    font-size: 11px;
+    padding: 2px 8px;
+    border-radius: 4px;
+    font-weight: 500;
+  }
+
+  .hero-good .task-tag.work { background: #E3F2FD; color: #1565C0; }
+  .hero-good .task-tag.personal { background: #F3E5F5; color: #7B1FA2; }
+  .hero-good .task-tag.health { background: #E8F5E9; color: #2E7D32; }
+
+  [data-theme="dark"] .hero-good .task-tag.work { background: #1A2A3E; color: #64B5F6; }
+  [data-theme="dark"] .hero-good .task-tag.personal { background: #2A1A3E; color: #CE93D8; }
+  [data-theme="dark"] .hero-good .task-tag.health { background: #1A3E1A; color: #81C784; }
+
+  .hero-good .task-time {
+    font-size: 11px;
+    color: var(--text-secondary);
+  }
+
+  .hero-good .task-drag {
+    color: var(--text-tertiary);
+    font-size: 16px;
+    cursor: grab;
+  }
+
+  /* Bottom Nav Good */
+  .hero-good .bottom-nav {
+    display: flex;
+    justify-content: space-around;
+    align-items: center;
+    padding: 12px 0 28px;
+    background: var(--bg-card);
+    border-top: 1px solid var(--border);
+    position: relative;
+  }
+
+  .hero-good .nav-item {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 4px;
+  }
+
+  .hero-good .nav-item.active { color: var(--red); }
+  .hero-good .nav-item:not(.active) { color: var(--text-tertiary); }
+  .hero-good .nav-label { font-size: 10px; font-weight: 500; }
+
+  .hero-good .fab {
+    position: absolute;
+    bottom: 60px;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 56px;
+    height: 56px;
+    background: var(--red);
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    box-shadow: 0 4px 16px rgba(219,76,63,0.4);
+    z-index: 10;
+  }
+
+  .hero-good .fab::before,
+  .hero-good .fab::after {
+    content: '';
+    position: absolute;
+    background: #fff;
+    border-radius: 2px;
+  }
+
+  .hero-good .fab::before { width: 24px; height: 3px; }
+  .hero-good .fab::after { width: 3px; height: 24px; }
+
+  /* ===== PSYCHOLOGY SECTION ===== */
+  .psychology {
+    max-width: 820px;
+    margin: 60px auto 40px;
+    background: var(--bg-card);
+    border-radius: 20px;
+    padding: 40px;
+    box-shadow: var(--shadow-md);
+    border: 1px solid var(--border);
+  }
+
+  .psychology h2 {
+    font-size: 22px;
+    font-weight: 700;
+    color: var(--text);
+    margin-bottom: 8px;
+  }
+
+  .psychology .psych-subtitle {
+    font-size: 14px;
+    color: var(--text-secondary);
+    margin-bottom: 28px;
+  }
+
+  .psychology .principle {
+    margin-bottom: 24px;
+    padding: 20px;
+    background: var(--bg);
+    border-radius: 14px;
+    border-left: 4px solid var(--red);
+  }
+
+  .psychology .principle h3 {
+    font-size: 16px;
+    font-weight: 600;
+    color: var(--text);
+    margin-bottom: 6px;
+  }
+
+  .psychology .principle p {
+    font-size: 14px;
+    color: var(--text-secondary);
+    line-height: 1.7;
+  }
+
+  .psychology .metrics {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 16px;
+    margin-top: 24px;
+  }
+
+  .psychology .metric {
+    text-align: center;
+    padding: 20px 12px;
+    background: var(--bg);
+    border-radius: 14px;
+  }
+
+  .psychology .metric .metric-value {
+    font-size: 32px;
+    font-weight: 700;
+    color: var(--red);
+  }
+
+  .psychology .metric .metric-label {
+    font-size: 12px;
+    color: var(--text-secondary);
+    margin-top: 4px;
+  }
+
+  /* Page title */
+  .page-header {
+    max-width: 820px;
+    margin: 0 auto;
+    padding: 20px 0;
+  }
+
+  .phase-tag {
+    display: inline-block;
+    background: var(--red);
+    color: #fff;
+    font-size: 12px;
+    font-weight: 600;
+    padding: 4px 12px;
+    border-radius: 6px;
+    margin-bottom: 12px;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+  }
+
+  /* Responsive */
+  @media (max-width: 850px) {
+    .comparison { flex-direction: column; align-items: center; }
+    .psychology .metrics { grid-template-columns: 1fr; }
+  }
+</style>
+</head>
+<body>
+  <div class="controls">
+    <button class="theme-toggle" onclick="toggleTheme()">🌙 Тёмная тема</button>
+  </div>
+
+  <div class="page-header">
+    <span class="phase-tag">Фаза 2</span>
+    <h1>Эффект ореола (Halo Effect)</h1>
+    <p class="subtitle">Первое впечатление за &lt;3 секунды определяет отношение пользователя ко всему приложению. Если splash screen и onboarding выглядят профессионально, пользователь заранее доверяет качеству всех функций.</p>
+  </div>
+
+  <!-- ==================== SECTION 1: SPLASH SCREEN ==================== -->
+  <div class="section">
+    <h2 class="section-title">1. Splash Screen</h2>
+    <p class="section-desc">Экран загрузки — первый контакт пользователя с приложением</p>
+    <div class="comparison">
+      <!-- BAD -->
+      <div class="variant">
+        <span class="variant-label bad">До</span>
+        <div class="phone splash-bad">
+          <div class="notch"></div>
+          <div class="status-bar" style="color:#888">
+            <span class="time">9:41</span>
+            <span class="icons">■ ▲ ●</span>
+          </div>
+          <div class="screen">
+            <div class="logo-bad">П</div>
+            <div class="app-name-bad">planer app</div>
+            <div class="loading-bar">
+              <div class="loading-bar-fill"></div>
+            </div>
+            <div class="loading-text">Загрузка... 35%</div>
+          </div>
+        </div>
+      </div>
+      <!-- GOOD -->
+      <div class="variant">
+        <span class="variant-label good">После</span>
+        <div class="phone splash-good">
+          <div class="notch"></div>
+          <div class="status-bar" style="color:var(--text-secondary)">
+            <span class="time">9:41</span>
+            <span class="icons">■ ▲ ●</span>
+          </div>
+          <div class="screen">
+            <div class="logo-container">
+              <div class="logo-icon">
+                <div class="checkmark"></div>
+              </div>
+              <div class="app-name-good">Планер</div>
+              <div class="tagline">Организуйте день легко</div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ==================== SECTION 2: ONBOARDING ==================== -->
+  <div class="section">
+    <h2 class="section-title">2. Онбординг</h2>
+    <p class="section-desc">3 слайда с иллюстрациями — знакомство с приложением</p>
+    <div class="comparison">
+      <!-- BAD -->
+      <div class="variant">
+        <span class="variant-label bad">До</span>
+        <div class="phone onboarding-bad">
+          <div class="notch"></div>
+          <div class="status-bar" style="color:#999">
+            <span class="time">9:41</span>
+            <span class="icons">■ ▲ ●</span>
+          </div>
+          <div class="screen">
+            <div class="ob-illustration-bad">[Картинка не загрузилась]</div>
+            <div class="ob-title-bad">Добро пожаловать в приложение для планирования</div>
+            <div class="ob-text-bad">Это приложение поможет вам с задачами. Нажмите далее чтобы узнать больше о функциях которые мы разработали для вас.</div>
+            <div class="ob-dots-bad">
+              <span class="active"></span>
+              <span></span>
+              <span></span>
+            </div>
+            <div class="ob-buttons-bad">
+              <div class="ob-btn-bad">ДАЛЕЕ</div>
+              <div class="ob-skip-bad">пропустить</div>
+            </div>
+          </div>
+        </div>
+      </div>
+      <!-- GOOD -->
+      <div class="variant">
+        <span class="variant-label good">После</span>
+        <div class="phone onboarding-good" id="onboardingPhone">
+          <div class="notch"></div>
+          <div class="status-bar" style="color:var(--text-secondary)">
+            <span class="time">9:41</span>
+            <span class="icons">■ ▲ ●</span>
+          </div>
+          <div class="screen">
+            <div class="ob-slides">
+              <!-- Slide 1 -->
+              <div class="ob-slide" id="slide1">
+                <div class="ob-illustration illust-tasks">
+                  <div class="task-card">
+                    <div class="task-circle done"></div>
+                    <div class="task-line short"></div>
+                  </div>
+                  <div class="task-card">
+                    <div class="task-circle"></div>
+                    <div class="task-line"></div>
+                  </div>
+                  <div class="task-card">
+                    <div class="task-circle"></div>
+                    <div class="task-line short"></div>
+                  </div>
+                </div>
+                <div class="ob-title">Все задачи в одном месте</div>
+                <div class="ob-desc">Создавайте, организуйте и отслеживайте свои дела быстро и просто</div>
+              </div>
+              <!-- Slide 2 -->
+              <div class="ob-slide" id="slide2">
+                <div class="ob-illustration illust-calendar">
+                  <div class="cal-box">
+                    <div class="cal-header">Март 2026</div>
+                    <div class="cal-grid">
+                      <div class="cal-day">1</div><div class="cal-day">2</div><div class="cal-day">3</div><div class="cal-day">4</div><div class="cal-day">5</div><div class="cal-day">6</div><div class="cal-day">7</div>
+                      <div class="cal-day">8</div><div class="cal-day">9</div><div class="cal-day">10</div><div class="cal-day">11</div><div class="cal-day">12</div><div class="cal-day">13</div><div class="cal-day">14</div>
+                      <div class="cal-day">15</div><div class="cal-day">16</div><div class="cal-day">17</div><div class="cal-day today">18</div><div class="cal-day">19</div><div class="cal-day">20</div><div class="cal-day">21</div>
+                      <div class="cal-day">22</div><div class="cal-day">23</div><div class="cal-day">24</div><div class="cal-day">25</div><div class="cal-day">26</div><div class="cal-day">27</div><div class="cal-day">28</div>
+                    </div>
+                  </div>
+                </div>
+                <div class="ob-title">Планируйте с календарём</div>
+                <div class="ob-desc">Привязывайте задачи к датам и никогда не забывайте о важном</div>
+              </div>
+              <!-- Slide 3 -->
+              <div class="ob-slide" id="slide3">
+                <div class="ob-illustration illust-achieve">
+                  <span class="star">✦</span>
+                  <span class="star">✦</span>
+                  <span class="star">✦</span>
+                  <span class="star">✦</span>
+                  <div class="trophy">
+                    <div class="trophy-cup"></div>
+                    <div class="trophy-base"></div>
+                    <div class="trophy-foot"></div>
+                  </div>
+                </div>
+                <div class="ob-title">Достигайте целей</div>
+                <div class="ob-desc">Отмечайте выполненные задачи и наблюдайте за своим прогрессом</div>
+              </div>
+            </div>
+            <div class="ob-footer">
+              <div class="ob-dots">
+                <span class="active" id="dot1"></span>
+                <span id="dot2"></span>
+                <span id="dot3"></span>
+              </div>
+              <button class="ob-btn" id="obBtn" onclick="nextSlide()">Продолжить</button>
+              <div class="ob-skip" onclick="resetSlides()">Пропустить</div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ==================== SECTION 3: EMPTY STATE ==================== -->
+  <div class="section">
+    <h2 class="section-title">3. Первый запуск — экран «Сегодня»</h2>
+    <p class="section-desc">Пустое состояние с приветственным сообщением</p>
+    <div class="comparison">
+      <!-- BAD -->
+      <div class="variant">
+        <span class="variant-label bad">До</span>
+        <div class="phone empty-bad">
+          <div class="notch"></div>
+          <div class="status-bar" style="color:#999">
+            <span class="time">9:41</span>
+            <span class="icons">■ ▲ ●</span>
+          </div>
+          <div class="screen">
+            <div class="header-bad">
+              <h2>Задачи</h2>
+              <span style="color:#ccc;font-size:20px">⚙</span>
+            </div>
+            <div class="empty-content-bad">
+              <div class="empty-icon-bad">📋</div>
+              <div class="empty-text-bad">Нет задач</div>
+            </div>
+            <div class="nav-bad">
+              <div class="nav-item-bad"><div class="nav-icon-bad"></div>Задачи</div>
+              <div class="nav-item-bad"><div class="nav-icon-bad"></div>Ещё</div>
+              <div class="nav-item-bad"><div class="nav-icon-bad"></div>Другое</div>
+              <div class="nav-item-bad"><div class="nav-icon-bad"></div>Прочее</div>
+            </div>
+          </div>
+        </div>
+      </div>
+      <!-- GOOD -->
+      <div class="variant">
+        <span class="variant-label good">После</span>
+        <div class="phone empty-good">
+          <div class="notch"></div>
+          <div class="status-bar" style="color:var(--text-secondary)">
+            <span class="time">9:41</span>
+            <span class="icons">■ ▲ ●</span>
+          </div>
+          <div class="screen">
+            <div class="header-good">
+              <span class="greeting">Доброе утро ☀️</span>
+              <div class="date">18 марта, среда</div>
+            </div>
+            <div class="empty-hero">
+              <div class="empty-illust">
+                <div class="sun-circle"></div>
+                <div class="sun-core"></div>
+                <div class="cloud cloud-1"></div>
+                <div class="cloud cloud-2"></div>
+                <div class="landscape"></div>
+              </div>
+              <div class="empty-title">Чистый лист для нового дня</div>
+              <div class="empty-desc">Добавьте первую задачу и начните<br>продуктивный день</div>
+              <div class="add-task-btn">
+                <span class="plus">+</span>
+                Добавить задачу
+              </div>
+            </div>
+            <div class="bottom-nav">
+              <div class="fab"></div>
+              <div class="nav-item active">
+                <div class="nav-icon icon-inbox"></div>
+                <span class="nav-label">Входящие</span>
+              </div>
+              <div class="nav-item">
+                <div class="nav-icon icon-today"></div>
+                <span class="nav-label">Сегодня</span>
+              </div>
+              <div class="nav-item" style="opacity:0;pointer-events:none">
+                <div class="nav-icon"></div>
+                <span class="nav-label"></span>
+              </div>
+              <div class="nav-item">
+                <div class="nav-icon icon-calendar"></div>
+                <span class="nav-label">Календарь</span>
+              </div>
+              <div class="nav-item">
+                <div class="nav-icon icon-search"></div>
+                <span class="nav-label">Поиск</span>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ==================== SECTION 4: HERO SECTION ==================== -->
+  <div class="section">
+    <h2 class="section-title">4. Hero Section — главный экран после онбординга</h2>
+    <p class="section-desc">То, что пользователь видит при повседневном использовании</p>
+    <div class="comparison">
+      <!-- BAD -->
+      <div class="variant">
+        <span class="variant-label bad">До</span>
+        <div class="phone hero-bad">
+          <div class="notch"></div>
+          <div class="status-bar" style="color:#999">
+            <span class="time">9:41</span>
+            <span class="icons">■ ▲ ●</span>
+          </div>
+          <div class="screen">
+            <div class="header-hero-bad">
+              <h2>Мои задачи (7)</h2>
+            </div>
+            <div class="tasks-bad">
+              <div class="task-item-bad"><div class="checkbox-bad"></div>Сходить в магазин<span class="priority-bad">низкий</span></div>
+              <div class="task-item-bad"><div class="checkbox-bad"></div>Написать отчёт<span class="priority-bad">средний</span></div>
+              <div class="task-item-bad"><div class="checkbox-bad"></div>Позвонить врачу<span class="priority-bad">высокий</span></div>
+              <div class="task-item-bad"><div class="checkbox-bad"></div>Оплатить счета<span class="priority-bad">средний</span></div>
+              <div class="task-item-bad"><div class="checkbox-bad"></div>Подготовить презентацию<span class="priority-bad">высокий</span></div>
+              <div class="task-item-bad"><div class="checkbox-bad"></div>Забрать посылку<span class="priority-bad">низкий</span></div>
+              <div class="task-item-bad"><div class="checkbox-bad"></div>Тренировка<span class="priority-bad">средний</span></div>
+            </div>
+          </div>
+        </div>
+      </div>
+      <!-- GOOD -->
+      <div class="variant">
+        <span class="variant-label good">После</span>
+        <div class="phone hero-good">
+          <div class="notch"></div>
+          <div class="status-bar" style="color:var(--text-secondary)">
+            <span class="time">9:41</span>
+            <span class="icons">■ ▲ ●</span>
+          </div>
+          <div class="screen">
+            <div class="header-hero">
+              <div class="header-top">
+                <div class="avatar">А</div>
+                <div class="header-actions">
+                  <div class="header-action-btn">🔔</div>
+                  <div class="header-action-btn">⚙</div>
+                </div>
+              </div>
+              <div class="greeting-section">
+                <div class="greeting-text">Доброе утро, Алексей</div>
+                <div class="greeting-name">Сегодня, 18 марта</div>
+              </div>
+            </div>
+
+            <div class="summary-cards">
+              <div class="summary-card">
+                <div class="sc-icon red">●</div>
+                <div class="sc-number">5</div>
+                <div class="sc-label">Задач</div>
+              </div>
+              <div class="summary-card">
+                <div class="sc-icon green">✓</div>
+                <div class="sc-number">2</div>
+                <div class="sc-label">Готово</div>
+              </div>
+              <div class="summary-card">
+                <div class="sc-icon blue">!</div>
+                <div class="sc-number">1</div>
+                <div class="sc-label">Срочных</div>
+              </div>
+            </div>
+
+            <div class="section-header">
+              <h3>На сегодня</h3>
+              <span class="see-all">Все задачи</span>
+            </div>
+
+            <div class="task-list">
+              <div class="task-item">
+                <div class="task-checkbox"></div>
+                <div class="task-content">
+                  <div class="task-title">Подготовить презентацию</div>
+                  <div class="task-meta">
+                    <span class="task-tag work">Работа</span>
+                    <span class="task-time">09:00</span>
+                  </div>
+                </div>
+                <div class="task-drag">⋮⋮</div>
+              </div>
+              <div class="task-item">
+                <div class="task-checkbox p2"></div>
+                <div class="task-content">
+                  <div class="task-title">Позвонить врачу</div>
+                  <div class="task-meta">
+                    <span class="task-tag health">Здоровье</span>
+                    <span class="task-time">11:00</span>
+                  </div>
+                </div>
+                <div class="task-drag">⋮⋮</div>
+              </div>
+              <div class="task-item">
+                <div class="task-checkbox p3"></div>
+                <div class="task-content">
+                  <div class="task-title">Написать отчёт за неделю</div>
+                  <div class="task-meta">
+                    <span class="task-tag work">Работа</span>
+                    <span class="task-time">14:00</span>
+                  </div>
+                </div>
+                <div class="task-drag">⋮⋮</div>
+              </div>
+              <div class="task-item">
+                <div class="task-checkbox p4"></div>
+                <div class="task-content">
+                  <div class="task-title">Тренировка в зале</div>
+                  <div class="task-meta">
+                    <span class="task-tag health">Здоровье</span>
+                    <span class="task-time">18:30</span>
+                  </div>
+                </div>
+                <div class="task-drag">⋮⋮</div>
+              </div>
+            </div>
+
+            <div class="bottom-nav">
+              <div class="fab"></div>
+              <div class="nav-item active">
+                <div class="nav-icon icon-inbox"></div>
+                <span class="nav-label">Входящие</span>
+              </div>
+              <div class="nav-item">
+                <div class="nav-icon icon-today"></div>
+                <span class="nav-label">Сегодня</span>
+              </div>
+              <div class="nav-item" style="opacity:0;pointer-events:none">
+                <div class="nav-icon"></div>
+                <span class="nav-label"></span>
+              </div>
+              <div class="nav-item">
+                <div class="nav-icon icon-calendar"></div>
+                <span class="nav-label">Календарь</span>
+              </div>
+              <div class="nav-item">
+                <div class="nav-icon icon-search"></div>
+                <span class="nav-label">Поиск</span>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ==================== PSYCHOLOGY SECTION ==================== -->
+  <div class="psychology">
+    <h2>Психологический принцип: Эффект ореола</h2>
+    <p class="psych-subtitle">Halo Effect — когнитивное искажение, описанное Эдвардом Торндайком (1920)</p>
+
+    <div class="principle">
+      <h3>Что это?</h3>
+      <p>Эффект ореола — это когнитивное искажение, при котором первое положительное впечатление о продукте распространяется на восприятие всех его характеристик. Если splash screen выглядит профессионально, пользователь заранее считает, что и функциональность приложения будет на высоком уровне.</p>
+    </div>
+
+    <div class="principle">
+      <h3>Как это работает в UX?</h3>
+      <p>Исследования показывают, что пользователь формирует мнение о приложении за первые 50 миллисекунд визуального контакта. Первые 3 секунды критичны: анимация загрузки, качество типографики, цветовая палитра и общая «отполированность» интерфейса определяют, останется ли пользователь или удалит приложение. Красивый онбординг повышает конверсию в регистрацию на 30-50%.</p>
+    </div>
+
+    <div class="principle">
+      <h3>Применение в нашем дизайне</h3>
+      <p><strong>Splash Screen:</strong> Вместо скучного индикатора загрузки — элегантная анимация появления логотипа с фирменными цветами. <br>
+      <strong>Онбординг:</strong> Вместо стоковых изображений — стилизованные CSS-иллюстрации с плавными анимациями, создающие ощущение премиальности. <br>
+      <strong>Empty State:</strong> Вместо сухого «Нет задач» — тёплое приветствие с визуалом и призывом к действию. <br>
+      <strong>Hero Section:</strong> Вместо простого списка — персонализированная панель с карточками статистики и визуальной иерархией задач.</p>
+    </div>
+
+    <div class="metrics">
+      <div class="metric">
+        <div class="metric-value">&lt;3с</div>
+        <div class="metric-label">Время формирования<br>первого впечатления</div>
+      </div>
+      <div class="metric">
+        <div class="metric-value">+47%</div>
+        <div class="metric-label">Рост удержания при<br>качественном онбординге</div>
+      </div>
+      <div class="metric">
+        <div class="metric-value">94%</div>
+        <div class="metric-label">Решений основаны<br>на визуальном дизайне</div>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    // Theme toggle
+    function toggleTheme() {
+      const html = document.documentElement;
+      const btn = document.querySelector('.theme-toggle');
+      if (html.getAttribute('data-theme') === 'dark') {
+        html.removeAttribute('data-theme');
+        btn.textContent = '🌙 Тёмная тема';
+      } else {
+        html.setAttribute('data-theme', 'dark');
+        btn.textContent = '☀️ Светлая тема';
+      }
+    }
+
+    // Onboarding slide logic
+    let currentSlide = 0;
+    const totalSlides = 3;
+
+    function nextSlide() {
+      currentSlide = (currentSlide + 1) % totalSlides;
+      updateSlides();
+    }
+
+    function resetSlides() {
+      currentSlide = 0;
+      updateSlides();
+    }
+
+    function updateSlides() {
+      const slides = document.querySelectorAll('.ob-slide');
+      const dots = [
+        document.getElementById('dot1'),
+        document.getElementById('dot2'),
+        document.getElementById('dot3')
+      ];
+      const btn = document.getElementById('obBtn');
+
+      slides.forEach((slide, i) => {
+        if (i === currentSlide) {
+          slide.style.opacity = '1';
+          slide.style.transform = 'translateX(0)';
+        } else if (i < currentSlide) {
+          slide.style.opacity = '0';
+          slide.style.transform = 'translateX(-100%)';
+        } else {
+          slide.style.opacity = '0';
+          slide.style.transform = 'translateX(100%)';
+        }
+      });
+
+      dots.forEach((dot, i) => {
+        dot.className = i === currentSlide ? 'active' : '';
+      });
+
+      btn.textContent = currentSlide === totalSlides - 1 ? 'Начать' : 'Продолжить';
+    }
+  </script>
+</body>
+</html>

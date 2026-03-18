@@ -1,0 +1,1200 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Phase 9: Accessibility + Settings/Profile</title>
+<style>
+  :root {
+    --accent: #DB4C3F;
+    --accent-light: #f5e0de;
+    --bg: #FFFFFF;
+    --bg-secondary: #FAFAFA;
+    --bg-card: #FFFFFF;
+    --text-primary: #202020;
+    --text-secondary: #808080;
+    --text-tertiary: #b3b3b3;
+    --border: #f0f0f0;
+    --divider: #eee;
+    --toggle-bg: #e0e0e0;
+    --toggle-active: var(--accent);
+    --shadow: 0 1px 3px rgba(0,0,0,0.06);
+    --shadow-lg: 0 4px 12px rgba(0,0,0,0.1);
+    --radius: 12px;
+    --font-size-base: 14px;
+    --font-scale: 1;
+    --transition: 0.3s ease;
+  }
+
+  .dark-mode {
+    --bg: #1e1e1e;
+    --bg-secondary: #282828;
+    --bg-card: #2d2d2d;
+    --text-primary: #e0e0e0;
+    --text-secondary: #a0a0a0;
+    --text-tertiary: #666;
+    --border: #3a3a3a;
+    --divider: #3a3a3a;
+    --toggle-bg: #555;
+    --shadow: 0 1px 3px rgba(0,0,0,0.3);
+    --shadow-lg: 0 4px 12px rgba(0,0,0,0.4);
+    --accent-light: #3d2a28;
+  }
+
+  .high-contrast {
+    --text-primary: #000000 !important;
+    --text-secondary: #333333 !important;
+    --border: #000000 !important;
+    --divider: #000000 !important;
+  }
+  .high-contrast.dark-mode {
+    --text-primary: #FFFFFF !important;
+    --text-secondary: #cccccc !important;
+    --border: #FFFFFF !important;
+    --divider: #FFFFFF !important;
+  }
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  body {
+    font-family: -apple-system, 'Segoe UI', Roboto, sans-serif;
+    background: #e8e8e8;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 24px;
+    padding: 24px;
+    justify-content: center;
+    font-size: var(--font-size-base);
+  }
+
+  .section-title {
+    text-align: center;
+    color: #333;
+    font-size: 13px;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    margin-bottom: 8px;
+    width: 375px;
+  }
+
+  .phone {
+    width: 375px;
+    height: 812px;
+    border-radius: 40px;
+    overflow: hidden;
+    background: var(--bg);
+    box-shadow: 0 8px 40px rgba(0,0,0,0.15);
+    position: relative;
+    border: 8px solid #1a1a1a;
+    display: flex;
+    flex-direction: column;
+    transition: background var(--transition), color var(--transition);
+  }
+
+  .phone.reduced-motion, .phone.reduced-motion * {
+    transition: none !important;
+    animation: none !important;
+  }
+
+  .status-bar {
+    height: 44px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 0 24px;
+    font-size: 12px;
+    font-weight: 600;
+    color: var(--text-primary);
+    flex-shrink: 0;
+    background: var(--bg);
+  }
+  .status-bar .notch {
+    width: 120px; height: 28px;
+    background: #1a1a1a;
+    border-radius: 0 0 18px 18px;
+    position: absolute;
+    left: 50%; transform: translateX(-50%);
+    top: 0;
+  }
+
+  .header {
+    height: 52px;
+    display: flex;
+    align-items: center;
+    padding: 0 16px;
+    background: var(--accent);
+    color: #fff;
+    flex-shrink: 0;
+    gap: 12px;
+    transition: background var(--transition);
+  }
+  .header .back { font-size: 20px; cursor: pointer; width: 32px; }
+  .header .title { font-size: 17px; font-weight: 600; flex: 1; }
+  .header .action { font-size: 14px; opacity: 0.9; cursor: pointer; }
+
+  .content {
+    flex: 1;
+    overflow-y: auto;
+    background: var(--bg-secondary);
+    transition: background var(--transition);
+  }
+
+  .content::-webkit-scrollbar { width: 0; }
+
+  /* Settings Groups */
+  .settings-group {
+    margin: 16px 0 0;
+  }
+  .settings-group:first-child { margin-top: 8px; }
+  .settings-group-label {
+    font-size: calc(11px * var(--font-scale));
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    color: var(--text-secondary);
+    padding: 0 20px 6px;
+  }
+  .settings-list {
+    background: var(--bg-card);
+    border-top: 1px solid var(--border);
+    border-bottom: 1px solid var(--border);
+    transition: background var(--transition);
+  }
+
+  .settings-item {
+    display: flex;
+    align-items: center;
+    padding: 13px 20px;
+    gap: 14px;
+    border-bottom: 1px solid var(--divider);
+    cursor: pointer;
+    transition: background 0.15s;
+    outline: none;
+  }
+  .settings-item:last-child { border-bottom: none; }
+  .settings-item:hover { background: var(--accent-light); }
+  .settings-item:focus-visible {
+    box-shadow: inset 0 0 0 2px var(--accent);
+    border-radius: 4px;
+  }
+
+  .settings-item .icon {
+    width: 30px; height: 30px;
+    border-radius: 8px;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 16px;
+    flex-shrink: 0;
+  }
+  .si-label { flex: 1; }
+  .si-label .primary {
+    font-size: calc(15px * var(--font-scale));
+    color: var(--text-primary);
+    font-weight: 400;
+    transition: color var(--transition);
+  }
+  .si-label .secondary {
+    font-size: calc(12px * var(--font-scale));
+    color: var(--text-secondary);
+    margin-top: 1px;
+  }
+  .si-value {
+    font-size: calc(13px * var(--font-scale));
+    color: var(--text-secondary);
+  }
+  .si-arrow {
+    color: var(--text-tertiary);
+    font-size: 14px;
+  }
+
+  /* Toggle */
+  .toggle {
+    width: 46px; height: 28px;
+    background: var(--toggle-bg);
+    border-radius: 14px;
+    position: relative;
+    cursor: pointer;
+    flex-shrink: 0;
+    transition: background 0.2s;
+    outline: none;
+  }
+  .toggle:focus-visible {
+    box-shadow: 0 0 0 3px rgba(219,76,63,0.4);
+  }
+  .toggle::after {
+    content: '';
+    width: 22px; height: 22px;
+    background: #fff;
+    border-radius: 50%;
+    position: absolute;
+    top: 3px; left: 3px;
+    transition: transform 0.2s;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.2);
+  }
+  .toggle.active {
+    background: var(--accent);
+  }
+  .toggle.active::after {
+    transform: translateX(18px);
+  }
+
+  /* Avatar */
+  .avatar-large {
+    width: 80px; height: 80px;
+    border-radius: 50%;
+    background: var(--accent);
+    display: flex; align-items: center; justify-content: center;
+    font-size: 32px; color: #fff; font-weight: 600;
+  }
+
+  /* Stats Grid */
+  .stats-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 10px;
+    padding: 0 16px;
+  }
+  .stat-card {
+    background: var(--bg-card);
+    border-radius: var(--radius);
+    padding: 14px;
+    text-align: center;
+    box-shadow: var(--shadow);
+    transition: background var(--transition);
+  }
+  .stat-card .num {
+    font-size: calc(24px * var(--font-scale));
+    font-weight: 700;
+    color: var(--accent);
+  }
+  .stat-card .lbl {
+    font-size: calc(11px * var(--font-scale));
+    color: var(--text-secondary);
+    margin-top: 2px;
+  }
+
+  /* Chart Bars */
+  .chart {
+    display: flex;
+    align-items: flex-end;
+    gap: 6px;
+    height: 100px;
+    padding: 0 16px;
+  }
+  .chart-bar-wrap {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 4px;
+  }
+  .chart-bar {
+    width: 100%;
+    border-radius: 4px 4px 0 0;
+    background: var(--accent);
+    opacity: 0.7;
+    transition: height 0.5s ease, background var(--transition);
+  }
+  .chart-bar.today { opacity: 1; }
+  .chart-label {
+    font-size: 10px;
+    color: var(--text-secondary);
+  }
+
+  /* Karma */
+  .karma-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 4px 14px;
+    border-radius: 20px;
+    font-size: calc(13px * var(--font-scale));
+    font-weight: 600;
+    color: var(--accent);
+    background: var(--accent-light);
+  }
+
+  /* Color Grid */
+  .color-grid {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 12px;
+    padding: 16px 20px;
+  }
+  .color-option {
+    width: 100%; aspect-ratio: 1;
+    border-radius: 50%;
+    cursor: pointer;
+    border: 3px solid transparent;
+    transition: transform 0.15s, border-color 0.15s;
+    outline: none;
+    position: relative;
+  }
+  .color-option:hover { transform: scale(1.1); }
+  .color-option:focus-visible { box-shadow: 0 0 0 3px rgba(0,0,0,0.2); }
+  .color-option.selected {
+    border-color: var(--text-primary);
+  }
+  .color-option.selected::after {
+    content: '✓';
+    position: absolute;
+    inset: 0;
+    display: flex; align-items: center; justify-content: center;
+    color: #fff;
+    font-size: 18px;
+    font-weight: 700;
+    text-shadow: 0 1px 2px rgba(0,0,0,0.3);
+  }
+
+  /* Font Slider */
+  .font-slider-wrap {
+    padding: 16px 20px;
+  }
+  .font-slider-labels {
+    display: flex;
+    justify-content: space-between;
+    margin-bottom: 8px;
+  }
+  .font-slider-labels span {
+    font-size: 11px;
+    color: var(--text-secondary);
+  }
+  input[type="range"] {
+    width: 100%;
+    -webkit-appearance: none;
+    height: 4px;
+    border-radius: 2px;
+    background: var(--border);
+    outline: none;
+  }
+  input[type="range"]::-webkit-slider-thumb {
+    -webkit-appearance: none;
+    width: 22px; height: 22px;
+    border-radius: 50%;
+    background: var(--accent);
+    cursor: pointer;
+    box-shadow: 0 1px 4px rgba(0,0,0,0.2);
+  }
+  input[type="range"]:focus-visible::-webkit-slider-thumb {
+    box-shadow: 0 0 0 4px rgba(219,76,63,0.3);
+  }
+
+  /* Task Preview */
+  .task-preview {
+    background: var(--bg-card);
+    border-radius: var(--radius);
+    padding: 14px 16px;
+    margin: 12px 20px;
+    box-shadow: var(--shadow);
+    display: flex;
+    align-items: flex-start;
+    gap: 12px;
+    transition: background var(--transition);
+  }
+  .task-checkbox {
+    width: 20px; height: 20px;
+    border: 2px solid var(--accent);
+    border-radius: 50%;
+    flex-shrink: 0;
+    margin-top: 2px;
+    cursor: pointer;
+    transition: border-color var(--transition);
+  }
+  .task-preview .task-text {
+    font-size: calc(var(--font-size-base) * var(--font-scale));
+    color: var(--text-primary);
+    line-height: 1.4;
+    transition: font-size 0.3s, color var(--transition);
+  }
+  .task-preview .task-meta {
+    font-size: calc(11px * var(--font-scale));
+    color: var(--accent);
+    margin-top: 4px;
+  }
+
+  /* Accessibility Demo */
+  .a11y-demo {
+    padding: 16px 20px;
+  }
+  .a11y-item {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 14px 0;
+    border-bottom: 1px solid var(--divider);
+  }
+  .a11y-item:last-child { border-bottom: none; }
+  .a11y-label {
+    font-size: calc(15px * var(--font-scale));
+    color: var(--text-primary);
+  }
+  .a11y-desc {
+    font-size: calc(12px * var(--font-scale));
+    color: var(--text-secondary);
+    margin-top: 2px;
+  }
+
+  /* ARIA tooltip */
+  [data-show-aria][aria-label]:hover::before {
+    content: 'aria-label: "' attr(aria-label) '"';
+    position: absolute;
+    bottom: calc(100% + 6px);
+    left: 50%;
+    transform: translateX(-50%);
+    background: #333;
+    color: #fff;
+    font-size: 10px;
+    padding: 4px 8px;
+    border-radius: 4px;
+    white-space: nowrap;
+    z-index: 100;
+    pointer-events: none;
+  }
+  [data-show-aria] { position: relative; }
+
+  /* FAB */
+  .fab {
+    position: absolute;
+    bottom: 24px; right: 20px;
+    width: 52px; height: 52px;
+    border-radius: 50%;
+    background: var(--accent);
+    color: #fff;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 28px;
+    box-shadow: var(--shadow-lg);
+    cursor: pointer;
+    transition: background var(--transition), transform 0.2s;
+    z-index: 10;
+  }
+  .fab:hover { transform: scale(1.08); }
+
+  /* Button */
+  .btn-primary {
+    width: 100%;
+    padding: 14px;
+    background: var(--accent);
+    color: #fff;
+    border: none;
+    border-radius: var(--radius);
+    font-size: calc(15px * var(--font-scale));
+    font-weight: 600;
+    cursor: pointer;
+    transition: background var(--transition), opacity 0.15s;
+    outline: none;
+  }
+  .btn-primary:hover { opacity: 0.9; }
+  .btn-primary:focus-visible {
+    box-shadow: 0 0 0 3px rgba(219,76,63,0.4);
+  }
+
+  /* Segment Control */
+  .segment {
+    display: flex;
+    background: var(--border);
+    border-radius: 8px;
+    padding: 2px;
+    margin: 0 20px;
+  }
+  .segment-btn {
+    flex: 1;
+    padding: 8px;
+    text-align: center;
+    font-size: calc(12px * var(--font-scale));
+    color: var(--text-secondary);
+    border-radius: 6px;
+    cursor: pointer;
+    font-weight: 500;
+    transition: all 0.2s;
+    border: none;
+    background: none;
+    outline: none;
+  }
+  .segment-btn.active {
+    background: var(--bg-card);
+    color: var(--text-primary);
+    box-shadow: var(--shadow);
+  }
+  .segment-btn:focus-visible {
+    box-shadow: 0 0 0 2px var(--accent);
+  }
+
+  /* Bottom Nav */
+  .bottom-nav {
+    height: 50px;
+    display: flex;
+    border-top: 1px solid var(--border);
+    background: var(--bg-card);
+    flex-shrink: 0;
+    transition: background var(--transition), border-color var(--transition);
+  }
+  .nav-item {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 2px;
+    font-size: 10px;
+    color: var(--text-secondary);
+    cursor: pointer;
+    outline: none;
+    transition: color 0.15s;
+  }
+  .nav-item.active { color: var(--accent); }
+  .nav-item:focus-visible {
+    box-shadow: inset 0 0 0 2px var(--accent);
+  }
+  .nav-item .nav-icon { font-size: 18px; }
+
+  /* Section divider inside content */
+  .section-divider {
+    font-size: calc(13px * var(--font-scale));
+    font-weight: 700;
+    color: var(--text-primary);
+    padding: 16px 20px 8px;
+  }
+
+  /* Profile header */
+  .profile-header {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding: 24px 20px 16px;
+    gap: 8px;
+  }
+  .profile-name {
+    font-size: calc(20px * var(--font-scale));
+    font-weight: 700;
+    color: var(--text-primary);
+  }
+  .profile-email {
+    font-size: calc(13px * var(--font-scale));
+    color: var(--text-secondary);
+  }
+
+  @keyframes pulse {
+    0%, 100% { transform: scale(1); }
+    50% { transform: scale(1.05); }
+  }
+  .animate-pulse { animation: pulse 2s infinite; }
+
+  /* Column layout label */
+  .frame-label {
+    text-align: center;
+    font-size: 12px;
+    font-weight: 700;
+    color: #666;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    margin-bottom: 6px;
+    width: 375px;
+  }
+</style>
+</head>
+<body>
+
+<!-- ============ FRAME 1: Settings Screen ============ -->
+<div>
+  <div class="frame-label">1. Настройки</div>
+  <div class="phone" id="phone-settings">
+    <div class="status-bar"><span>9:41</span><div class="notch"></div><span>100%</span></div>
+    <div class="header" id="settings-header">
+      <div class="back">‹</div>
+      <div class="title">Настройки</div>
+    </div>
+    <div class="content" id="settings-content">
+
+      <!-- Аккаунт -->
+      <div class="settings-group">
+        <div class="settings-group-label">Аккаунт</div>
+        <div class="settings-list">
+          <div class="settings-item" tabindex="0" aria-label="Профиль пользователя" data-show-aria>
+            <div class="icon" style="background:#DB4C3F;color:#fff;border-radius:50%;font-size:14px;font-weight:600;">АК</div>
+            <div class="si-label">
+              <div class="primary">Алексей Козлов</div>
+              <div class="secondary">alexey@example.com</div>
+            </div>
+            <div class="si-arrow">›</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Внешний вид -->
+      <div class="settings-group">
+        <div class="settings-group-label">Внешний вид</div>
+        <div class="settings-list">
+          <div class="settings-item" tabindex="0" id="theme-setting">
+            <div class="icon" style="background:#5e5ce6;color:#fff;">🎨</div>
+            <div class="si-label">
+              <div class="primary">Тема</div>
+              <div class="secondary">Нажмите для переключения</div>
+            </div>
+            <div class="si-value" id="theme-value">Светлая</div>
+            <div class="si-arrow">›</div>
+          </div>
+          <div class="settings-item" tabindex="0">
+            <div class="icon" style="background:#FF9500;color:#fff;">◉</div>
+            <div class="si-label">
+              <div class="primary">Акцентный цвет</div>
+              <div class="secondary">Смотрите экран 4</div>
+            </div>
+            <div class="si-value">Berry Red</div>
+            <div class="si-arrow">›</div>
+          </div>
+          <div class="settings-item" tabindex="0">
+            <div class="icon" style="background:#30D158;color:#fff;">Aa</div>
+            <div class="si-label">
+              <div class="primary">Размер шрифта</div>
+              <div class="secondary">Смотрите экран 5</div>
+            </div>
+            <div class="si-value">Обычный</div>
+            <div class="si-arrow">›</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Уведомления -->
+      <div class="settings-group">
+        <div class="settings-group-label">Уведомления</div>
+        <div class="settings-list">
+          <div class="settings-item" tabindex="0">
+            <div class="icon" style="background:#FF3B30;color:#fff;">🔔</div>
+            <div class="si-label"><div class="primary">Напоминания</div></div>
+            <div class="toggle active" tabindex="0" role="switch" aria-checked="true" aria-label="Напоминания" data-show-aria onclick="this.classList.toggle('active');this.setAttribute('aria-checked',this.classList.contains('active'))"></div>
+          </div>
+          <div class="settings-item" tabindex="0">
+            <div class="icon" style="background:#AF52DE;color:#fff;">🔊</div>
+            <div class="si-label"><div class="primary">Звуки</div></div>
+            <div class="toggle active" tabindex="0" role="switch" aria-checked="true" onclick="this.classList.toggle('active');this.setAttribute('aria-checked',this.classList.contains('active'))"></div>
+          </div>
+          <div class="settings-item" tabindex="0">
+            <div class="icon" style="background:#007AFF;color:#fff;">📋</div>
+            <div class="si-label">
+              <div class="primary">Ежедневный обзор</div>
+              <div class="secondary">Каждый день в 08:00</div>
+            </div>
+            <div class="toggle" tabindex="0" role="switch" aria-checked="false" onclick="this.classList.toggle('active');this.setAttribute('aria-checked',this.classList.contains('active'))"></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Продуктивность -->
+      <div class="settings-group">
+        <div class="settings-group-label">Продуктивность</div>
+        <div class="settings-list">
+          <div class="settings-item" tabindex="0">
+            <div class="icon" style="background:#FF9500;color:#fff;">🎯</div>
+            <div class="si-label">
+              <div class="primary">Ежедневная цель</div>
+              <div class="secondary">Задач в день</div>
+            </div>
+            <div class="si-value">5 задач</div>
+            <div class="si-arrow">›</div>
+          </div>
+          <div class="settings-item" tabindex="0">
+            <div class="icon" style="background:#34C759;color:#fff;">📅</div>
+            <div class="si-label">
+              <div class="primary">Выходные дни</div>
+              <div class="secondary">Не считать в статистике</div>
+            </div>
+            <div class="si-value">Сб, Вс</div>
+            <div class="si-arrow">›</div>
+          </div>
+          <div class="settings-item" tabindex="0">
+            <div class="icon" style="background:#5856D6;color:#fff;">📆</div>
+            <div class="si-label"><div class="primary">Начало недели</div></div>
+            <div class="si-value">Понедельник</div>
+            <div class="si-arrow">›</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Данные -->
+      <div class="settings-group">
+        <div class="settings-group-label">Данные</div>
+        <div class="settings-list">
+          <div class="settings-item" tabindex="0">
+            <div class="icon" style="background:#007AFF;color:#fff;">💾</div>
+            <div class="si-label">
+              <div class="primary">Резервная копия</div>
+              <div class="secondary">Последняя: 17 марта 2026</div>
+            </div>
+            <div class="si-arrow">›</div>
+          </div>
+          <div class="settings-item" tabindex="0">
+            <div class="icon" style="background:#FF9500;color:#fff;">📤</div>
+            <div class="si-label"><div class="primary">Экспорт данных</div></div>
+            <div class="si-arrow">›</div>
+          </div>
+          <div class="settings-item" tabindex="0">
+            <div class="icon" style="background:#34C759;color:#fff;">☁️</div>
+            <div class="si-label">
+              <div class="primary">Облачная синхронизация</div>
+              <div class="secondary">iCloud Drive</div>
+            </div>
+            <div class="toggle active" tabindex="0" role="switch" aria-checked="true" onclick="this.classList.toggle('active');this.setAttribute('aria-checked',this.classList.contains('active'))"></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- О приложении -->
+      <div class="settings-group" style="margin-bottom:20px;">
+        <div class="settings-group-label">О приложении</div>
+        <div class="settings-list">
+          <div class="settings-item" tabindex="0">
+            <div class="icon" style="background:#8E8E93;color:#fff;">ℹ️</div>
+            <div class="si-label"><div class="primary">Версия</div></div>
+            <div class="si-value">2.4.1 (346)</div>
+          </div>
+          <div class="settings-item" tabindex="0">
+            <div class="icon" style="background:#FFCC00;color:#fff;">⭐</div>
+            <div class="si-label"><div class="primary">Оценить приложение</div></div>
+            <div class="si-arrow">›</div>
+          </div>
+          <div class="settings-item" tabindex="0">
+            <div class="icon" style="background:#007AFF;color:#fff;">📲</div>
+            <div class="si-label"><div class="primary">Поделиться</div></div>
+            <div class="si-arrow">›</div>
+          </div>
+        </div>
+      </div>
+
+    </div>
+  </div>
+</div>
+
+<!-- ============ FRAME 2: Profile Screen ============ -->
+<div>
+  <div class="frame-label">2. Профиль и статистика</div>
+  <div class="phone" id="phone-profile">
+    <div class="status-bar"><span>9:41</span><div class="notch"></div><span>100%</span></div>
+    <div class="header" id="profile-header">
+      <div class="back">‹</div>
+      <div class="title">Профиль</div>
+      <div class="action">✎</div>
+    </div>
+    <div class="content">
+
+      <div class="profile-header">
+        <div class="avatar-large" id="profile-avatar">АК</div>
+        <div class="profile-name">Алексей Козлов</div>
+        <div class="profile-email">alexey@example.com</div>
+        <div class="karma-badge" id="karma-badge">
+          <span>⚡</span>
+          <span>Карма: 4 280</span>
+          <span style="background:var(--accent);color:#fff;padding:2px 8px;border-radius:10px;font-size:10px;">Мастер</span>
+        </div>
+      </div>
+
+      <!-- Stats Grid -->
+      <div class="stats-grid">
+        <div class="stat-card">
+          <div class="num" id="stat-tasks">847</div>
+          <div class="lbl">Задачи выполнены</div>
+        </div>
+        <div class="stat-card">
+          <div class="num" id="stat-streak">23</div>
+          <div class="lbl">Streak дней</div>
+        </div>
+        <div class="stat-card">
+          <div class="num" id="stat-projects">12</div>
+          <div class="lbl">Проекты</div>
+        </div>
+        <div class="stat-card">
+          <div class="num" id="stat-achievements">8</div>
+          <div class="lbl">Достижения</div>
+        </div>
+      </div>
+
+      <!-- Weekly Chart -->
+      <div class="section-divider" style="margin-top:20px;">Продуктивность за неделю</div>
+      <div class="chart" id="weekly-chart">
+        <div class="chart-bar-wrap">
+          <div class="chart-bar" style="height:45px;"></div>
+          <div class="chart-label">Пн</div>
+        </div>
+        <div class="chart-bar-wrap">
+          <div class="chart-bar" style="height:70px;"></div>
+          <div class="chart-label">Вт</div>
+        </div>
+        <div class="chart-bar-wrap">
+          <div class="chart-bar" style="height:55px;"></div>
+          <div class="chart-label">Ср</div>
+        </div>
+        <div class="chart-bar-wrap">
+          <div class="chart-bar" style="height:85px;"></div>
+          <div class="chart-label">Чт</div>
+        </div>
+        <div class="chart-bar-wrap">
+          <div class="chart-bar" style="height:40px;"></div>
+          <div class="chart-label">Пт</div>
+        </div>
+        <div class="chart-bar-wrap">
+          <div class="chart-bar" style="height:25px;"></div>
+          <div class="chart-label">Сб</div>
+        </div>
+        <div class="chart-bar-wrap">
+          <div class="chart-bar today" style="height:60px;"></div>
+          <div class="chart-label" style="font-weight:700;color:var(--accent);">Вс</div>
+        </div>
+      </div>
+
+      <!-- Achievements Preview -->
+      <div class="section-divider" style="margin-top:20px;">Достижения</div>
+      <div style="display:flex;gap:8px;padding:8px 20px;flex-wrap:wrap;">
+        <div style="width:48px;height:48px;border-radius:12px;background:linear-gradient(135deg,#FFD700,#FFA500);display:flex;align-items:center;justify-content:center;font-size:22px;" title="Первая задача">🏆</div>
+        <div style="width:48px;height:48px;border-radius:12px;background:linear-gradient(135deg,#FF6B6B,#DB4C3F);display:flex;align-items:center;justify-content:center;font-size:22px;" title="100 задач">🔥</div>
+        <div style="width:48px;height:48px;border-radius:12px;background:linear-gradient(135deg,#4ECDC4,#44B09E);display:flex;align-items:center;justify-content:center;font-size:22px;" title="7 дней подряд">⚡</div>
+        <div style="width:48px;height:48px;border-radius:12px;background:linear-gradient(135deg,#A18CD1,#5B86E5);display:flex;align-items:center;justify-content:center;font-size:22px;" title="Организатор">📁</div>
+        <div style="width:48px;height:48px;border-radius:12px;background:linear-gradient(135deg,#96E6A1,#34C759);display:flex;align-items:center;justify-content:center;font-size:22px;" title="Ранняя пташка">🌅</div>
+        <div style="width:48px;height:48px;border-radius:12px;background:linear-gradient(135deg,#E0C3FC,#8EC5FC);display:flex;align-items:center;justify-content:center;font-size:22px;" title="500 задач">💎</div>
+        <div style="width:48px;height:48px;border-radius:12px;background:linear-gradient(135deg,#F093FB,#F5576C);display:flex;align-items:center;justify-content:center;font-size:22px;" title="30 дней подряд">🚀</div>
+        <div style="width:48px;height:48px;border-radius:12px;background:#eee;display:flex;align-items:center;justify-content:center;font-size:22px;opacity:0.4;" title="Заблокировано">🔒</div>
+      </div>
+
+      <div style="padding:16px 20px 24px;">
+        <button class="btn-primary" id="share-stats-btn" aria-label="Поделиться статистикой" data-show-aria>Поделиться статистикой</button>
+      </div>
+
+    </div>
+    <div class="bottom-nav">
+      <div class="nav-item" tabindex="0"><div class="nav-icon">📥</div><span>Входящие</span></div>
+      <div class="nav-item" tabindex="0"><div class="nav-icon">📅</div><span>Сегодня</span></div>
+      <div class="nav-item" tabindex="0"><div class="nav-icon">📂</div><span>Проекты</span></div>
+      <div class="nav-item active" tabindex="0"><div class="nav-icon">👤</div><span>Профиль</span></div>
+    </div>
+  </div>
+</div>
+
+<!-- ============ FRAME 3: Accessibility Demo ============ -->
+<div>
+  <div class="frame-label">3. Доступность</div>
+  <div class="phone" id="phone-a11y">
+    <div class="status-bar"><span>9:41</span><div class="notch"></div><span>100%</span></div>
+    <div class="header" id="a11y-header">
+      <div class="back">‹</div>
+      <div class="title">Доступность</div>
+    </div>
+    <div class="content">
+
+      <div class="a11y-demo">
+        <div class="a11y-item">
+          <div>
+            <div class="a11y-label">Увеличенный текст</div>
+            <div class="a11y-desc">Увеличивает шрифт на 30%</div>
+          </div>
+          <div class="toggle" tabindex="0" role="switch" aria-checked="false" aria-label="Переключить увеличенный текст" data-show-aria id="toggle-large-text"
+            onclick="toggleLargeText(this)"></div>
+        </div>
+        <div class="a11y-item">
+          <div>
+            <div class="a11y-label">Высокий контраст</div>
+            <div class="a11y-desc">Повышает контрастность элементов</div>
+          </div>
+          <div class="toggle" tabindex="0" role="switch" aria-checked="false" aria-label="Переключить высокий контраст" data-show-aria id="toggle-contrast"
+            onclick="toggleHighContrast(this)"></div>
+        </div>
+        <div class="a11y-item">
+          <div>
+            <div class="a11y-label">Уменьшенное движение</div>
+            <div class="a11y-desc">Отключает анимации</div>
+          </div>
+          <div class="toggle" tabindex="0" role="switch" aria-checked="false" aria-label="Переключить уменьшенное движение" data-show-aria id="toggle-motion"
+            onclick="toggleReducedMotion(this)"></div>
+        </div>
+      </div>
+
+      <div class="section-divider">Навигация с клавиатуры</div>
+      <div style="padding:8px 20px;">
+        <p style="font-size:calc(12px * var(--font-scale));color:var(--text-secondary);margin-bottom:12px;">
+          Нажмите <kbd style="background:var(--border);padding:2px 6px;border-radius:4px;font-size:11px;border:1px solid var(--divider);">Tab</kbd> для навигации между элементами. Активный элемент подсвечивается обводкой.
+        </p>
+
+        <div style="display:flex;gap:8px;flex-wrap:wrap;">
+          <button tabindex="0" aria-label="Кнопка действия 1" data-show-aria style="padding:10px 16px;border-radius:8px;border:1px solid var(--border);background:var(--bg-card);color:var(--text-primary);cursor:pointer;font-size:calc(13px * var(--font-scale));outline:none;" onfocus="this.style.boxShadow='0 0 0 3px rgba(219,76,63,0.4)'" onblur="this.style.boxShadow='none'">Кнопка 1</button>
+          <button tabindex="0" aria-label="Кнопка действия 2" data-show-aria style="padding:10px 16px;border-radius:8px;border:1px solid var(--border);background:var(--bg-card);color:var(--text-primary);cursor:pointer;font-size:calc(13px * var(--font-scale));outline:none;" onfocus="this.style.boxShadow='0 0 0 3px rgba(219,76,63,0.4)'" onblur="this.style.boxShadow='none'">Кнопка 2</button>
+          <button tabindex="0" aria-label="Кнопка действия 3" data-show-aria style="padding:10px 16px;border-radius:8px;border:1px solid var(--border);background:var(--bg-card);color:var(--text-primary);cursor:pointer;font-size:calc(13px * var(--font-scale));outline:none;" onfocus="this.style.boxShadow='0 0 0 3px rgba(219,76,63,0.4)'" onblur="this.style.boxShadow='none'">Кнопка 3</button>
+        </div>
+      </div>
+
+      <div class="section-divider" style="margin-top:16px;">Визуализация ARIA-меток</div>
+      <div style="padding:8px 20px;">
+        <p style="font-size:calc(12px * var(--font-scale));color:var(--text-secondary);margin-bottom:12px;">
+          Наведите курсор на элементы ниже, чтобы увидеть их ARIA-метки.
+        </p>
+        <div style="display:flex;flex-direction:column;gap:8px;">
+          <div class="settings-item" tabindex="0" aria-label="Открыть настройки профиля" data-show-aria style="background:var(--bg-card);border-radius:8px;border:1px solid var(--border);">
+            <div class="icon" style="background:var(--accent);color:#fff;border-radius:50%;">👤</div>
+            <div class="si-label"><div class="primary">Профиль</div></div>
+            <div class="si-arrow">›</div>
+          </div>
+          <div class="settings-item" tabindex="0" aria-label="Включить или выключить уведомления" data-show-aria style="background:var(--bg-card);border-radius:8px;border:1px solid var(--border);">
+            <div class="icon" style="background:#FF3B30;color:#fff;border-radius:8px;">🔔</div>
+            <div class="si-label"><div class="primary">Уведомления</div></div>
+            <div class="toggle active" tabindex="0" role="switch" aria-checked="true" aria-label="Переключатель уведомлений" data-show-aria onclick="this.classList.toggle('active')"></div>
+          </div>
+          <button class="btn-primary" tabindex="0" aria-label="Сохранить настройки доступности" data-show-aria style="margin:0;">Сохранить настройки</button>
+        </div>
+      </div>
+
+      <div style="height:20px;"></div>
+    </div>
+  </div>
+</div>
+
+<!-- ============ FRAME 4: Color Customization ============ -->
+<div>
+  <div class="frame-label">4. Выбор акцентного цвета</div>
+  <div class="phone" id="phone-colors">
+    <div class="status-bar"><span>9:41</span><div class="notch"></div><span>100%</span></div>
+    <div class="header" id="color-header">
+      <div class="back">‹</div>
+      <div class="title">Акцентный цвет</div>
+    </div>
+    <div class="content">
+
+      <div style="padding:16px 20px 8px;">
+        <p style="font-size:calc(13px * var(--font-scale));color:var(--text-secondary);">Выберите цвет, который будет использоваться для кнопок, чекбоксов и выделений.</p>
+      </div>
+
+      <div class="color-grid" id="color-grid">
+        <div class="color-option selected" style="background:#B8255F;" data-color="#B8255F" tabindex="0" aria-label="Berry Red" data-show-aria onclick="selectColor(this)"></div>
+        <div class="color-option" style="background:#DB4C3F;" data-color="#DB4C3F" tabindex="0" aria-label="Red" data-show-aria onclick="selectColor(this)"></div>
+        <div class="color-option" style="background:#FF9933;" data-color="#FF9933" tabindex="0" aria-label="Orange" data-show-aria onclick="selectColor(this)"></div>
+        <div class="color-option" style="background:#FAD000;" data-color="#FAD000" tabindex="0" aria-label="Yellow" data-show-aria onclick="selectColor(this)"></div>
+        <div class="color-option" style="background:#7ECC49;" data-color="#7ECC49" tabindex="0" aria-label="Olive Green" data-show-aria onclick="selectColor(this)"></div>
+        <div class="color-option" style="background:#299438;" data-color="#299438" tabindex="0" aria-label="Green" data-show-aria onclick="selectColor(this)"></div>
+        <div class="color-option" style="background:#6ACCBC;" data-color="#6ACCBC" tabindex="0" aria-label="Mint Green" data-show-aria onclick="selectColor(this)"></div>
+        <div class="color-option" style="background:#158FAD;" data-color="#158FAD" tabindex="0" aria-label="Teal" data-show-aria onclick="selectColor(this)"></div>
+        <div class="color-option" style="background:#14AAF5;" data-color="#14AAF5" tabindex="0" aria-label="Sky Blue" data-show-aria onclick="selectColor(this)"></div>
+        <div class="color-option" style="background:#96C3EB;" data-color="#96C3EB" tabindex="0" aria-label="Light Blue" data-show-aria onclick="selectColor(this)"></div>
+        <div class="color-option" style="background:#4073FF;" data-color="#4073FF" tabindex="0" aria-label="Blue" data-show-aria onclick="selectColor(this)"></div>
+        <div class="color-option" style="background:#884DFF;" data-color="#884DFF" tabindex="0" aria-label="Grape" data-show-aria onclick="selectColor(this)"></div>
+        <div class="color-option" style="background:#AF38EB;" data-color="#AF38EB" tabindex="0" aria-label="Violet" data-show-aria onclick="selectColor(this)"></div>
+        <div class="color-option" style="background:#EB96EB;" data-color="#EB96EB" tabindex="0" aria-label="Lavender" data-show-aria onclick="selectColor(this)"></div>
+        <div class="color-option" style="background:#E05194;" data-color="#E05194" tabindex="0" aria-label="Magenta" data-show-aria onclick="selectColor(this)"></div>
+        <div class="color-option" style="background:#FF8D85;" data-color="#FF8D85" tabindex="0" aria-label="Salmon" data-show-aria onclick="selectColor(this)"></div>
+      </div>
+
+      <div class="section-divider">Предпросмотр</div>
+
+      <!-- Live Preview Elements -->
+      <div style="padding:0 20px;">
+        <div class="task-preview" id="color-preview-task">
+          <div class="task-checkbox" id="color-preview-cb"></div>
+          <div>
+            <div class="task-text">Пример задачи с новым цветом</div>
+            <div class="task-meta" id="color-preview-meta">Сегодня • Работа</div>
+          </div>
+        </div>
+      </div>
+
+      <div style="padding:12px 20px;">
+        <button class="btn-primary" id="color-preview-btn">Применить цвет</button>
+      </div>
+
+      <div style="padding:0 20px 8px;">
+        <div style="display:flex;gap:8px;align-items:center;">
+          <div id="color-preview-check1" style="width:22px;height:22px;border-radius:50%;background:var(--accent);display:flex;align-items:center;justify-content:center;color:#fff;font-size:12px;">✓</div>
+          <span style="font-size:calc(14px * var(--font-scale));color:var(--text-primary);text-decoration:line-through;opacity:0.5;">Завершённая задача</span>
+        </div>
+      </div>
+      <div style="padding:4px 20px 20px;">
+        <div style="display:flex;gap:8px;align-items:center;">
+          <div id="color-preview-check2" style="width:22px;height:22px;border-radius:50%;border:2px solid var(--accent);"></div>
+          <span style="font-size:calc(14px * var(--font-scale));color:var(--text-primary);">Активная задача</span>
+        </div>
+      </div>
+
+    </div>
+    <div class="fab" id="color-fab" aria-label="Добавить задачу" data-show-aria>+</div>
+  </div>
+</div>
+
+<!-- ============ FRAME 5: Font Size Demo ============ -->
+<div>
+  <div class="frame-label">5. Размер шрифта</div>
+  <div class="phone" id="phone-font">
+    <div class="status-bar"><span>9:41</span><div class="notch"></div><span>100%</span></div>
+    <div class="header" id="font-header">
+      <div class="back">‹</div>
+      <div class="title">Размер шрифта</div>
+    </div>
+    <div class="content" id="font-content">
+
+      <div style="padding:20px 20px 8px;">
+        <p style="font-size:calc(13px * var(--font-scale));color:var(--text-secondary);">Настройте размер текста для комфортного чтения.</p>
+      </div>
+
+      <div class="font-slider-wrap">
+        <div class="font-slider-labels">
+          <span style="font-size:11px;">Аа</span>
+          <span>Аа</span>
+          <span style="font-size:17px;">Аа</span>
+          <span style="font-size:21px;">Аа</span>
+        </div>
+        <input type="range" min="0" max="3" value="1" step="1" id="font-slider" aria-label="Размер шрифта" oninput="changeFontSize(this.value)">
+        <div style="display:flex;justify-content:space-between;margin-top:6px;">
+          <span style="font-size:10px;color:var(--text-tertiary);">Маленький</span>
+          <span style="font-size:10px;color:var(--text-tertiary);">Обычный</span>
+          <span style="font-size:10px;color:var(--text-tertiary);">Крупный</span>
+          <span style="font-size:10px;color:var(--text-tertiary);">Оч. крупный</span>
+        </div>
+      </div>
+
+      <div class="section-divider">Предпросмотр</div>
+      <div id="font-size-label" style="text-align:center;padding:4px;font-size:12px;color:var(--text-secondary);font-weight:600;">Текущий: Обычный (×1.0)</div>
+
+      <div class="task-preview" id="font-task-1" style="margin-top:4px;">
+        <div class="task-checkbox"></div>
+        <div>
+          <div class="task-text" id="ft1-text">Купить продукты в магазине</div>
+          <div class="task-meta">Сегодня • Личное</div>
+        </div>
+      </div>
+
+      <div class="task-preview" id="font-task-2">
+        <div class="task-checkbox"></div>
+        <div>
+          <div class="task-text" id="ft2-text">Подготовить презентацию для встречи с клиентом</div>
+          <div class="task-meta">Завтра • Работа</div>
+        </div>
+      </div>
+
+      <div class="task-preview" id="font-task-3">
+        <div class="task-checkbox" style="border-color:var(--accent);background:var(--accent);display:flex;align-items:center;justify-content:center;"><span style="color:#fff;font-size:10px;">✓</span></div>
+        <div>
+          <div class="task-text" id="ft3-text" style="text-decoration:line-through;opacity:0.5;">Отправить отчёт за неделю</div>
+          <div class="task-meta">Вчера • Работа</div>
+        </div>
+      </div>
+
+      <!-- Section list preview -->
+      <div class="section-divider" style="margin-top:12px;">Список настроек</div>
+      <div class="settings-list" style="margin:0 20px;border-radius:var(--radius);overflow:hidden;border:1px solid var(--border);">
+        <div class="settings-item" tabindex="0">
+          <div class="icon" style="background:var(--accent);color:#fff;">🔔</div>
+          <div class="si-label">
+            <div class="primary" id="fs-item1">Напоминания</div>
+            <div class="secondary" id="fs-item1-sub">Включены для всех задач</div>
+          </div>
+          <div class="toggle active" role="switch" aria-checked="true"></div>
+        </div>
+        <div class="settings-item" tabindex="0">
+          <div class="icon" style="background:#5856D6;color:#fff;">🎯</div>
+          <div class="si-label">
+            <div class="primary" id="fs-item2">Ежедневная цель</div>
+            <div class="secondary" id="fs-item2-sub">5 задач в день</div>
+          </div>
+          <div class="si-value">5</div>
+          <div class="si-arrow">›</div>
+        </div>
+      </div>
+
+      <div style="height:24px;"></div>
+    </div>
+  </div>
+</div>
+
+<script>
+// ============ Theme Switching ============
+const themes = ['Светлая', 'Тёмная', 'Авто'];
+let themeIndex = 0;
+
+document.getElementById('theme-setting').addEventListener('click', () => {
+  themeIndex = (themeIndex + 1) % themes.length;
+  document.getElementById('theme-value').textContent = themes[themeIndex];
+
+  const phones = document.querySelectorAll('.phone');
+  if (themeIndex === 1) {
+    phones.forEach(p => p.classList.add('dark-mode'));
+  } else {
+    phones.forEach(p => p.classList.remove('dark-mode'));
+  }
+});
+
+// ============ Accessibility: Large Text ============
+function toggleLargeText(el) {
+  el.classList.toggle('active');
+  const active = el.classList.contains('active');
+  el.setAttribute('aria-checked', active);
+  const phones = document.querySelectorAll('.phone');
+  phones.forEach(p => {
+    p.style.setProperty('--font-scale', active ? '1.3' : '1');
+  });
+}
+
+// ============ Accessibility: High Contrast ============
+function toggleHighContrast(el) {
+  el.classList.toggle('active');
+  const active = el.classList.contains('active');
+  el.setAttribute('aria-checked', active);
+  const phones = document.querySelectorAll('.phone');
+  phones.forEach(p => {
+    if (active) p.classList.add('high-contrast');
+    else p.classList.remove('high-contrast');
+  });
+}
+
+// ============ Accessibility: Reduced Motion ============
+function toggleReducedMotion(el) {
+  el.classList.toggle('active');
+  const active = el.classList.contains('active');
+  el.setAttribute('aria-checked', active);
+  const phones = document.querySelectorAll('.phone');
+  phones.forEach(p => {
+    if (active) p.classList.add('reduced-motion');
+    else p.classList.remove('reduced-motion');
+  });
+}
+
+// ============ Color Selection ============
+function selectColor(el) {
+  document.querySelectorAll('.color-option').forEach(o => o.classList.remove('selected'));
+  el.classList.add('selected');
+  const color = el.dataset.color;
+
+  // Update CSS variable on all phones
+  document.querySelectorAll('.phone').forEach(p => {
+    p.style.setProperty('--accent', color);
+    // Compute lighter version for accent-light
+    const r = parseInt(color.slice(1,3),16), g = parseInt(color.slice(3,5),16), b = parseInt(color.slice(5,7),16);
+    const isDark = p.classList.contains('dark-mode');
+    if (isDark) {
+      p.style.setProperty('--accent-light', `rgba(${r},${g},${b},0.15)`);
+    } else {
+      p.style.setProperty('--accent-light', `rgba(${r},${g},${b},0.08)`);
+    }
+  });
+}
+
+// ============ Font Size Slider ============
+const fontScales = [0.85, 1.0, 1.2, 1.45];
+const fontLabels = ['Маленький', 'Обычный', 'Крупный', 'Очень крупный'];
+
+function changeFontSize(val) {
+  const scale = fontScales[val];
+  const label = fontLabels[val];
+
+  // Update all phones
+  document.querySelectorAll('.phone').forEach(p => {
+    p.style.setProperty('--font-scale', scale);
+  });
+
+  document.getElementById('font-size-label').textContent = `Текущий: ${label} (×${scale})`;
+}
+
+// ============ Share Stats Button ============
+document.getElementById('share-stats-btn').addEventListener('click', function() {
+  const orig = this.textContent;
+  this.textContent = 'Скопировано! ✓';
+  this.style.background = '#34C759';
+  setTimeout(() => {
+    this.textContent = orig;
+    this.style.background = '';
+  }, 1500);
+});
+</script>
+</body>
+</html>

@@ -1,0 +1,1265 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Phase 5-6: Закон Фиттса + Эффект Фон Ресторфф</title>
+<style>
+  :root {
+    --red: #DB4C3F;
+    --red-light: #FCEBE9;
+    --red-dark: #C53727;
+    --bg: #FAFAFA;
+    --surface: #FFFFFF;
+    --surface2: #F5F5F5;
+    --text: #202020;
+    --text2: #666666;
+    --text3: #999999;
+    --border: #E8E8E8;
+    --green: #058527;
+    --blue: #246FE0;
+    --orange: #EB8909;
+    --purple: #884DFF;
+    --teal: #14AAF5;
+    --shadow: 0 2px 8px rgba(0,0,0,0.08);
+    --shadow-lg: 0 4px 20px rgba(0,0,0,0.12);
+  }
+  .dark {
+    --bg: #1A1A1A;
+    --surface: #282828;
+    --surface2: #333333;
+    --text: #E8E8E8;
+    --text2: #AAAAAA;
+    --text3: #777777;
+    --border: #404040;
+    --red-light: #3D2020;
+    --shadow: 0 2px 8px rgba(0,0,0,0.3);
+    --shadow-lg: 0 4px 20px rgba(0,0,0,0.4);
+  }
+  * { margin:0; padding:0; box-sizing:border-box; }
+  body {
+    font-family: -apple-system, 'SF Pro Text', 'Segoe UI', Roboto, sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    line-height: 1.5;
+    transition: background .3s, color .3s;
+  }
+  .top-bar {
+    position: sticky; top: 0; z-index: 100;
+    background: var(--surface);
+    border-bottom: 1px solid var(--border);
+    padding: 16px 24px;
+    display: flex; justify-content: space-between; align-items: center;
+  }
+  .top-bar h1 { font-size: 18px; font-weight: 700; }
+  .top-bar h1 span { color: var(--red); }
+  .theme-toggle {
+    width: 44px; height: 44px; border-radius: 50%;
+    border: 1px solid var(--border); background: var(--surface2);
+    cursor: pointer; font-size: 20px;
+    display: flex; align-items: center; justify-content: center;
+    transition: all .2s;
+  }
+  .theme-toggle:hover { border-color: var(--red); }
+
+  .container { max-width: 1200px; margin: 0 auto; padding: 24px; }
+
+  .phase-header {
+    text-align: center; margin: 40px 0 32px;
+    padding: 24px; background: var(--surface);
+    border-radius: 12px; border-left: 4px solid var(--red);
+    box-shadow: var(--shadow);
+  }
+  .phase-header h2 { font-size: 24px; margin-bottom: 8px; }
+  .phase-header p { color: var(--text2); font-size: 14px; max-width: 600px; margin: 0 auto; }
+  .phase-tag {
+    display: inline-block; background: var(--red);
+    color: #fff; font-size: 11px; font-weight: 700;
+    padding: 3px 10px; border-radius: 12px; margin-bottom: 10px;
+    letter-spacing: 0.5px;
+  }
+
+  .section-title {
+    font-size: 16px; font-weight: 700; margin: 32px 0 16px;
+    display: flex; align-items: center; gap: 8px;
+  }
+  .section-title .num {
+    width: 28px; height: 28px; border-radius: 50%;
+    background: var(--red); color: #fff; font-size: 13px;
+    display: flex; align-items: center; justify-content: center;
+    font-weight: 700; flex-shrink: 0;
+  }
+
+  .demo-grid {
+    display: grid; grid-template-columns: repeat(auto-fit, minmax(375px, 1fr));
+    gap: 24px; margin-bottom: 32px;
+  }
+  @media (max-width: 800px) {
+    .demo-grid { grid-template-columns: 1fr; }
+  }
+
+  .demo-card {
+    background: var(--surface); border-radius: 12px;
+    box-shadow: var(--shadow); overflow: hidden;
+    transition: transform .2s;
+  }
+  .demo-card:hover { transform: translateY(-2px); }
+  .demo-label {
+    padding: 12px 16px; font-size: 12px; font-weight: 700;
+    text-transform: uppercase; letter-spacing: 0.5px;
+    display: flex; align-items: center; gap: 6px;
+  }
+  .demo-label.bad { background: #FFF0EE; color: #C53727; }
+  .demo-label.good { background: #E8F5E9; color: #058527; }
+  .dark .demo-label.bad { background: #3D2020; }
+  .dark .demo-label.good { background: #1B3D1F; }
+
+  /* Phone Frame */
+  .phone {
+    width: 375px; height: 680px; margin: 16px auto;
+    background: var(--bg); border-radius: 40px;
+    border: 3px solid var(--border); overflow: hidden;
+    position: relative; box-shadow: var(--shadow-lg);
+  }
+  .phone-status {
+    height: 44px; background: var(--surface);
+    display: flex; align-items: center; justify-content: center;
+    font-size: 12px; font-weight: 600; color: var(--text);
+    padding: 0 20px;
+  }
+  .phone-status::before { content: '9:41'; }
+  .phone-content {
+    height: calc(100% - 44px); overflow-y: auto;
+    position: relative;
+  }
+  .phone-content::-webkit-scrollbar { width: 0; }
+
+  /* === FITTS: Touch Targets === */
+  .task-list { padding: 0; }
+  .task-item {
+    display: flex; align-items: center; gap: 12px;
+    padding: 12px 16px; border-bottom: 1px solid var(--border);
+    cursor: pointer; transition: background .15s;
+  }
+  .task-item:hover { background: var(--surface2); }
+  .task-item.small-target { gap: 6px; padding: 6px 10px; }
+  .task-item .checkbox {
+    width: 20px; height: 20px; border-radius: 50%;
+    border: 2px solid var(--text3); flex-shrink: 0;
+    cursor: pointer; transition: all .2s;
+    display: flex; align-items: center; justify-content: center;
+  }
+  .task-item .checkbox.big {
+    width: 24px; height: 24px;
+    /* but the tap area is 44px via padding on parent */
+  }
+  .task-item .checkbox.tiny { width: 14px; height: 14px; border-width: 1px; }
+  .task-item .checkbox.checked {
+    background: var(--text3); border-color: var(--text3);
+  }
+  .task-item .checkbox.checked::after { content: '✓'; color: #fff; font-size: 11px; }
+  .task-item .checkbox.p1 { border-color: var(--red); }
+  .task-item .checkbox.p2 { border-color: var(--orange); }
+  .task-item .checkbox.p3 { border-color: var(--blue); }
+  .task-item .task-text { flex: 1; font-size: 14px; }
+  .task-item .task-text.tiny-text { font-size: 11px; }
+  .task-item .task-meta { font-size: 11px; color: var(--text3); }
+
+  .tap-area-indicator {
+    position: absolute; border: 2px dashed var(--red);
+    border-radius: 8px; pointer-events: none; opacity: 0.6;
+  }
+
+  /* Big touch target wrapper */
+  .touch-target-44 {
+    min-height: 44px; display: flex; align-items: center;
+    padding: 10px 16px; gap: 12px;
+    border-bottom: 1px solid var(--border);
+    cursor: pointer; transition: background .15s;
+  }
+  .touch-target-44:hover { background: var(--surface2); }
+
+  /* === FITTS: Thumb Zone === */
+  .thumb-zone-phone {
+    width: 375px; height: 680px; margin: 16px auto;
+    border-radius: 40px; border: 3px solid var(--border);
+    overflow: hidden; position: relative;
+    background: var(--bg); box-shadow: var(--shadow-lg);
+  }
+  .thumb-overlay {
+    position: absolute; inset: 0; z-index: 2;
+    pointer-events: none;
+  }
+  .zone-easy {
+    position: absolute; bottom: 0; left: 0; right: 0; height: 45%;
+    background: rgba(5, 133, 39, 0.12);
+    border-top: 2px dashed rgba(5, 133, 39, 0.4);
+  }
+  .zone-ok {
+    position: absolute; bottom: 45%; left: 0; right: 0; height: 25%;
+    background: rgba(235, 137, 9, 0.1);
+    border-top: 2px dashed rgba(235, 137, 9, 0.4);
+  }
+  .zone-hard {
+    position: absolute; top: 0; left: 0; right: 0; height: 30%;
+    background: rgba(219, 76, 63, 0.1);
+  }
+  .zone-label {
+    position: absolute; right: 12px; font-size: 10px;
+    font-weight: 700; padding: 3px 8px; border-radius: 4px;
+    color: #fff;
+  }
+  .zone-label.easy { bottom: 20%; background: var(--green); }
+  .zone-label.ok { bottom: 50%; background: var(--orange); }
+  .zone-label.hard { top: 12%; background: var(--red); }
+
+  .fab {
+    position: absolute; width: 56px; height: 56px;
+    border-radius: 50%; background: var(--red);
+    color: #fff; font-size: 28px; border: none; cursor: pointer;
+    display: flex; align-items: center; justify-content: center;
+    box-shadow: 0 4px 12px rgba(219, 76, 63, 0.4);
+    z-index: 5; transition: all .3s;
+  }
+  .fab:hover { transform: scale(1.08); }
+  .fab.bottom-right { bottom: 80px; right: 20px; }
+  .fab.top-right { top: 60px; right: 20px; }
+  .fab-label {
+    position: absolute; font-size: 10px; font-weight: 700;
+    padding: 3px 8px; border-radius: 4px; z-index: 5;
+    white-space: nowrap;
+  }
+
+  /* === FITTS: Bottom Nav === */
+  .bottom-nav {
+    position: absolute; bottom: 0; left: 0; right: 0;
+    height: 56px; background: var(--surface);
+    border-top: 1px solid var(--border);
+    display: flex; align-items: center; justify-content: space-around;
+    z-index: 3;
+  }
+  .nav-item {
+    display: flex; flex-direction: column;
+    align-items: center; gap: 2px;
+    padding: 6px 16px; cursor: pointer;
+    border-radius: 8px; transition: all .2s;
+    min-width: 64px;
+  }
+  .nav-item:hover { background: var(--surface2); }
+  .nav-item.active { color: var(--red); }
+  .nav-item .nav-icon { font-size: 22px; }
+  .nav-item .nav-label { font-size: 10px; font-weight: 600; }
+
+  .bottom-nav.tiny { height: 36px; }
+  .bottom-nav.tiny .nav-item {
+    padding: 2px 8px; min-width: 40px;
+  }
+  .bottom-nav.tiny .nav-icon { font-size: 14px; }
+  .bottom-nav.tiny .nav-label { font-size: 7px; }
+
+  /* === FITTS: Sticky CTA === */
+  .sticky-cta-bar {
+    position: absolute; bottom: 56px; left: 0; right: 0;
+    padding: 12px 16px; background: var(--surface);
+    border-top: 1px solid var(--border); z-index: 3;
+  }
+  .btn-cta {
+    width: 100%; padding: 14px; border: none; border-radius: 10px;
+    background: var(--red); color: #fff; font-size: 15px;
+    font-weight: 700; cursor: pointer; transition: all .2s;
+  }
+  .btn-cta:hover { background: var(--red-dark); }
+
+  /* === VON RESTORFF: Priority === */
+  .task-p1 {
+    border-left: 4px solid var(--red) !important;
+    background: var(--red-light) !important;
+  }
+  .task-p1 .task-text { font-weight: 700 !important; }
+
+  /* === VON RESTORFF: Accent overuse === */
+  .btn-red {
+    padding: 8px 16px; border: none; border-radius: 6px;
+    background: var(--red); color: #fff; font-size: 13px;
+    font-weight: 600; cursor: pointer;
+  }
+  .btn-outline {
+    padding: 8px 16px; border: 1px solid var(--border);
+    border-radius: 6px; background: var(--surface);
+    color: var(--text); font-size: 13px; cursor: pointer;
+  }
+  .badge-red {
+    background: var(--red); color: #fff; font-size: 10px;
+    padding: 2px 6px; border-radius: 10px; font-weight: 700;
+  }
+
+  /* === VON RESTORFF: Pricing === */
+  .pricing-row {
+    display: flex; gap: 12px; padding: 16px;
+    align-items: flex-end; justify-content: center;
+  }
+  .plan-card {
+    background: var(--surface2); border-radius: 12px;
+    padding: 16px; text-align: center; width: 100px;
+    border: 2px solid transparent; transition: all .3s;
+    cursor: pointer;
+  }
+  .plan-card:hover { border-color: var(--border); }
+  .plan-card.featured {
+    background: var(--surface); border-color: var(--red);
+    transform: scale(1.08); box-shadow: var(--shadow-lg);
+    width: 120px; padding: 20px 16px;
+  }
+  .plan-card .plan-name { font-size: 12px; font-weight: 700; margin-bottom: 6px; }
+  .plan-card .plan-price { font-size: 22px; font-weight: 800; }
+  .plan-card .plan-price span { font-size: 11px; font-weight: 400; color: var(--text2); }
+  .plan-card .plan-period { font-size: 10px; color: var(--text3); margin-top: 2px; }
+  .plan-card.featured .plan-name { color: var(--red); }
+  .plan-badge {
+    background: var(--red); color: #fff; font-size: 9px;
+    padding: 2px 8px; border-radius: 10px; font-weight: 700;
+    margin-bottom: 8px; display: inline-block;
+  }
+  .plan-features { margin-top: 10px; text-align: left; }
+  .plan-features li {
+    font-size: 10px; color: var(--text2);
+    list-style: none; padding: 3px 0;
+  }
+  .plan-features li::before { content: '✓ '; color: var(--green); font-weight: 700; }
+
+  /* === Category dots === */
+  .cat-dot {
+    width: 10px; height: 10px; border-radius: 50%;
+    display: inline-block; flex-shrink: 0;
+  }
+  .cat-dot.inbox { background: var(--blue); }
+  .cat-dot.personal { background: var(--green); }
+  .cat-dot.work { background: var(--orange); }
+  .cat-dot.shopping { background: var(--purple); }
+
+  .sidebar-item {
+    display: flex; align-items: center; gap: 10px;
+    padding: 10px 16px; font-size: 14px; cursor: pointer;
+    border-radius: 8px; transition: background .15s;
+  }
+  .sidebar-item:hover { background: var(--surface2); }
+  .sidebar-item .count {
+    margin-left: auto; font-size: 12px; color: var(--text3);
+  }
+
+  /* === Theory blocks === */
+  .theory-section {
+    margin-top: 48px; padding: 32px;
+    background: var(--surface); border-radius: 12px;
+    box-shadow: var(--shadow);
+  }
+  .theory-section h3 {
+    font-size: 18px; margin-bottom: 12px;
+    display: flex; align-items: center; gap: 8px;
+  }
+  .theory-section p { color: var(--text2); font-size: 14px; margin-bottom: 12px; }
+  .theory-section ul { padding-left: 20px; }
+  .theory-section li { color: var(--text2); font-size: 14px; margin-bottom: 6px; }
+  .theory-section code {
+    background: var(--surface2); padding: 2px 6px;
+    border-radius: 4px; font-size: 13px;
+  }
+
+  /* Interactive checkbox animation */
+  .checkbox-interactive { cursor: pointer; }
+  .checkbox-interactive.done {
+    background: var(--green) !important;
+    border-color: var(--green) !important;
+  }
+  .checkbox-interactive.done::after { content: '✓'; color: #fff; font-size: 12px; }
+
+  /* Measurement lines */
+  .measure {
+    position: relative; display: flex; align-items: center; gap: 4px;
+    font-size: 10px; color: var(--red); font-weight: 700;
+  }
+  .measure-line {
+    flex: 1; height: 1px; background: var(--red);
+    position: relative;
+  }
+  .measure-line::before, .measure-line::after {
+    content: ''; position: absolute; top: -3px;
+    width: 1px; height: 7px; background: var(--red);
+  }
+  .measure-line::before { left: 0; }
+  .measure-line::after { right: 0; }
+
+  /* Toolbar header */
+  .app-toolbar {
+    background: var(--surface); padding: 12px 16px;
+    display: flex; align-items: center; justify-content: space-between;
+    border-bottom: 1px solid var(--border);
+  }
+  .app-toolbar h3 { font-size: 18px; font-weight: 700; }
+  .toolbar-icons { display: flex; gap: 12px; }
+  .toolbar-icon {
+    width: 32px; height: 32px; border-radius: 50%;
+    display: flex; align-items: center; justify-content: center;
+    cursor: pointer; font-size: 18px; transition: background .15s;
+  }
+  .toolbar-icon:hover { background: var(--surface2); }
+
+  /* Scrollable inner */
+  .scroll-inner { overflow-y: auto; }
+
+  /* Annotations */
+  .annotation {
+    position: absolute; font-size: 10px; font-weight: 700;
+    color: var(--red); z-index: 10; pointer-events: none;
+    background: rgba(255,255,255,0.9); padding: 2px 6px;
+    border-radius: 4px; border: 1px solid var(--red);
+    white-space: nowrap;
+  }
+  .dark .annotation { background: rgba(40,40,40,0.9); }
+
+  .arrow-down::after {
+    content: ''; position: absolute; bottom: -8px; left: 50%;
+    transform: translateX(-50%);
+    border-left: 5px solid transparent;
+    border-right: 5px solid transparent;
+    border-top: 6px solid var(--red);
+  }
+
+  /* Pulse animation for FAB */
+  @keyframes pulse { 0%,100% { box-shadow: 0 4px 12px rgba(219,76,63,0.4); } 50% { box-shadow: 0 4px 24px rgba(219,76,63,0.7); } }
+  .fab.pulse { animation: pulse 2s infinite; }
+
+  /* Skeleton for scroll demo */
+  .skel-line {
+    height: 10px; border-radius: 5px; background: var(--surface2); margin-bottom: 8px;
+  }
+  .skel-line.w80 { width: 80%; }
+  .skel-line.w60 { width: 60%; }
+  .skel-line.w90 { width: 90%; }
+  .skel-line.w70 { width: 70%; }
+
+  /* Click ripple */
+  @keyframes ripple { to { transform: scale(4); opacity: 0; } }
+</style>
+</head>
+<body>
+
+<div class="top-bar">
+  <h1><span>Phase 5-6</span> Фиттс + Фон Ресторфф</h1>
+  <button class="theme-toggle" onclick="document.body.classList.toggle('dark'); this.textContent = document.body.classList.contains('dark') ? '☀️' : '🌙'">🌙</button>
+</div>
+
+<div class="container">
+
+  <!-- ========== FITTS'S LAW ========== -->
+  <div class="phase-header">
+    <div class="phase-tag">PHASE 5</div>
+    <h2>Закон Фиттса</h2>
+    <p>Время достижения цели зависит от расстояния до неё и её размера. Большие, близкие к пальцу элементы = быстрее и точнее.</p>
+  </div>
+
+  <!-- 1. Touch Targets -->
+  <div class="section-title">
+    <span class="num">1</span>
+    Зоны касания (Touch Targets)
+  </div>
+
+  <div class="demo-grid">
+    <!-- BEFORE -->
+    <div class="demo-card">
+      <div class="demo-label bad">&#x2717; До — мелкие зоны касания</div>
+      <div class="phone" style="height:500px">
+        <div class="phone-status"></div>
+        <div class="phone-content">
+          <div class="app-toolbar">
+            <h3>Входящие</h3>
+            <div class="toolbar-icons">
+              <span class="toolbar-icon" style="font-size:12px">🔍</span>
+              <span class="toolbar-icon" style="font-size:12px">⋯</span>
+            </div>
+          </div>
+          <div class="task-list" id="tiny-tasks">
+            <div class="task-item small-target" style="min-height:28px">
+              <div class="checkbox tiny"></div>
+              <span class="task-text tiny-text">Купить продукты</span>
+              <span class="task-meta" style="font-size:8px">Сегодня</span>
+            </div>
+            <div class="task-item small-target" style="min-height:28px">
+              <div class="checkbox tiny"></div>
+              <span class="task-text tiny-text">Позвонить врачу</span>
+              <span class="task-meta" style="font-size:8px">Завтра</span>
+            </div>
+            <div class="task-item small-target" style="min-height:28px">
+              <div class="checkbox tiny"></div>
+              <span class="task-text tiny-text">Отправить отчёт</span>
+              <span class="task-meta" style="font-size:8px">Пн</span>
+            </div>
+            <div class="task-item small-target" style="min-height:28px">
+              <div class="checkbox tiny"></div>
+              <span class="task-text tiny-text">Забрать посылку</span>
+              <span class="task-meta" style="font-size:8px">Сегодня</span>
+            </div>
+            <div class="task-item small-target" style="min-height:28px">
+              <div class="checkbox tiny"></div>
+              <span class="task-text tiny-text">Оплатить счёт за свет</span>
+              <span class="task-meta" style="font-size:8px">25 мар</span>
+            </div>
+            <div class="task-item small-target" style="min-height:28px">
+              <div class="checkbox tiny"></div>
+              <span class="task-text tiny-text">Записаться в спортзал</span>
+              <span class="task-meta" style="font-size:8px">Вт</span>
+            </div>
+          </div>
+          <!-- Size annotation -->
+          <div style="padding:16px; text-align:center;">
+            <div class="measure" style="width:60px; margin:0 auto 6px;">
+              <div class="measure-line"></div>
+              <span>24px</span>
+            </div>
+            <div style="font-size:11px; color:var(--red); font-weight:600;">Высота строки ~28px<br>Чекбокс 14px</div>
+            <div style="font-size:11px; color:var(--text3); margin-top:6px;">Мимо-клики, фрустрация</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- AFTER -->
+    <div class="demo-card">
+      <div class="demo-label good">&#x2713; После — 44px+ зоны касания</div>
+      <div class="phone" style="height:500px">
+        <div class="phone-status"></div>
+        <div class="phone-content">
+          <div class="app-toolbar">
+            <h3>Входящие</h3>
+            <div class="toolbar-icons">
+              <span class="toolbar-icon">🔍</span>
+              <span class="toolbar-icon">⋯</span>
+            </div>
+          </div>
+          <div class="task-list" id="big-tasks">
+            <div class="touch-target-44" onclick="toggleCheck(this)">
+              <div class="checkbox big checkbox-interactive p1"></div>
+              <div>
+                <div class="task-text">Купить продукты</div>
+                <div class="task-meta">Сегодня &middot; Покупки</div>
+              </div>
+            </div>
+            <div class="touch-target-44" onclick="toggleCheck(this)">
+              <div class="checkbox big checkbox-interactive p2"></div>
+              <div>
+                <div class="task-text">Позвонить врачу</div>
+                <div class="task-meta">Завтра &middot; Здоровье</div>
+              </div>
+            </div>
+            <div class="touch-target-44" onclick="toggleCheck(this)">
+              <div class="checkbox big checkbox-interactive"></div>
+              <div>
+                <div class="task-text">Отправить отчёт</div>
+                <div class="task-meta">Пн &middot; Работа</div>
+              </div>
+            </div>
+            <div class="touch-target-44" onclick="toggleCheck(this)">
+              <div class="checkbox big checkbox-interactive"></div>
+              <div>
+                <div class="task-text">Забрать посылку</div>
+                <div class="task-meta">Сегодня &middot; Личное</div>
+              </div>
+            </div>
+            <div class="touch-target-44" onclick="toggleCheck(this)">
+              <div class="checkbox big checkbox-interactive p3"></div>
+              <div>
+                <div class="task-text">Оплатить счёт за свет</div>
+                <div class="task-meta">25 мар &middot; Дом</div>
+              </div>
+            </div>
+          </div>
+          <div style="padding:16px; text-align:center;">
+            <div class="measure" style="width:80px; margin:0 auto 6px;">
+              <div class="measure-line"></div>
+              <span style="color:var(--green)">44px+</span>
+            </div>
+            <div style="font-size:11px; color:var(--green); font-weight:600;">Мин. высота 44px<br>Чекбокс 24px + отступы</div>
+            <div style="font-size:11px; color:var(--text3); margin-top:6px;">Кликни по задаче!</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- 2. FAB Placement -->
+  <div class="section-title">
+    <span class="num">2</span>
+    Расположение FAB — Зоны большого пальца
+  </div>
+
+  <div class="demo-grid">
+    <!-- BAD: top-right -->
+    <div class="demo-card">
+      <div class="demo-label bad">&#x2717; FAB сверху — вне зоны пальца</div>
+      <div class="thumb-zone-phone" style="height:560px">
+        <div class="phone-status"></div>
+        <div class="thumb-overlay">
+          <div class="zone-hard"></div>
+          <div class="zone-ok"></div>
+          <div class="zone-easy"></div>
+          <div class="zone-label hard">Сложно</div>
+          <div class="zone-label ok">Нормально</div>
+          <div class="zone-label easy">Легко</div>
+        </div>
+        <div class="app-toolbar" style="position:relative; z-index:3;">
+          <h3 style="font-size:16px">Мои задачи</h3>
+        </div>
+        <button class="fab top-right" style="top:100px">+</button>
+        <div class="annotation arrow-down" style="top:80px; right:10px;">Тянуться!</div>
+        <!-- Hand silhouette hint -->
+        <div style="position:absolute; bottom:20px; left:50%; transform:translateX(-50%); z-index:4; font-size:60px; opacity:0.2;">🤚</div>
+      </div>
+    </div>
+
+    <!-- GOOD: bottom-right -->
+    <div class="demo-card">
+      <div class="demo-label good">&#x2713; FAB снизу — в зоне пальца</div>
+      <div class="thumb-zone-phone" style="height:560px">
+        <div class="phone-status"></div>
+        <div class="thumb-overlay">
+          <div class="zone-hard"></div>
+          <div class="zone-ok"></div>
+          <div class="zone-easy"></div>
+          <div class="zone-label hard">Сложно</div>
+          <div class="zone-label ok">Нормально</div>
+          <div class="zone-label easy">Легко</div>
+        </div>
+        <div class="app-toolbar" style="position:relative; z-index:3;">
+          <h3 style="font-size:16px">Мои задачи</h3>
+        </div>
+        <button class="fab bottom-right pulse" style="bottom:70px" onclick="this.classList.toggle('pulse')">+</button>
+        <div class="annotation" style="bottom:136px; right:12px;">Под большим пальцем!</div>
+        <div class="bottom-nav">
+          <div class="nav-item active"><span class="nav-icon">📥</span><span class="nav-label">Входящие</span></div>
+          <div class="nav-item"><span class="nav-icon">📅</span><span class="nav-label">Сегодня</span></div>
+          <div class="nav-item"><span class="nav-icon">📋</span><span class="nav-label">Проекты</span></div>
+          <div class="nav-item"><span class="nav-icon">🔍</span><span class="nav-label">Поиск</span></div>
+        </div>
+        <div style="position:absolute; bottom:20px; left:50%; transform:translateX(-50%); z-index:4; font-size:60px; opacity:0.2;">🤚</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- 3. Bottom Navigation -->
+  <div class="section-title">
+    <span class="num">3</span>
+    Нижняя навигация — правильный размер
+  </div>
+
+  <div class="demo-grid">
+    <!-- BAD nav -->
+    <div class="demo-card">
+      <div class="demo-label bad">&#x2717; Слишком маленькая навигация</div>
+      <div style="position:relative; padding:20px;">
+        <div style="width:340px; margin:0 auto; background:var(--bg); border-radius:0 0 20px 20px; border:2px solid var(--border); overflow:hidden;">
+          <div class="bottom-nav tiny" style="position:relative;">
+            <div class="nav-item" style="padding:2px 6px; min-width:36px;">
+              <span class="nav-icon" style="font-size:12px">📥</span>
+              <span class="nav-label" style="font-size:7px">Входящие</span>
+            </div>
+            <div class="nav-item" style="padding:2px 6px; min-width:36px;">
+              <span class="nav-icon" style="font-size:12px">📅</span>
+              <span class="nav-label" style="font-size:7px">Сегодня</span>
+            </div>
+            <div class="nav-item" style="padding:2px 6px; min-width:36px;">
+              <span class="nav-icon" style="font-size:12px">📋</span>
+              <span class="nav-label" style="font-size:7px">Проекты</span>
+            </div>
+            <div class="nav-item" style="padding:2px 6px; min-width:36px;">
+              <span class="nav-icon" style="font-size:12px">🔍</span>
+              <span class="nav-label" style="font-size:7px">Поиск</span>
+            </div>
+            <div class="nav-item" style="padding:2px 6px; min-width:36px;">
+              <span class="nav-icon" style="font-size:12px">☰</span>
+              <span class="nav-label" style="font-size:7px">Ещё</span>
+            </div>
+          </div>
+        </div>
+        <div style="text-align:center; margin-top:10px;">
+          <div class="measure" style="width:60px; margin:0 auto 4px;">
+            <div class="measure-line"></div>
+            <span>36px</span>
+          </div>
+          <div style="font-size:11px; color:var(--red);">Высота 36px, текст 7px</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- GOOD nav -->
+    <div class="demo-card">
+      <div class="demo-label good">&#x2713; Навигация 56px с отступами</div>
+      <div style="position:relative; padding:20px;">
+        <div style="width:340px; margin:0 auto; background:var(--bg); border-radius:0 0 20px 20px; border:2px solid var(--border); overflow:hidden;">
+          <div class="bottom-nav" style="position:relative;" id="good-nav">
+            <div class="nav-item active" onclick="switchNav(this)">
+              <span class="nav-icon">📥</span>
+              <span class="nav-label">Входящие</span>
+            </div>
+            <div class="nav-item" onclick="switchNav(this)">
+              <span class="nav-icon">📅</span>
+              <span class="nav-label">Сегодня</span>
+            </div>
+            <div class="nav-item" onclick="switchNav(this)">
+              <span class="nav-icon">📋</span>
+              <span class="nav-label">Проекты</span>
+            </div>
+            <div class="nav-item" onclick="switchNav(this)">
+              <span class="nav-icon">🔍</span>
+              <span class="nav-label">Поиск</span>
+            </div>
+          </div>
+        </div>
+        <div style="text-align:center; margin-top:10px;">
+          <div class="measure" style="width:70px; margin:0 auto 4px;">
+            <div class="measure-line" style="background:var(--green)"></div>
+            <span style="color:var(--green)">56px</span>
+          </div>
+          <div style="font-size:11px; color:var(--green);">Высота 56px, иконка + подпись</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- 4. Sticky CTA -->
+  <div class="section-title">
+    <span class="num">4</span>
+    Фиксированная кнопка действия (Sticky CTA)
+  </div>
+
+  <div class="demo-grid">
+    <div class="demo-card">
+      <div class="demo-label bad">&#x2717; CTA скрыта при скролле</div>
+      <div class="phone" style="height:480px">
+        <div class="phone-status"></div>
+        <div class="phone-content" style="padding:16px">
+          <h3 style="font-size:16px; margin-bottom:12px">Новый проект</h3>
+          <div style="margin-bottom:12px">
+            <div style="font-size:12px; color:var(--text2); margin-bottom:4px">Название</div>
+            <div style="padding:10px 12px; border:1px solid var(--border); border-radius:8px; font-size:14px; color:var(--text3)">Мой проект</div>
+          </div>
+          <div style="margin-bottom:12px">
+            <div style="font-size:12px; color:var(--text2); margin-bottom:4px">Описание</div>
+            <div style="padding:10px 12px; border:1px solid var(--border); border-radius:8px; font-size:14px; color:var(--text3); height:60px"></div>
+          </div>
+          <div style="margin-bottom:12px">
+            <div style="font-size:12px; color:var(--text2); margin-bottom:4px">Цвет</div>
+            <div style="display:flex; gap:8px;">
+              <div style="width:28px; height:28px; border-radius:50%; background:var(--red)"></div>
+              <div style="width:28px; height:28px; border-radius:50%; background:var(--blue)"></div>
+              <div style="width:28px; height:28px; border-radius:50%; background:var(--green)"></div>
+              <div style="width:28px; height:28px; border-radius:50%; background:var(--orange)"></div>
+              <div style="width:28px; height:28px; border-radius:50%; background:var(--purple)"></div>
+            </div>
+          </div>
+          <div style="margin-bottom:12px">
+            <div style="font-size:12px; color:var(--text2); margin-bottom:4px">Участники</div>
+            <div style="padding:10px 12px; border:1px solid var(--border); border-radius:8px; font-size:14px; color:var(--text3)">Добавить...</div>
+          </div>
+          <div class="skel-line w80"></div>
+          <div class="skel-line w60"></div>
+          <div class="skel-line w90"></div>
+          <div style="margin-top:16px">
+            <button class="btn-cta" style="opacity:0.3; pointer-events:none">Создать проект</button>
+          </div>
+          <div style="text-align:center; margin-top:8px; font-size:11px; color:var(--red)">
+            Кнопка ушла за экран
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="demo-card">
+      <div class="demo-label good">&#x2713; CTA зафиксирована внизу</div>
+      <div class="phone" style="height:480px">
+        <div class="phone-status"></div>
+        <div class="phone-content">
+          <div style="padding:16px; padding-bottom:80px;">
+            <h3 style="font-size:16px; margin-bottom:12px">Новый проект</h3>
+            <div style="margin-bottom:12px">
+              <div style="font-size:12px; color:var(--text2); margin-bottom:4px">Название</div>
+              <div style="padding:10px 12px; border:1px solid var(--border); border-radius:8px; font-size:14px;">Мой проект</div>
+            </div>
+            <div style="margin-bottom:12px">
+              <div style="font-size:12px; color:var(--text2); margin-bottom:4px">Описание</div>
+              <div style="padding:10px 12px; border:1px solid var(--border); border-radius:8px; font-size:14px; color:var(--text3); height:60px"></div>
+            </div>
+            <div style="margin-bottom:12px">
+              <div style="font-size:12px; color:var(--text2); margin-bottom:4px">Цвет</div>
+              <div style="display:flex; gap:8px;">
+                <div style="width:28px; height:28px; border-radius:50%; background:var(--red); border:2px solid var(--red)"></div>
+                <div style="width:28px; height:28px; border-radius:50%; background:var(--blue)"></div>
+                <div style="width:28px; height:28px; border-radius:50%; background:var(--green)"></div>
+                <div style="width:28px; height:28px; border-radius:50%; background:var(--orange)"></div>
+                <div style="width:28px; height:28px; border-radius:50%; background:var(--purple)"></div>
+              </div>
+            </div>
+            <div style="margin-bottom:12px">
+              <div style="font-size:12px; color:var(--text2); margin-bottom:4px">Участники</div>
+              <div style="padding:10px 12px; border:1px solid var(--border); border-radius:8px; font-size:14px; color:var(--text3)">Добавить...</div>
+            </div>
+            <div class="skel-line w80"></div>
+            <div class="skel-line w60"></div>
+          </div>
+          <div style="position:absolute; bottom:0; left:0; right:0; padding:12px 16px; background:var(--surface); border-top:1px solid var(--border);">
+            <button class="btn-cta" onclick="this.textContent=this.textContent==='Создано!' ? 'Создать проект' : 'Создано!'; this.style.background=this.textContent==='Создано!'?'var(--green)':'var(--red)'">Создать проект</button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ========== VON RESTORFF ========== -->
+  <div class="phase-header" style="margin-top:56px">
+    <div class="phase-tag">PHASE 6</div>
+    <h2>Эффект Фон Ресторфф</h2>
+    <p>Элемент, который визуально отличается от остальных, запоминается и замечается лучше. Используйте это для выделения приоритетов.</p>
+  </div>
+
+  <!-- 5. Priority Highlighting -->
+  <div class="section-title">
+    <span class="num">5</span>
+    Выделение приоритета
+  </div>
+
+  <div class="demo-grid">
+    <!-- BEFORE -->
+    <div class="demo-card">
+      <div class="demo-label bad">&#x2717; Все задачи выглядят одинаково</div>
+      <div class="phone" style="height:460px">
+        <div class="phone-status"></div>
+        <div class="phone-content">
+          <div class="app-toolbar">
+            <h3 style="font-size:16px">Сегодня <span style="font-size:13px; color:var(--text3); font-weight:400">18 мар</span></h3>
+          </div>
+          <div class="task-list">
+            <div class="touch-target-44">
+              <div class="checkbox big"></div>
+              <div><div class="task-text">Сдать отчёт руководителю</div><div class="task-meta">Работа</div></div>
+            </div>
+            <div class="touch-target-44">
+              <div class="checkbox big"></div>
+              <div><div class="task-text">Купить молоко</div><div class="task-meta">Покупки</div></div>
+            </div>
+            <div class="touch-target-44">
+              <div class="checkbox big"></div>
+              <div><div class="task-text">Позвонить в банк</div><div class="task-meta">Финансы</div></div>
+            </div>
+            <div class="touch-target-44">
+              <div class="checkbox big"></div>
+              <div><div class="task-text">Забронировать ресторан</div><div class="task-meta">Личное</div></div>
+            </div>
+            <div class="touch-target-44">
+              <div class="checkbox big"></div>
+              <div><div class="task-text">Полить цветы</div><div class="task-meta">Дом</div></div>
+            </div>
+          </div>
+          <div style="text-align:center; padding:12px; font-size:11px; color:var(--text3)">
+            Что важнее? Непонятно.
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- AFTER -->
+    <div class="demo-card">
+      <div class="demo-label good">&#x2713; Приоритет P1 выделен (Todoist-стиль)</div>
+      <div class="phone" style="height:460px">
+        <div class="phone-status"></div>
+        <div class="phone-content">
+          <div class="app-toolbar">
+            <h3 style="font-size:16px">Сегодня <span style="font-size:13px; color:var(--text3); font-weight:400">18 мар</span></h3>
+          </div>
+          <div class="task-list">
+            <div class="touch-target-44 task-p1" onclick="toggleCheck(this)" style="border-left:4px solid var(--red); background:var(--red-light)">
+              <div class="checkbox big checkbox-interactive p1"></div>
+              <div>
+                <div class="task-text" style="font-weight:700">Сдать отчёт руководителю</div>
+                <div class="task-meta"><span style="color:var(--red); font-weight:600">P1</span> &middot; Работа</div>
+              </div>
+              <span style="color:var(--red); font-size:16px">🚩</span>
+            </div>
+            <div class="touch-target-44" onclick="toggleCheck(this)">
+              <div class="checkbox big checkbox-interactive"></div>
+              <div><div class="task-text">Купить молоко</div><div class="task-meta">P4 &middot; Покупки</div></div>
+            </div>
+            <div class="touch-target-44" onclick="toggleCheck(this)" style="border-left:4px solid var(--orange)">
+              <div class="checkbox big checkbox-interactive p2"></div>
+              <div><div class="task-text">Позвонить в банк</div><div class="task-meta"><span style="color:var(--orange)">P2</span> &middot; Финансы</div></div>
+            </div>
+            <div class="touch-target-44" onclick="toggleCheck(this)" style="border-left:4px solid var(--blue)">
+              <div class="checkbox big checkbox-interactive p3"></div>
+              <div><div class="task-text">Забронировать ресторан</div><div class="task-meta"><span style="color:var(--blue)">P3</span> &middot; Личное</div></div>
+            </div>
+            <div class="touch-target-44" onclick="toggleCheck(this)">
+              <div class="checkbox big checkbox-interactive"></div>
+              <div><div class="task-text">Полить цветы</div><div class="task-meta">P4 &middot; Дом</div></div>
+            </div>
+          </div>
+          <div style="text-align:center; padding:12px; font-size:11px; color:var(--green)">
+            P1 сразу бросается в глаза!
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- 6. Accent Color Usage -->
+  <div class="section-title">
+    <span class="num">6</span>
+    Стратегическое использование акцентного цвета
+  </div>
+
+  <div class="demo-grid">
+    <!-- BAD: too much red -->
+    <div class="demo-card">
+      <div class="demo-label bad">&#x2717; Слишком много красного</div>
+      <div class="phone" style="height:460px">
+        <div class="phone-status"></div>
+        <div class="phone-content">
+          <div style="background:var(--red); padding:12px 16px; color:#fff;">
+            <h3 style="font-size:16px">Мои проекты</h3>
+          </div>
+          <div style="padding:12px">
+            <button class="btn-red" style="width:100%; margin-bottom:8px; padding:10px">Создать проект</button>
+            <div style="display:flex; gap:6px; margin-bottom:12px; flex-wrap:wrap">
+              <span class="badge-red">3 новых</span>
+              <span class="badge-red">Срочно</span>
+              <span class="badge-red">Важно</span>
+              <span class="badge-red">Дедлайн</span>
+            </div>
+            <div class="touch-target-44" style="border:2px solid var(--red); border-radius:8px; margin-bottom:6px">
+              <div class="checkbox big p1"></div>
+              <div class="task-text" style="color:var(--red); font-weight:700">Проект Альфа</div>
+            </div>
+            <div class="touch-target-44" style="border:2px solid var(--red); border-radius:8px; margin-bottom:6px">
+              <div class="checkbox big p1"></div>
+              <div class="task-text" style="color:var(--red); font-weight:700">Проект Бета</div>
+            </div>
+            <button class="btn-red" style="width:100%; margin-top:8px">Архив</button>
+            <div style="text-align:center; margin-top:12px; font-size:11px; color:var(--red); font-weight:600">
+              Всё кричит! Ничего не выделяется.
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- GOOD: one red CTA -->
+    <div class="demo-card">
+      <div class="demo-label good">&#x2713; Один красный акцент</div>
+      <div class="phone" style="height:460px">
+        <div class="phone-status"></div>
+        <div class="phone-content">
+          <div class="app-toolbar">
+            <h3 style="font-size:16px">Мои проекты</h3>
+            <div class="toolbar-icons">
+              <span class="toolbar-icon">⚙️</span>
+            </div>
+          </div>
+          <div style="padding:12px">
+            <div class="touch-target-44" style="border-radius:8px; margin-bottom:4px">
+              <span class="cat-dot work"></span>
+              <div class="task-text">Проект Альфа</div>
+              <span style="font-size:12px; color:var(--text3)">12</span>
+            </div>
+            <div class="touch-target-44" style="border-radius:8px; margin-bottom:4px">
+              <span class="cat-dot personal"></span>
+              <div class="task-text">Проект Бета</div>
+              <span style="font-size:12px; color:var(--text3)">5</span>
+            </div>
+            <div class="touch-target-44" style="border-radius:8px; margin-bottom:4px">
+              <span class="cat-dot inbox"></span>
+              <div class="task-text">Проект Гамма</div>
+              <span style="font-size:12px; color:var(--text3)">8</span>
+            </div>
+            <button class="btn-outline" style="width:100%; margin-top:8px">Архивные проекты</button>
+          </div>
+          <div style="position:absolute; bottom:16px; left:16px; right:16px;">
+            <button class="btn-cta" onclick="this.textContent=this.textContent==='Готово!' ? '+ Новый проект' : 'Готово!'; this.style.background=this.textContent==='Готово!'?'var(--green)':'var(--red)'">+ Новый проект</button>
+          </div>
+          <div style="text-align:center; padding:12px; font-size:11px; color:var(--green)">
+            Глаз сразу находит главное действие
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- 7. Pricing Plans -->
+  <div class="section-title">
+    <span class="num">7</span>
+    Тарифные планы — рекомендованный выделен
+  </div>
+
+  <div class="demo-card" style="max-width:800px; margin:0 auto 32px">
+    <div class="demo-label good" style="background:var(--surface2); color:var(--text2)">Средний план визуально доминирует</div>
+    <div style="padding:24px">
+      <h3 style="text-align:center; font-size:16px; margin-bottom:20px">Выберите план</h3>
+      <div class="pricing-row" id="pricing">
+        <!-- Free -->
+        <div class="plan-card" onclick="selectPlan(this)">
+          <div class="plan-name">Базовый</div>
+          <div class="plan-price">0<span>₽</span></div>
+          <div class="plan-period">бесплатно</div>
+          <ul class="plan-features">
+            <li>5 проектов</li>
+            <li>Базовые метки</li>
+            <li>1 фильтр</li>
+          </ul>
+        </div>
+        <!-- Pro -->
+        <div class="plan-card featured" onclick="selectPlan(this)">
+          <div class="plan-badge">Популярный</div>
+          <div class="plan-name">Про</div>
+          <div class="plan-price">299<span>₽/мес</span></div>
+          <div class="plan-period">3 588 ₽/год</div>
+          <ul class="plan-features">
+            <li>300 проектов</li>
+            <li>Напоминания</li>
+            <li>Комментарии</li>
+            <li>Авто-бэкап</li>
+          </ul>
+        </div>
+        <!-- Business -->
+        <div class="plan-card" onclick="selectPlan(this)">
+          <div class="plan-name">Бизнес</div>
+          <div class="plan-price">499<span>₽/мес</span></div>
+          <div class="plan-period">5 988 ₽/год</div>
+          <ul class="plan-features">
+            <li>500 проектов</li>
+            <li>Команда до 50</li>
+            <li>Админ-панель</li>
+            <li>Приоритетная поддержка</li>
+          </ul>
+        </div>
+      </div>
+      <div style="text-align:center; margin-top:12px; font-size:11px; color:var(--text3)">
+        Кликните на план для выбора
+      </div>
+    </div>
+  </div>
+
+  <!-- 8. Category Colors -->
+  <div class="section-title">
+    <span class="num">8</span>
+    Цвета категорий (Todoist-стиль)
+  </div>
+
+  <div class="demo-grid">
+    <div class="demo-card">
+      <div class="demo-label good" style="background:var(--surface2); color:var(--text2)">Цветные точки для навигации</div>
+      <div class="phone" style="height:500px">
+        <div class="phone-status"></div>
+        <div class="phone-content">
+          <div class="app-toolbar">
+            <h3 style="font-size:16px">Меню</h3>
+            <div class="toolbar-icons"><span class="toolbar-icon">✕</span></div>
+          </div>
+          <div style="padding:8px">
+            <div style="font-size:11px; font-weight:700; color:var(--text3); padding:8px 16px; text-transform:uppercase; letter-spacing:0.5px;">Быстрый доступ</div>
+            <div class="sidebar-item" onclick="highlightSidebar(this)">
+              <span style="font-size:18px">📥</span>
+              <span>Входящие</span>
+              <span class="count">23</span>
+            </div>
+            <div class="sidebar-item" onclick="highlightSidebar(this)">
+              <span style="font-size:18px">📅</span>
+              <span>Сегодня</span>
+              <span class="count" style="background:var(--red); color:#fff; padding:1px 8px; border-radius:10px;">5</span>
+            </div>
+            <div class="sidebar-item" onclick="highlightSidebar(this)">
+              <span style="font-size:18px">📆</span>
+              <span>Предстоящие</span>
+            </div>
+
+            <div style="font-size:11px; font-weight:700; color:var(--text3); padding:16px 16px 8px; text-transform:uppercase; letter-spacing:0.5px;">Проекты</div>
+            <div class="sidebar-item" onclick="highlightSidebar(this)">
+              <span class="cat-dot inbox"></span>
+              <span>Входящие</span>
+              <span class="count">12</span>
+            </div>
+            <div class="sidebar-item" onclick="highlightSidebar(this)">
+              <span class="cat-dot personal"></span>
+              <span>Личное</span>
+              <span class="count">8</span>
+            </div>
+            <div class="sidebar-item" onclick="highlightSidebar(this)">
+              <span class="cat-dot work"></span>
+              <span>Работа</span>
+              <span class="count">15</span>
+            </div>
+            <div class="sidebar-item" onclick="highlightSidebar(this)">
+              <span class="cat-dot shopping"></span>
+              <span>Покупки</span>
+              <span class="count">4</span>
+            </div>
+
+            <div style="font-size:11px; font-weight:700; color:var(--text3); padding:16px 16px 8px; text-transform:uppercase; letter-spacing:0.5px;">Метки</div>
+            <div class="sidebar-item" onclick="highlightSidebar(this)">
+              <span style="color:var(--red)">●</span>
+              <span>Срочно</span>
+            </div>
+            <div class="sidebar-item" onclick="highlightSidebar(this)">
+              <span style="color:var(--teal)">●</span>
+              <span>На проверке</span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="demo-card">
+      <div class="demo-label good" style="background:var(--surface2); color:var(--text2)">Задачи с цветными категориями</div>
+      <div class="phone" style="height:500px">
+        <div class="phone-status"></div>
+        <div class="phone-content">
+          <div class="app-toolbar">
+            <h3 style="font-size:16px">Сегодня <span style="font-size:13px; color:var(--text3); font-weight:400">5 задач</span></h3>
+          </div>
+          <div style="padding:4px 12px 8px">
+            <div style="font-size:11px; color:var(--text3); font-weight:600; padding:8px 4px;">УТРО</div>
+          </div>
+          <div class="task-list">
+            <div class="touch-target-44" onclick="toggleCheck(this)" style="border-left:4px solid var(--red)">
+              <div class="checkbox big checkbox-interactive p1"></div>
+              <div style="flex:1">
+                <div class="task-text" style="font-weight:700">Презентация для клиента</div>
+                <div class="task-meta" style="display:flex; align-items:center; gap:6px">
+                  <span class="cat-dot work" style="width:7px;height:7px"></span>Работа &middot; 10:00
+                </div>
+              </div>
+            </div>
+            <div class="touch-target-44" onclick="toggleCheck(this)">
+              <div class="checkbox big checkbox-interactive"></div>
+              <div style="flex:1">
+                <div class="task-text">Йога</div>
+                <div class="task-meta" style="display:flex; align-items:center; gap:6px">
+                  <span class="cat-dot personal" style="width:7px;height:7px"></span>Личное &middot; 8:00
+                </div>
+              </div>
+            </div>
+          </div>
+          <div style="padding:4px 12px">
+            <div style="font-size:11px; color:var(--text3); font-weight:600; padding:8px 4px;">ДЕНЬ</div>
+          </div>
+          <div class="task-list">
+            <div class="touch-target-44" onclick="toggleCheck(this)">
+              <div class="checkbox big checkbox-interactive p2"></div>
+              <div style="flex:1">
+                <div class="task-text">Созвон с командой</div>
+                <div class="task-meta" style="display:flex; align-items:center; gap:6px">
+                  <span class="cat-dot work" style="width:7px;height:7px"></span>Работа &middot; 14:00
+                </div>
+              </div>
+            </div>
+            <div class="touch-target-44" onclick="toggleCheck(this)">
+              <div class="checkbox big checkbox-interactive"></div>
+              <div style="flex:1">
+                <div class="task-text">Купить подарок маме</div>
+                <div class="task-meta" style="display:flex; align-items:center; gap:6px">
+                  <span class="cat-dot shopping" style="width:7px;height:7px"></span>Покупки
+                </div>
+              </div>
+            </div>
+            <div class="touch-target-44" onclick="toggleCheck(this)">
+              <div class="checkbox big checkbox-interactive p3"></div>
+              <div style="flex:1">
+                <div class="task-text">Обновить приложение</div>
+                <div class="task-meta" style="display:flex; align-items:center; gap:6px">
+                  <span class="cat-dot inbox" style="width:7px;height:7px"></span>Входящие
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ========== THEORY ========== -->
+  <div class="theory-section">
+    <h3>📐 Закон Фиттса (Fitts's Law)</h3>
+    <p><strong>Формулировка:</strong> Время, необходимое для достижения цели, является функцией расстояния до цели и её размера.</p>
+    <p><code>T = a + b * log2(D/W + 1)</code> — где D = расстояние, W = ширина цели</p>
+    <ul>
+      <li><strong>Минимальный размер тач-цели:</strong> 44x44pt (Apple HIG) / 48x48dp (Material Design)</li>
+      <li><strong>Расположение:</strong> Важные кнопки должны быть в зоне большого пальца (нижняя треть экрана)</li>
+      <li><strong>FAB:</strong> Размещайте в нижнем правом углу для правшей</li>
+      <li><strong>Sticky CTA:</strong> Основное действие всегда должно быть видно, не уходить при скролле</li>
+      <li><strong>Навигация:</strong> Нижняя панель минимум 56px высотой с иконками и подписями</li>
+    </ul>
+  </div>
+
+  <div class="theory-section" style="margin-top:20px">
+    <h3>🎯 Эффект Фон Ресторфф (Von Restorff Effect)</h3>
+    <p><strong>Формулировка:</strong> Элемент, отличающийся от окружения, запоминается и замечается лучше остальных (эффект изоляции).</p>
+    <ul>
+      <li><strong>Приоритеты:</strong> Используйте цвет, жирность и рамки для выделения P1-задач (как в Todoist)</li>
+      <li><strong>Акцентный цвет:</strong> Используйте красный <code>#DB4C3F</code> экономно — только для главного CTA</li>
+      <li><strong>Тарифы:</strong> Выделяйте рекомендуемый план масштабом, цветной рамкой и бейджем</li>
+      <li><strong>Категории:</strong> Цветные точки помогают быстро различать проекты без перегрузки интерфейса</li>
+      <li><strong>Правило:</strong> Если выделено всё — не выделено ничего. Один акцент на экран.</li>
+    </ul>
+  </div>
+
+  <div style="text-align:center; padding:32px 0; color:var(--text3); font-size:12px">
+    Phase 5-6 Mockup &middot; Fitts's Law + Von Restorff Effect &middot; Todoist-style
+  </div>
+</div>
+
+<script>
+// Toggle checkbox
+function toggleCheck(el) {
+  const cb = el.querySelector('.checkbox-interactive');
+  if (!cb) return;
+  cb.classList.toggle('done');
+  const text = el.querySelector('.task-text');
+  if (text) {
+    text.style.textDecoration = cb.classList.contains('done') ? 'line-through' : 'none';
+    text.style.opacity = cb.classList.contains('done') ? '0.5' : '1';
+  }
+}
+
+// Switch nav
+function switchNav(el) {
+  const nav = el.closest('.bottom-nav') || el.parentElement;
+  nav.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
+  el.classList.add('active');
+}
+
+// Select pricing plan
+function selectPlan(el) {
+  const row = el.closest('.pricing-row') || el.parentElement;
+  row.querySelectorAll('.plan-card').forEach(c => {
+    c.classList.remove('featured');
+    c.style.transform = '';
+    c.style.boxShadow = '';
+    c.style.borderColor = 'transparent';
+    c.style.width = '100px';
+    c.style.padding = '16px';
+    const badge = c.querySelector('.plan-badge');
+    if (badge) badge.remove();
+  });
+  el.classList.add('featured');
+  el.style.width = '120px';
+  el.style.padding = '20px 16px';
+}
+
+// Sidebar highlight
+function highlightSidebar(el) {
+  const sidebar = el.parentElement;
+  sidebar.querySelectorAll('.sidebar-item').forEach(s => {
+    s.style.background = '';
+    s.style.fontWeight = '';
+  });
+  el.style.background = 'var(--red-light)';
+  el.style.fontWeight = '600';
+}
+</script>
+</body>
+</html>

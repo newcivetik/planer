@@ -1,0 +1,1240 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0,maximum-scale=1.0,user-scalable=no">
+<title>Candy Planner 🍬</title>
+<link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800;900&display=swap" rel="stylesheet">
+<style>
+:root {
+  --pink: #FFB3D9;
+  --yellow: #FFF3B0;
+  --mint: #B8F0D8;
+  --blue: #B3D4FF;
+  --strawberry: #FF9AA2;
+  --cream: #FFFEF2;
+  --white: #FFFFFF;
+  --text: #5A3E5C;
+  --text-light: #8B6E8E;
+  --shadow: rgba(180,100,160,0.15);
+  --shadow-strong: rgba(180,100,160,0.25);
+  --radius: 28px;
+  --radius-sm: 18px;
+  --radius-xs: 12px;
+  --nav-h: 72px;
+  --dark-bg: #2D1B0E;
+  --dark-card: #3D2B1E;
+  --dark-text: #FFE4D6;
+  --dark-text-light: #C4A898;
+}
+* { margin:0; padding:0; box-sizing:border-box; -webkit-tap-highlight-color:transparent; }
+body {
+  font-family:'Nunito',sans-serif;
+  background: var(--cream);
+  color: var(--text);
+  overflow: hidden;
+  user-select: none;
+  transition: background .4s, color .4s;
+}
+body.dark { background: var(--dark-bg); color: var(--dark-text); }
+body.dark .screen { background: var(--dark-bg); }
+
+.phone {
+  width:375px; height:812px;
+  margin:0 auto;
+  position:relative;
+  overflow:hidden;
+  background: var(--cream);
+  transition: background .4s;
+}
+body.dark .phone { background: var(--dark-bg); }
+
+/* Sprinkles BG */
+.sprinkles-bg {
+  position:fixed; top:0; left:0; width:100%; height:100%;
+  pointer-events:none; z-index:0; overflow:hidden;
+}
+.sprinkle {
+  position:absolute;
+  width:6px; height:6px;
+  border-radius:50%;
+  opacity:.35;
+}
+body.dark .sprinkle { opacity:.15; }
+
+/* Screens */
+.screen {
+  position:absolute; top:0; left:0; width:100%; height:100%;
+  padding-bottom: var(--nav-h);
+  overflow-y:auto; overflow-x:hidden;
+  transition: transform .35s cubic-bezier(.4,0,.2,1), opacity .35s;
+  background: var(--cream);
+  z-index:1;
+  -webkit-overflow-scrolling: touch;
+}
+.screen.hidden { transform:translateX(100%); opacity:0; pointer-events:none; }
+.screen.hidden-left { transform:translateX(-100%); opacity:0; pointer-events:none; }
+
+.screen::-webkit-scrollbar { width:0; }
+
+/* Bottom Nav */
+.bottom-nav {
+  position:absolute; bottom:0; left:0; width:100%;
+  height: var(--nav-h);
+  background: var(--white);
+  display:flex; align-items:center; justify-content:space-around;
+  z-index:100;
+  border-top:2px solid rgba(255,179,217,.3);
+  box-shadow: 0 -4px 20px var(--shadow);
+  transition: background .4s, border-color .4s;
+}
+body.dark .bottom-nav { background: var(--dark-card); border-top-color: rgba(255,179,217,.15); }
+
+.nav-item {
+  display:flex; flex-direction:column; align-items:center; gap:2px;
+  font-size:10px; font-weight:700; color:var(--text-light);
+  cursor:pointer; padding:6px 12px;
+  border-radius: var(--radius-xs);
+  transition: all .25s;
+  position:relative;
+}
+.nav-item .nav-icon { font-size:24px; transition: transform .25s; }
+.nav-item.active { color: #E066A0; }
+.nav-item.active .nav-icon { transform: scale(1.2); }
+.nav-item.active::after {
+  content:''; position:absolute; bottom:0; left:50%; transform:translateX(-50%);
+  width:24px; height:4px; border-radius:2px;
+  background: linear-gradient(90deg, var(--pink), var(--strawberry));
+}
+body.dark .nav-item { color: var(--dark-text-light); }
+body.dark .nav-item.active { color: #FF8AC0; }
+
+/* Header */
+.header {
+  padding:20px 24px 16px;
+  position:relative;
+  overflow:hidden;
+}
+.header-bg {
+  position:absolute; top:0; left:0; width:100%; height:100%;
+  background: linear-gradient(135deg, var(--pink), #FFD1E8, var(--yellow));
+  z-index:0;
+  border-radius: 0 0 var(--radius) var(--radius);
+}
+body.dark .header-bg {
+  background: linear-gradient(135deg, #4A1A2E, #3D2B1E, #2D1B0E);
+}
+.header-content { position:relative; z-index:2; }
+.greeting { font-size:26px; font-weight:900; margin-bottom:4px; }
+.sub-greeting { font-size:14px; font-weight:600; color: var(--text-light); }
+body.dark .sub-greeting { color: var(--dark-text-light); }
+
+/* Falling sprinkles in header */
+.falling-sprinkle {
+  position:absolute; z-index:1;
+  font-size:14px;
+  animation: fallDown linear infinite;
+  opacity:.6;
+}
+@keyframes fallDown {
+  0% { transform:translateY(-20px) rotate(0deg); opacity:.8; }
+  100% { transform:translateY(160px) rotate(360deg); opacity:0; }
+}
+
+/* Donut Chart */
+.donut-wrap {
+  display:flex; justify-content:center; padding:20px 0 10px;
+}
+.donut-container {
+  position:relative; width:140px; height:140px;
+}
+.donut-svg { width:140px; height:140px; transform:rotate(-90deg); }
+.donut-bg { fill:none; stroke: #F0E0F0; stroke-width:18; }
+body.dark .donut-bg { stroke: #4A3A3A; }
+.donut-fill {
+  fill:none; stroke:url(#donutGrad); stroke-width:18;
+  stroke-linecap:round;
+  transition: stroke-dashoffset 1s ease;
+}
+.donut-hole {
+  position:absolute; top:50%; left:50%; transform:translate(-50%,-50%);
+  font-size:32px; line-height:1;
+}
+.donut-text {
+  position:absolute; top:50%; left:50%; transform:translate(-50%,-50%);
+  text-align:center;
+}
+.donut-percent { font-size:28px; font-weight:900; color: #E066A0; }
+body.dark .donut-percent { color: #FF8AC0; }
+.donut-label { font-size:11px; color: var(--text-light); font-weight:700; }
+
+/* Stat cards */
+.stats-row {
+  display:flex; gap:10px; padding:12px 20px;
+  overflow-x:auto;
+}
+.stat-card {
+  flex:1; min-width:95px;
+  padding:14px 10px;
+  border-radius: var(--radius-sm);
+  text-align:center;
+  position:relative;
+  overflow:hidden;
+  box-shadow: 0 4px 14px var(--shadow);
+}
+.stat-card::before {
+  content:''; position:absolute; top:0; left:0; right:0; height:6px;
+  background: repeating-linear-gradient(90deg, transparent, transparent 4px, rgba(255,255,255,.5) 4px, rgba(255,255,255,.5) 8px);
+}
+.stat-card::after {
+  content:''; position:absolute; bottom:0; left:0; right:0; height:6px;
+  background: repeating-linear-gradient(90deg, transparent, transparent 4px, rgba(255,255,255,.5) 4px, rgba(255,255,255,.5) 8px);
+}
+.stat-card.c1 { background: linear-gradient(135deg, var(--pink), #FFD1E8); }
+.stat-card.c2 { background: linear-gradient(135deg, var(--mint), #D4FADE); }
+.stat-card.c3 { background: linear-gradient(135deg, var(--yellow), #FFF8D6); }
+body.dark .stat-card.c1 { background: linear-gradient(135deg, #6B2A4A, #4A1A3A); }
+body.dark .stat-card.c2 { background: linear-gradient(135deg, #1A4A3A, #2A3A2A); }
+body.dark .stat-card.c3 { background: linear-gradient(135deg, #5A4A1A, #4A3A1A); }
+.stat-emoji { font-size:24px; }
+.stat-label { font-size:11px; font-weight:700; margin-top:4px; }
+.stat-value { font-size:22px; font-weight:900; }
+
+/* Section */
+.section-title {
+  padding:16px 24px 8px;
+  font-size:16px; font-weight:800;
+}
+
+/* Task cards */
+.task-list { padding:0 20px 20px; }
+.task-card {
+  display:flex; align-items:center; gap:12px;
+  background: var(--white);
+  border-radius: var(--radius-sm);
+  padding:14px 16px;
+  margin-bottom:10px;
+  box-shadow: 0 4px 16px var(--shadow);
+  position:relative;
+  overflow:hidden;
+  transition: transform .2s, box-shadow .2s, background .4s;
+  cursor:pointer;
+}
+body.dark .task-card { background: var(--dark-card); box-shadow: 0 4px 16px rgba(0,0,0,.3); }
+.task-card:active { transform:scale(.97); }
+.task-stripe {
+  position:absolute; left:0; top:0; bottom:0; width:6px;
+}
+.task-stripe.s-pink { background: linear-gradient(180deg, var(--pink), var(--strawberry)); }
+.task-stripe.s-mint { background: linear-gradient(180deg, var(--mint), #7DDFB0); }
+.task-stripe.s-yellow { background: linear-gradient(180deg, var(--yellow), #FFE066); }
+.task-stripe.s-blue { background: linear-gradient(180deg, var(--blue), #89B8FF); }
+
+.task-check {
+  width:30px; height:30px;
+  border-radius:50%;
+  border:3px solid var(--pink);
+  display:flex; align-items:center; justify-content:center;
+  font-size:16px;
+  cursor:pointer;
+  transition: all .3s;
+  flex-shrink:0;
+  margin-left:8px;
+}
+.task-check.checked {
+  background: linear-gradient(135deg, var(--pink), var(--strawberry));
+  border-color: transparent;
+  animation: candyPop .4s ease;
+}
+@keyframes candyPop {
+  0% { transform:scale(1); }
+  30% { transform:scale(1.3); }
+  60% { transform:scale(.9); }
+  100% { transform:scale(1); }
+}
+.task-info { flex:1; }
+.task-title { font-size:14px; font-weight:700; transition: all .3s; }
+.task-title.done { text-decoration:line-through; opacity:.5; }
+.task-time { font-size:11px; color:var(--text-light); font-weight:600; margin-top:2px; }
+body.dark .task-time { color: var(--dark-text-light); }
+.task-emoji { font-size:20px; }
+
+/* Screen 2 - Tasks */
+.tabs-row {
+  display:flex; gap:8px; padding:12px 20px;
+  overflow-x:auto;
+}
+.tab-btn {
+  padding:10px 18px;
+  border-radius:50px;
+  font-size:13px; font-weight:700;
+  border:none; cursor:pointer;
+  white-space:nowrap;
+  transition: all .25s;
+  box-shadow: 0 3px 10px var(--shadow);
+}
+.tab-btn.active { transform:scale(1.05); }
+.tab-home { background: var(--pink); color: var(--text); }
+.tab-home.active { background: #FF8ABF; color:#fff; }
+.tab-work { background: var(--blue); color: var(--text); }
+.tab-work.active { background: #7AAFFF; color:#fff; }
+.tab-study { background: var(--yellow); color: var(--text); }
+.tab-study.active { background: #FFE066; color: var(--text); }
+.tab-shop { background: var(--mint); color: var(--text); }
+.tab-shop.active { background: #7DDFB0; color:#fff; }
+body.dark .tab-btn { opacity:.85; }
+
+.quick-add {
+  margin:8px 20px;
+  display:flex; gap:8px;
+}
+.quick-add input {
+  flex:1;
+  padding:14px 18px;
+  border-radius:50px;
+  border:2.5px solid var(--pink);
+  font-family:'Nunito',sans-serif;
+  font-size:14px; font-weight:600;
+  background: var(--white);
+  color: var(--text);
+  outline:none;
+  transition: border-color .3s, background .4s, color .4s;
+}
+body.dark .quick-add input { background: var(--dark-card); color: var(--dark-text); border-color:#6B2A4A; }
+.quick-add input:focus { border-color: var(--strawberry); }
+.quick-add input::placeholder { color: var(--text-light); }
+.quick-add-btn {
+  width:48px; height:48px;
+  border-radius:50%;
+  border:none;
+  background: linear-gradient(135deg, var(--pink), var(--strawberry));
+  color:#fff; font-size:24px; font-weight:700;
+  cursor:pointer;
+  box-shadow: 0 4px 14px rgba(255,154,162,.4);
+  transition: transform .2s;
+  display:flex; align-items:center; justify-content:center;
+}
+.quick-add-btn:active { transform:scale(.9); }
+
+.empty-state {
+  text-align:center; padding:60px 20px;
+  font-size:16px; font-weight:700;
+  color: var(--text-light);
+}
+.empty-state .empty-emoji { font-size:64px; display:block; margin-bottom:16px; }
+
+/* Screen 3 - Calendar */
+.cal-header {
+  display:flex; justify-content:space-between; align-items:center;
+  padding:16px 24px;
+}
+.cal-month { font-size:20px; font-weight:900; }
+.cal-nav-btn {
+  width:36px; height:36px; border-radius:50%;
+  border:none; background:var(--pink);
+  font-size:18px; cursor:pointer;
+  display:flex; align-items:center; justify-content:center;
+  box-shadow: 0 3px 10px var(--shadow);
+  transition: transform .2s;
+}
+body.dark .cal-nav-btn { background:#6B2A4A; }
+.cal-nav-btn:active { transform:scale(.9); }
+.cal-grid {
+  display:grid; grid-template-columns:repeat(7,1fr);
+  gap:4px; padding:0 16px;
+  text-align:center;
+}
+.cal-day-name {
+  font-size:11px; font-weight:700; color:var(--text-light);
+  padding:4px 0;
+}
+.cal-day {
+  aspect-ratio:1; border-radius:var(--radius-xs);
+  display:flex; flex-direction:column; align-items:center; justify-content:center;
+  font-size:14px; font-weight:700;
+  cursor:pointer; transition: all .2s;
+  position:relative;
+}
+.cal-day:hover { background:rgba(255,179,217,.2); }
+.cal-day.today {
+  background: linear-gradient(135deg, var(--pink), var(--strawberry));
+  color:#fff; border-radius:50%;
+  box-shadow: 0 3px 12px rgba(255,154,162,.4);
+}
+body.dark .cal-day.today { background: linear-gradient(135deg, #FF6B9D, #FF4777); }
+.cal-day.selected {
+  background: var(--blue);
+  color:#fff; border-radius:50%;
+}
+.cal-day .cal-dot {
+  position:absolute; bottom:3px;
+  font-size:6px; line-height:1;
+}
+.cal-day.has-tasks .cal-dot { display:block; }
+.cal-day .cal-dot { display:none; }
+
+/* Screen 4 - Profile */
+.profile-header {
+  text-align:center; padding:30px 20px 20px;
+}
+.avatar-ring {
+  width:110px; height:110px;
+  border-radius:50%;
+  margin:0 auto 12px;
+  padding:5px;
+  background: conic-gradient(var(--pink), var(--yellow), var(--mint), var(--blue), var(--strawberry), var(--pink));
+  animation: ringRotate 4s linear infinite;
+  box-shadow: 0 4px 20px var(--shadow-strong);
+}
+@keyframes ringRotate {
+  to { transform:rotate(360deg); }
+}
+.avatar-inner {
+  width:100%; height:100%;
+  border-radius:50%;
+  background: var(--cream);
+  display:flex; align-items:center; justify-content:center;
+  font-size:48px;
+}
+body.dark .avatar-inner { background: var(--dark-bg); }
+.profile-name { font-size:22px; font-weight:900; }
+.profile-rank {
+  font-size:14px; font-weight:700; color:var(--text-light);
+  margin-top:2px;
+}
+body.dark .profile-rank { color: var(--dark-text-light); }
+
+.profile-section {
+  padding:8px 20px;
+}
+.profile-section-title {
+  font-size:14px; font-weight:800; margin-bottom:10px;
+  padding-left:4px;
+}
+.rank-bar {
+  background: var(--white);
+  border-radius: var(--radius-sm);
+  padding:16px;
+  box-shadow: 0 4px 14px var(--shadow);
+  margin-bottom:12px;
+}
+body.dark .rank-bar { background: var(--dark-card); }
+.rank-progress-bg {
+  height:12px; border-radius:6px;
+  background:#F0E0F0;
+  overflow:hidden; margin-top:8px;
+}
+body.dark .rank-progress-bg { background:#4A3A3A; }
+.rank-progress-fill {
+  height:100%; border-radius:6px;
+  background: linear-gradient(90deg, var(--pink), var(--strawberry), var(--yellow));
+  transition: width 1s ease;
+}
+.rank-labels {
+  display:flex; justify-content:space-between;
+  font-size:11px; font-weight:700; margin-top:6px;
+}
+.rank-labels span { opacity:.6; }
+.rank-labels span.current { opacity:1; color:#E066A0; }
+
+.badges-grid {
+  display:grid; grid-template-columns:repeat(3,1fr);
+  gap:10px; margin-bottom:12px;
+}
+.badge-card {
+  background: var(--white);
+  border-radius: var(--radius-sm);
+  padding:14px 8px;
+  text-align:center;
+  box-shadow: 0 4px 14px var(--shadow);
+  transition: transform .2s;
+  cursor:pointer;
+}
+body.dark .badge-card { background: var(--dark-card); }
+.badge-card:active { transform:scale(.95); }
+.badge-emoji { font-size:28px; }
+.badge-label { font-size:10px; font-weight:700; margin-top:4px; }
+.badge-card.locked { opacity:.4; filter:grayscale(1); }
+
+.themes-row {
+  display:flex; gap:10px; margin-bottom:12px;
+}
+.theme-btn {
+  flex:1; padding:12px 6px;
+  border-radius:var(--radius-sm);
+  border:3px solid transparent;
+  text-align:center;
+  font-size:11px; font-weight:700;
+  cursor:pointer;
+  box-shadow: 0 3px 10px var(--shadow);
+  transition: all .25s;
+}
+.theme-btn.active { border-color:#E066A0; transform:scale(1.05); }
+.theme-cotton { background: linear-gradient(135deg, var(--pink), #FFD1E8); }
+.theme-lemon { background: linear-gradient(135deg, var(--yellow), #FFF8D6); }
+.theme-mintchoco { background: linear-gradient(135deg, var(--mint), #D4FADE); }
+.theme-berry { background: linear-gradient(135deg, var(--strawberry), #FFB8BD); }
+
+.dark-toggle {
+  display:flex; align-items:center; justify-content:space-between;
+  background: var(--white);
+  border-radius: var(--radius-sm);
+  padding:16px;
+  box-shadow: 0 4px 14px var(--shadow);
+  margin-bottom:20px;
+  cursor:pointer;
+}
+body.dark .dark-toggle { background: var(--dark-card); }
+.dark-toggle-label { font-size:14px; font-weight:700; }
+.toggle-track {
+  width:52px; height:28px;
+  border-radius:14px;
+  background:#E0D0E0;
+  position:relative;
+  transition: background .3s;
+}
+body.dark .toggle-track { background: linear-gradient(90deg, #FF6B9D, #FF9AA2); }
+.toggle-thumb {
+  width:22px; height:22px;
+  border-radius:50%;
+  background:#fff;
+  position:absolute;
+  top:3px; left:3px;
+  transition: transform .3s;
+  box-shadow: 0 2px 6px rgba(0,0,0,.15);
+}
+body.dark .toggle-thumb { transform:translateX(24px); }
+
+/* Modal */
+.modal-overlay {
+  position:absolute; top:0; left:0; width:100%; height:100%;
+  background:rgba(90,62,92,.4);
+  z-index:200;
+  display:flex; align-items:flex-end;
+  opacity:0; pointer-events:none;
+  transition: opacity .3s;
+}
+.modal-overlay.show { opacity:1; pointer-events:auto; }
+body.dark .modal-overlay { background:rgba(0,0,0,.6); }
+.modal-sheet {
+  width:100%;
+  background:var(--white);
+  border-radius: var(--radius) var(--radius) 0 0;
+  padding:24px 24px 40px;
+  transform:translateY(100%);
+  transition: transform .4s cubic-bezier(.34,1.56,.64,1);
+}
+.modal-overlay.show .modal-sheet { transform:translateY(0); }
+body.dark .modal-sheet { background: var(--dark-card); }
+.modal-handle {
+  width:40px; height:4px;
+  border-radius:2px;
+  background:#E0D0E0;
+  margin:0 auto 20px;
+}
+.modal-title { font-size:20px; font-weight:900; margin-bottom:16px; }
+.modal-input {
+  width:100%;
+  padding:14px 18px;
+  border-radius:var(--radius-sm);
+  border:2.5px solid var(--pink);
+  font-family:'Nunito',sans-serif;
+  font-size:14px; font-weight:600;
+  background:var(--cream);
+  color:var(--text);
+  outline:none;
+  margin-bottom:12px;
+  transition: border-color .3s;
+}
+body.dark .modal-input { background:var(--dark-bg); color:var(--dark-text); border-color:#6B2A4A; }
+.modal-input:focus { border-color:var(--strawberry); }
+.modal-cats {
+  display:flex; gap:8px; margin-bottom:16px; flex-wrap:wrap;
+}
+.modal-cat {
+  padding:8px 16px;
+  border-radius:50px;
+  font-size:12px; font-weight:700;
+  border:2.5px solid transparent;
+  cursor:pointer;
+  transition: all .2s;
+}
+.modal-cat.active { border-color:var(--text); transform:scale(1.05); }
+.modal-save {
+  width:100%; padding:16px;
+  border-radius:50px;
+  border:none;
+  background:linear-gradient(135deg,var(--pink),var(--strawberry));
+  color:#fff; font-size:16px; font-weight:800;
+  font-family:'Nunito',sans-serif;
+  cursor:pointer;
+  box-shadow: 0 4px 16px rgba(255,154,162,.4);
+  transition: transform .2s;
+}
+.modal-save:active { transform:scale(.96); }
+
+/* Sparkle particles */
+.sparkle {
+  position:absolute; pointer-events:none;
+  font-size:14px;
+  animation: sparkleUp .6s ease forwards;
+  z-index:50;
+}
+@keyframes sparkleUp {
+  0% { opacity:1; transform:translate(0,0) scale(1); }
+  100% { opacity:0; transform:translate(var(--sx),var(--sy)) scale(0); }
+}
+
+/* Scroll padding */
+.screen-content { padding-bottom:30px; }
+</style>
+</head>
+<body>
+<div class="phone" id="phone">
+  <!-- Sprinkles BG -->
+  <div class="sprinkles-bg" id="sprinklesBg"></div>
+
+  <!-- SCREEN 1: Today -->
+  <div class="screen" id="screenToday">
+    <div class="header">
+      <div class="header-bg"></div>
+      <div id="fallingContainer"></div>
+      <div class="header-content">
+        <div class="greeting">Сладкого дня, Рафаэль! 🍬</div>
+        <div class="sub-greeting">Вторник, 18 марта</div>
+      </div>
+    </div>
+
+    <div class="screen-content">
+      <!-- Donut Chart -->
+      <div class="donut-wrap">
+        <div class="donut-container">
+          <svg class="donut-svg" viewBox="0 0 140 140">
+            <defs>
+              <linearGradient id="donutGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+                <stop offset="0%" style="stop-color:#FFB3D9"/>
+                <stop offset="50%" style="stop-color:#FF9AA2"/>
+                <stop offset="100%" style="stop-color:#FFF3B0"/>
+              </linearGradient>
+            </defs>
+            <circle class="donut-bg" cx="70" cy="70" r="52"/>
+            <circle class="donut-fill" id="donutFill" cx="70" cy="70" r="52"
+              stroke-dasharray="326.73" stroke-dashoffset="326.73"/>
+          </svg>
+          <div class="donut-text">
+            <div class="donut-percent" id="donutPercent">0%</div>
+            <div class="donut-label">выполнено</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Stats -->
+      <div class="stats-row">
+        <div class="stat-card c1">
+          <div class="stat-emoji">🍬</div>
+          <div class="stat-label">Задачи</div>
+          <div class="stat-value" id="statTotal">8</div>
+        </div>
+        <div class="stat-card c2">
+          <div class="stat-emoji">✅</div>
+          <div class="stat-label">Съедено</div>
+          <div class="stat-value" id="statDone">3</div>
+        </div>
+        <div class="stat-card c3">
+          <div class="stat-emoji">🔥</div>
+          <div class="stat-label">Дней</div>
+          <div class="stat-value">12</div>
+        </div>
+      </div>
+
+      <!-- Morning -->
+      <div class="section-title">🌅 Завтрак</div>
+      <div class="task-list" id="morningTasks"></div>
+
+      <!-- Day -->
+      <div class="section-title">☀️ Обед</div>
+      <div class="task-list" id="dayTasks"></div>
+
+      <!-- Evening -->
+      <div class="section-title">🌙 Десерт</div>
+      <div class="task-list" id="eveningTasks"></div>
+    </div>
+  </div>
+
+  <!-- SCREEN 2: Tasks -->
+  <div class="screen hidden" id="screenTasks">
+    <div class="header">
+      <div class="header-bg"></div>
+      <div class="header-content">
+        <div class="greeting">Мои вкусняшки 🍩</div>
+        <div class="sub-greeting">Все задачи по категориям</div>
+      </div>
+    </div>
+    <div class="screen-content">
+      <div class="tabs-row" id="catTabs"></div>
+      <div class="quick-add">
+        <input type="text" id="quickAddInput" placeholder="Добавить вкусняшку... 🍭">
+        <button class="quick-add-btn" id="quickAddBtn">+</button>
+      </div>
+      <div class="task-list" id="catTaskList"></div>
+      <div class="empty-state" id="emptyState" style="display:none">
+        <span class="empty-emoji">🎂</span>
+        Все вкусняшки собраны!
+      </div>
+    </div>
+  </div>
+
+  <!-- SCREEN 3: Calendar -->
+  <div class="screen hidden" id="screenCalendar">
+    <div class="header">
+      <div class="header-bg"></div>
+      <div class="header-content">
+        <div class="greeting">Календарь 📅</div>
+        <div class="sub-greeting">Планируй сладкую жизнь</div>
+      </div>
+    </div>
+    <div class="screen-content">
+      <div class="cal-header">
+        <button class="cal-nav-btn" id="calPrev">‹</button>
+        <div class="cal-month" id="calMonth"></div>
+        <button class="cal-nav-btn" id="calNext">›</button>
+      </div>
+      <div class="cal-grid" id="calGrid"></div>
+      <div class="section-title" id="calDayTitle" style="margin-top:12px">🍭 Задачи на сегодня</div>
+      <div class="task-list" id="calTaskList"></div>
+    </div>
+  </div>
+
+  <!-- SCREEN 4: Profile -->
+  <div class="screen hidden" id="screenProfile">
+    <div class="header">
+      <div class="header-bg"></div>
+      <div class="header-content">
+        <div class="greeting">Профиль 🧁</div>
+      </div>
+    </div>
+    <div class="screen-content">
+      <div class="profile-header">
+        <div class="avatar-ring">
+          <div class="avatar-inner">🧁</div>
+        </div>
+        <div class="profile-name">Рафаэль</div>
+        <div class="profile-rank">🍫 Ранг: Шоколад</div>
+      </div>
+
+      <div class="profile-section">
+        <div class="profile-section-title">🏆 Путь сладкоежки</div>
+        <div class="rank-bar">
+          <div style="font-size:13px;font-weight:700">До ранга «Торт» — 230 XP</div>
+          <div class="rank-progress-bg">
+            <div class="rank-progress-fill" style="width:62%"></div>
+          </div>
+          <div class="rank-labels">
+            <span>🍭 Леденец</span>
+            <span>🍬 Мармелад</span>
+            <span class="current">🍫 Шоколад</span>
+            <span>🎂 Торт</span>
+            <span>👨‍🍳 Кондитер</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="profile-section">
+        <div class="profile-section-title">🎖️ Достижения</div>
+        <div class="badges-grid">
+          <div class="badge-card"><div class="badge-emoji">🍬</div><div class="badge-label">Первая задача</div></div>
+          <div class="badge-card"><div class="badge-emoji">🍩</div><div class="badge-label">7 дней подряд</div></div>
+          <div class="badge-card"><div class="badge-emoji">🧁</div><div class="badge-label">50 задач</div></div>
+          <div class="badge-card"><div class="badge-emoji">🍭</div><div class="badge-label">Ранний пташка</div></div>
+          <div class="badge-card locked"><div class="badge-emoji">🍪</div><div class="badge-label">100 задач</div></div>
+          <div class="badge-card locked"><div class="badge-emoji">🎂</div><div class="badge-label">30 дней</div></div>
+        </div>
+      </div>
+
+      <div class="profile-section">
+        <div class="profile-section-title">🎨 Тема</div>
+        <div class="themes-row" id="themesRow">
+          <div class="theme-btn theme-cotton active" data-theme="cotton">🩷 Cotton Candy</div>
+          <div class="theme-btn theme-lemon" data-theme="lemon">🍋 Lemon</div>
+          <div class="theme-btn theme-mintchoco" data-theme="mint">🍫 Mint Choco</div>
+          <div class="theme-btn theme-berry" data-theme="berry">🍓 Berry</div>
+        </div>
+      </div>
+
+      <div class="profile-section">
+        <div class="profile-section-title">⚙️ Настройки</div>
+        <div class="dark-toggle" id="darkToggle">
+          <span class="dark-toggle-label">🍫 Тёмный шоколад</span>
+          <div class="toggle-track"><div class="toggle-thumb"></div></div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Modal -->
+  <div class="modal-overlay" id="modalOverlay">
+    <div class="modal-sheet">
+      <div class="modal-handle"></div>
+      <div class="modal-title">Новая вкусняшка 🍭</div>
+      <input class="modal-input" id="modalTaskName" placeholder="Название задачи...">
+      <input class="modal-input" id="modalTaskTime" placeholder="Время (напр. 09:00)">
+      <div class="modal-cats" id="modalCats"></div>
+      <button class="modal-save" id="modalSave">Добавить 🍬</button>
+    </div>
+  </div>
+
+  <!-- Bottom Nav -->
+  <div class="bottom-nav">
+    <div class="nav-item active" data-screen="today">
+      <span class="nav-icon">🍬</span>
+      <span>Сегодня</span>
+    </div>
+    <div class="nav-item" data-screen="tasks">
+      <span class="nav-icon">🍩</span>
+      <span>Задачи</span>
+    </div>
+    <div class="nav-item" data-screen="calendar">
+      <span class="nav-icon">📅</span>
+      <span>Календарь</span>
+    </div>
+    <div class="nav-item" data-screen="profile">
+      <span class="nav-icon">🧁</span>
+      <span>Профиль</span>
+    </div>
+  </div>
+</div>
+
+<script>
+// ============ DATA ============
+const categories = [
+  { id:'home', label:'🏠 Дом', cls:'tab-home', stripe:'s-pink', color:'var(--pink)' },
+  { id:'work', label:'💼 Работа', cls:'tab-work', stripe:'s-blue', color:'var(--blue)' },
+  { id:'study', label:'📚 Учёба', cls:'tab-study', stripe:'s-yellow', color:'var(--yellow)' },
+  { id:'shop', label:'🛒 Покупки', cls:'tab-shop', stripe:'s-mint', color:'var(--mint)' }
+];
+
+let tasks = [
+  { id:1, title:'Утренняя зарядка', time:'07:00', cat:'home', period:'morning', done:false, emoji:'🍬' },
+  { id:2, title:'Позавтракать', time:'08:00', cat:'home', period:'morning', done:true, emoji:'🧁' },
+  { id:3, title:'Проверить почту', time:'09:00', cat:'work', period:'morning', done:true, emoji:'🍩' },
+  { id:4, title:'Митинг с командой', time:'10:30', cat:'work', period:'day', done:false, emoji:'🍭' },
+  { id:5, title:'Подготовить отчёт', time:'12:00', cat:'work', period:'day', done:true, emoji:'🍪' },
+  { id:6, title:'Обед', time:'13:00', cat:'home', period:'day', done:false, emoji:'🎂' },
+  { id:7, title:'Прочитать главу', time:'19:00', cat:'study', period:'evening', done:false, emoji:'🍫' },
+  { id:8, title:'Купить продукты', time:'18:00', cat:'shop', period:'evening', done:false, emoji:'🍰' },
+];
+
+let nextId = 20;
+let currentScreen = 'today';
+let currentCat = 'home';
+let calYear = 2026, calMonth = 2; // March 2026 (0-indexed)
+let selectedCalDay = 18;
+
+const stripes = ['s-pink','s-mint','s-yellow','s-blue'];
+const candyEmojis = ['🍬','🍩','🧁','🍭','🍪','🎂','🍰','🍫'];
+
+// ============ SPRINKLES BG ============
+function createSprinkles() {
+  const bg = document.getElementById('sprinklesBg');
+  const colors = ['#FFB3D9','#FFF3B0','#B8F0D8','#B3D4FF','#FF9AA2','#FFD1E8','#89B8FF'];
+  for (let i = 0; i < 80; i++) {
+    const s = document.createElement('div');
+    s.className = 'sprinkle';
+    s.style.left = Math.random()*100 + '%';
+    s.style.top = Math.random()*100 + '%';
+    s.style.background = colors[Math.floor(Math.random()*colors.length)];
+    s.style.width = (4+Math.random()*4) + 'px';
+    s.style.height = s.style.width;
+    bg.appendChild(s);
+  }
+}
+createSprinkles();
+
+// ============ FALLING SPRINKLES ============
+function createFalling() {
+  const c = document.getElementById('fallingContainer');
+  const emojis = ['🍬','🍩','🧁','🍭','🍪','✨','💖','⭐'];
+  for (let i = 0; i < 12; i++) {
+    const s = document.createElement('div');
+    s.className = 'falling-sprinkle';
+    s.textContent = emojis[Math.floor(Math.random()*emojis.length)];
+    s.style.left = Math.random()*90 + '%';
+    s.style.top = '-20px';
+    s.style.animationDuration = (2+Math.random()*3) + 's';
+    s.style.animationDelay = (Math.random()*4) + 's';
+    s.style.fontSize = (10+Math.random()*10) + 'px';
+    c.appendChild(s);
+  }
+}
+createFalling();
+
+// ============ NAVIGATION ============
+document.querySelectorAll('.nav-item').forEach(item => {
+  item.addEventListener('click', () => {
+    const target = item.dataset.screen;
+    if (target === currentScreen) return;
+    switchScreen(target);
+  });
+});
+
+function switchScreen(target) {
+  const screens = { today:'screenToday', tasks:'screenTasks', calendar:'screenCalendar', profile:'screenProfile' };
+  const order = ['today','tasks','calendar','profile'];
+  const fromIdx = order.indexOf(currentScreen);
+  const toIdx = order.indexOf(target);
+
+  Object.values(screens).forEach(id => {
+    const el = document.getElementById(id);
+    el.classList.add('hidden');
+  });
+
+  const targetEl = document.getElementById(screens[target]);
+  targetEl.classList.remove('hidden','hidden-left');
+
+  document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
+  document.querySelector(`.nav-item[data-screen="${target}"]`).classList.add('active');
+
+  currentScreen = target;
+
+  if (target === 'today') renderToday();
+  if (target === 'tasks') renderCatTasks();
+  if (target === 'calendar') renderCalendar();
+}
+
+// ============ SPARKLE EFFECT ============
+function sparkleAt(x, y) {
+  const emojis = ['✨','💖','⭐','🌟','💫'];
+  for (let i = 0; i < 5; i++) {
+    const s = document.createElement('div');
+    s.className = 'sparkle';
+    s.textContent = emojis[Math.floor(Math.random()*emojis.length)];
+    s.style.left = x + 'px';
+    s.style.top = y + 'px';
+    s.style.setProperty('--sx', (Math.random()*60-30)+'px');
+    s.style.setProperty('--sy', (-20-Math.random()*40)+'px');
+    document.getElementById('phone').appendChild(s);
+    setTimeout(() => s.remove(), 600);
+  }
+}
+
+// ============ TASK CARD RENDER ============
+function renderTaskCard(task, container) {
+  const card = document.createElement('div');
+  card.className = 'task-card';
+
+  const cat = categories.find(c => c.id === task.cat) || categories[0];
+  card.innerHTML = `
+    <div class="task-stripe ${cat.stripe}"></div>
+    <div class="task-check ${task.done?'checked':''}" data-id="${task.id}">${task.done?'✨':'  '}</div>
+    <div class="task-info">
+      <div class="task-title ${task.done?'done':''}">${task.title}</div>
+      <div class="task-time">${task.time || ''}</div>
+    </div>
+    <div class="task-emoji">${task.emoji}</div>
+  `;
+
+  const check = card.querySelector('.task-check');
+  check.addEventListener('click', (e) => {
+    e.stopPropagation();
+    task.done = !task.done;
+    check.classList.toggle('checked');
+    check.textContent = task.done ? '✨' : '';
+    card.querySelector('.task-title').classList.toggle('done');
+
+    if (task.done) {
+      const rect = check.getBoundingClientRect();
+      const phoneRect = document.getElementById('phone').getBoundingClientRect();
+      sparkleAt(rect.left - phoneRect.left + 15, rect.top - phoneRect.top + 15);
+    }
+    updateStats();
+  });
+
+  container.appendChild(card);
+}
+
+// ============ SCREEN 1: TODAY ============
+function renderToday() {
+  ['morningTasks','dayTasks','eveningTasks'].forEach(id => {
+    document.getElementById(id).innerHTML = '';
+  });
+
+  const periods = { morning:'morningTasks', day:'dayTasks', evening:'eveningTasks' };
+  tasks.forEach(t => {
+    if (periods[t.period]) {
+      renderTaskCard(t, document.getElementById(periods[t.period]));
+    }
+  });
+  updateStats();
+}
+
+function updateStats() {
+  const total = tasks.length;
+  const done = tasks.filter(t => t.done).length;
+  const pct = total ? Math.round(done/total*100) : 0;
+
+  document.getElementById('statTotal').textContent = total;
+  document.getElementById('statDone').textContent = done;
+  document.getElementById('donutPercent').textContent = pct + '%';
+
+  const circ = 2 * Math.PI * 52;
+  const offset = circ - (circ * pct / 100);
+  document.getElementById('donutFill').style.strokeDashoffset = offset;
+}
+
+// ============ SCREEN 2: TASKS ============
+function renderCatTabs() {
+  const container = document.getElementById('catTabs');
+  container.innerHTML = '';
+  categories.forEach(cat => {
+    const btn = document.createElement('button');
+    btn.className = `tab-btn ${cat.cls} ${cat.id===currentCat?'active':''}`;
+    btn.textContent = cat.label;
+    btn.addEventListener('click', () => {
+      currentCat = cat.id;
+      renderCatTabs();
+      renderCatTasks();
+    });
+    container.appendChild(btn);
+  });
+}
+
+function renderCatTasks() {
+  renderCatTabs();
+  const container = document.getElementById('catTaskList');
+  container.innerHTML = '';
+  const filtered = tasks.filter(t => t.cat === currentCat);
+  const empty = document.getElementById('emptyState');
+
+  if (filtered.length === 0) {
+    empty.style.display = 'block';
+    return;
+  }
+  empty.style.display = 'none';
+  filtered.forEach(t => renderTaskCard(t, container));
+}
+
+// Quick add
+document.getElementById('quickAddBtn').addEventListener('click', () => {
+  const input = document.getElementById('quickAddInput');
+  const val = input.value.trim();
+  if (!val) {
+    openModal();
+    return;
+  }
+  addTask(val, '', currentCat, 'morning');
+  input.value = '';
+  renderCatTasks();
+  if (currentScreen === 'today') renderToday();
+});
+
+document.getElementById('quickAddInput').addEventListener('keydown', (e) => {
+  if (e.key === 'Enter') document.getElementById('quickAddBtn').click();
+});
+
+function addTask(title, time, cat, period) {
+  tasks.push({
+    id: nextId++,
+    title, time, cat, period,
+    done: false,
+    emoji: candyEmojis[Math.floor(Math.random()*candyEmojis.length)]
+  });
+  updateStats();
+}
+
+// ============ MODAL ============
+function openModal() {
+  const overlay = document.getElementById('modalOverlay');
+  overlay.classList.add('show');
+
+  const cats = document.getElementById('modalCats');
+  cats.innerHTML = '';
+  categories.forEach(cat => {
+    const btn = document.createElement('div');
+    btn.className = `modal-cat ${cat.id===currentCat?'active':''}`;
+    btn.style.background = cat.color;
+    btn.textContent = cat.label;
+    btn.addEventListener('click', () => {
+      cats.querySelectorAll('.modal-cat').forEach(c => c.classList.remove('active'));
+      btn.classList.add('active');
+    });
+    cats.appendChild(btn);
+  });
+
+  document.getElementById('modalTaskName').value = '';
+  document.getElementById('modalTaskTime').value = '';
+  setTimeout(() => document.getElementById('modalTaskName').focus(), 400);
+}
+
+function closeModal() {
+  document.getElementById('modalOverlay').classList.remove('show');
+}
+
+document.getElementById('modalOverlay').addEventListener('click', (e) => {
+  if (e.target === e.currentTarget) closeModal();
+});
+
+document.getElementById('modalSave').addEventListener('click', () => {
+  const name = document.getElementById('modalTaskName').value.trim();
+  if (!name) return;
+  const time = document.getElementById('modalTaskTime').value.trim();
+  const activeCat = document.querySelector('.modal-cat.active');
+  const catId = activeCat ? categories.find(c => c.label === activeCat.textContent)?.id || 'home' : 'home';
+
+  let period = 'morning';
+  if (time) {
+    const h = parseInt(time);
+    if (h >= 12 && h < 17) period = 'day';
+    else if (h >= 17) period = 'evening';
+  }
+
+  addTask(name, time, catId, period);
+  closeModal();
+  if (currentScreen === 'today') renderToday();
+  if (currentScreen === 'tasks') renderCatTasks();
+});
+
+// ============ SCREEN 3: CALENDAR ============
+const monthNames = ['Январь','Февраль','Март','Апрель','Май','Июнь','Июль','Август','Сентябрь','Октябрь','Ноябрь','Декабрь'];
+const dayNames = ['Пн','Вт','Ср','Чт','Пт','Сб','Вс'];
+const candyDots = ['🍬','🍩','🍭','🧁','🍪'];
+
+function renderCalendar() {
+  document.getElementById('calMonth').textContent = monthNames[calMonth] + ' ' + calYear;
+  const grid = document.getElementById('calGrid');
+  grid.innerHTML = '';
+
+  dayNames.forEach(d => {
+    const el = document.createElement('div');
+    el.className = 'cal-day-name';
+    el.textContent = d;
+    grid.appendChild(el);
+  });
+
+  const firstDay = new Date(calYear, calMonth, 1).getDay();
+  const offset = firstDay === 0 ? 6 : firstDay - 1;
+  const daysInMonth = new Date(calYear, calMonth + 1, 0).getDate();
+
+  // Days with tasks (simulate some)
+  const taskDays = new Set([1,3,5,8,10,12,14,18,20,22,25,28]);
+
+  for (let i = 0; i < offset; i++) {
+    const el = document.createElement('div');
+    el.className = 'cal-day';
+    grid.appendChild(el);
+  }
+
+  for (let d = 1; d <= daysInMonth; d++) {
+    const el = document.createElement('div');
+    el.className = 'cal-day';
+    if (taskDays.has(d)) el.classList.add('has-tasks');
+    if (d === 18 && calMonth === 2 && calYear === 2026) el.classList.add('today');
+    if (d === selectedCalDay && calMonth === 2 && calYear === 2026) el.classList.add('selected');
+
+    el.innerHTML = `${d}<span class="cal-dot">${candyDots[d%candyDots.length]}</span>`;
+    el.addEventListener('click', () => {
+      grid.querySelectorAll('.cal-day.selected').forEach(s => s.classList.remove('selected'));
+      el.classList.add('selected');
+      selectedCalDay = d;
+      renderCalDayTasks(d);
+    });
+    grid.appendChild(el);
+  }
+
+  renderCalDayTasks(selectedCalDay);
+}
+
+function renderCalDayTasks(day) {
+  document.getElementById('calDayTitle').textContent = `🍭 Задачи на ${day} ${monthNames[calMonth].toLowerCase()}`;
+  const container = document.getElementById('calTaskList');
+  container.innerHTML = '';
+
+  // Show today's tasks for day 18
+  if (day === 18 && calMonth === 2 && calYear === 2026) {
+    tasks.forEach(t => renderTaskCard(t, container));
+  } else {
+    // Simulated for other days
+    const simCount = Math.floor(Math.random()*3);
+    if (simCount === 0) {
+      container.innerHTML = '<div class="empty-state"><span class="empty-emoji">🍰</span>Свободный денёк!</div>';
+    } else {
+      for (let i = 0; i < simCount; i++) {
+        renderTaskCard({
+          id: 900+day*10+i, title: ['Встреча','Тренировка','Чтение','Покупки','Уборка'][Math.floor(Math.random()*5)],
+          time: `${9+i*3}:00`, cat: categories[Math.floor(Math.random()*4)].id,
+          period:'morning', done:false,
+          emoji: candyEmojis[Math.floor(Math.random()*candyEmojis.length)]
+        }, container);
+      }
+    }
+  }
+}
+
+document.getElementById('calPrev').addEventListener('click', () => {
+  calMonth--;
+  if (calMonth < 0) { calMonth = 11; calYear--; }
+  renderCalendar();
+});
+document.getElementById('calNext').addEventListener('click', () => {
+  calMonth++;
+  if (calMonth > 11) { calMonth = 0; calYear++; }
+  renderCalendar();
+});
+
+// ============ SCREEN 4: PROFILE ============
+// Theme buttons
+document.getElementById('themesRow').addEventListener('click', (e) => {
+  const btn = e.target.closest('.theme-btn');
+  if (!btn) return;
+  document.querySelectorAll('.theme-btn').forEach(b => b.classList.remove('active'));
+  btn.classList.add('active');
+
+  const theme = btn.dataset.theme;
+  const root = document.documentElement.style;
+  switch(theme) {
+    case 'cotton':
+      root.setProperty('--pink','#FFB3D9');
+      root.setProperty('--yellow','#FFF3B0');
+      root.setProperty('--mint','#B8F0D8');
+      root.setProperty('--blue','#B3D4FF');
+      root.setProperty('--strawberry','#FF9AA2');
+      break;
+    case 'lemon':
+      root.setProperty('--pink','#FFF3B0');
+      root.setProperty('--yellow','#FFE066');
+      root.setProperty('--mint','#FFF8D6');
+      root.setProperty('--blue','#FFD700');
+      root.setProperty('--strawberry','#FFCC00');
+      break;
+    case 'mint':
+      root.setProperty('--pink','#B8F0D8');
+      root.setProperty('--yellow','#D4FADE');
+      root.setProperty('--mint','#7DDFB0');
+      root.setProperty('--blue','#5CCFA0');
+      root.setProperty('--strawberry','#3DB87A');
+      break;
+    case 'berry':
+      root.setProperty('--pink','#FF9AA2');
+      root.setProperty('--yellow','#FFB3D9');
+      root.setProperty('--mint','#FFD1E8');
+      root.setProperty('--blue','#FF7088');
+      root.setProperty('--strawberry','#FF4466');
+      break;
+  }
+});
+
+// Dark toggle
+document.getElementById('darkToggle').addEventListener('click', () => {
+  document.body.classList.toggle('dark');
+});
+
+// ============ INIT ============
+renderToday();
+renderCatTabs();
+
+// Animate donut on load
+setTimeout(() => {
+  updateStats();
+}, 300);
+</script>
+</body>
+</html>

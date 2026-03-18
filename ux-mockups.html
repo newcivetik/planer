@@ -1,0 +1,1556 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Планер — UX Mockups</title>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap');
+
+:root {
+  /* Light theme */
+  --bg: #F5F5F7;
+  --surface: #FFFFFF;
+  --surface2: #F0F0F5;
+  --text: #1C1C1E;
+  --text2: #8E8E93;
+  --text3: #AEAEB2;
+  --border: #E5E5EA;
+  --primary: #5B4CDB;
+  --primary-light: #7B6EF6;
+  --primary-bg: rgba(91,76,219,0.08);
+  --accent: #FF9F0A;
+  --accent-bg: rgba(255,159,10,0.1);
+  --success: #34C759;
+  --success-bg: rgba(52,199,89,0.1);
+  --danger: #FF3B30;
+  --danger-bg: rgba(255,59,48,0.1);
+  --shadow: rgba(0,0,0,0.06);
+  --shadow2: rgba(0,0,0,0.12);
+  --glass: rgba(255,255,255,0.72);
+  --glass-border: rgba(255,255,255,0.5);
+  --nav-bg: rgba(255,255,255,0.92);
+  --card-hover: #F8F8FC;
+}
+
+[data-theme="dark"] {
+  --bg: #000000;
+  --surface: #1C1C1E;
+  --surface2: #2C2C2E;
+  --text: #F5F5F7;
+  --text2: #8E8E93;
+  --text3: #636366;
+  --border: #38383A;
+  --primary: #7B6EF6;
+  --primary-light: #9D93FF;
+  --primary-bg: rgba(123,110,246,0.15);
+  --accent: #FFB340;
+  --accent-bg: rgba(255,179,64,0.15);
+  --success: #30D158;
+  --success-bg: rgba(48,209,88,0.15);
+  --danger: #FF453A;
+  --danger-bg: rgba(255,69,58,0.15);
+  --shadow: rgba(0,0,0,0.3);
+  --shadow2: rgba(0,0,0,0.5);
+  --glass: rgba(28,28,30,0.72);
+  --glass-border: rgba(56,56,58,0.5);
+  --nav-bg: rgba(28,28,30,0.92);
+  --card-hover: #2C2C2E;
+}
+
+* { margin: 0; padding: 0; box-sizing: border-box; }
+body {
+  font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+  background: var(--bg);
+  color: var(--text);
+  line-height: 1.5;
+  transition: background 0.3s, color 0.3s;
+}
+
+/* === PAGE LAYOUT === */
+.page-header {
+  text-align: center;
+  padding: 60px 20px 40px;
+  background: linear-gradient(135deg, var(--primary), #8B5CF6);
+  color: white;
+}
+.page-header h1 { font-size: 42px; font-weight: 800; letter-spacing: -1px; }
+.page-header p { font-size: 18px; opacity: 0.85; margin-top: 8px; max-width: 600px; margin-inline: auto; }
+
+.controls {
+  display: flex; justify-content: center; gap: 12px;
+  padding: 20px; position: sticky; top: 0; z-index: 100;
+  background: var(--nav-bg); backdrop-filter: blur(20px);
+  border-bottom: 1px solid var(--border);
+}
+.controls button {
+  padding: 10px 24px; border-radius: 100px; border: 1px solid var(--border);
+  background: var(--surface); color: var(--text); font-family: inherit;
+  font-weight: 600; font-size: 14px; cursor: pointer; transition: all 0.2s;
+}
+.controls button:hover { background: var(--primary); color: white; border-color: var(--primary); }
+.controls button.active { background: var(--primary); color: white; border-color: var(--primary); }
+
+.section {
+  max-width: 1400px; margin: 0 auto; padding: 40px 20px;
+}
+.section-title {
+  font-size: 28px; font-weight: 700; margin-bottom: 8px; letter-spacing: -0.5px;
+}
+.section-subtitle {
+  color: var(--text2); font-size: 16px; margin-bottom: 32px;
+}
+.variants {
+  display: flex; gap: 32px; overflow-x: auto; padding-bottom: 20px;
+  scroll-snap-type: x mandatory;
+}
+.variant { scroll-snap-align: start; flex-shrink: 0; }
+.variant-label {
+  font-size: 13px; font-weight: 700; text-transform: uppercase;
+  letter-spacing: 1.5px; color: var(--primary); margin-bottom: 12px;
+}
+
+/* === PHONE FRAME === */
+.phone {
+  width: 375px; height: 812px; border-radius: 44px;
+  background: var(--bg); overflow: hidden; position: relative;
+  box-shadow: 0 0 0 8px #1C1C1E, 0 20px 60px var(--shadow2);
+  transition: background 0.3s;
+}
+.phone-inner {
+  width: 100%; height: 100%; overflow-y: auto; overflow-x: hidden;
+  position: relative;
+}
+.phone-inner::-webkit-scrollbar { display: none; }
+
+/* Status bar */
+.status-bar {
+  display: flex; justify-content: space-between; align-items: center;
+  padding: 12px 28px 0; font-size: 14px; font-weight: 600;
+  position: sticky; top: 0; z-index: 10;
+}
+.status-icons { display: flex; gap: 6px; align-items: center; }
+
+/* Nav bar */
+.bottom-nav {
+  position: absolute; bottom: 0; left: 0; right: 0;
+  display: flex; justify-content: space-around; align-items: center;
+  padding: 8px 0 28px; background: var(--nav-bg);
+  backdrop-filter: blur(20px); border-top: 0.5px solid var(--border);
+  z-index: 10;
+}
+.nav-item {
+  display: flex; flex-direction: column; align-items: center; gap: 2px;
+  font-size: 10px; color: var(--text3); font-weight: 500;
+}
+.nav-item.active { color: var(--primary); }
+.nav-item svg { width: 24px; height: 24px; }
+
+/* FAB */
+.fab {
+  position: absolute; bottom: 100px; right: 20px; z-index: 20;
+  width: 56px; height: 56px; border-radius: 16px;
+  background: var(--primary); color: white; border: none;
+  font-size: 28px; cursor: pointer; display: flex;
+  align-items: center; justify-content: center;
+  box-shadow: 0 8px 24px rgba(91,76,219,0.35);
+  transition: transform 0.2s, box-shadow 0.2s;
+}
+.fab:hover { transform: scale(1.08); box-shadow: 0 12px 32px rgba(91,76,219,0.45); }
+
+/* === SHARED COMPONENTS === */
+.app-bar {
+  padding: 8px 20px 12px; display: flex; flex-direction: column;
+}
+.app-bar-title { font-size: 32px; font-weight: 800; letter-spacing: -0.5px; }
+.app-bar-sub { font-size: 14px; color: var(--text2); font-weight: 500; }
+
+.progress-ring {
+  width: 64px; height: 64px; position: relative;
+}
+.progress-ring svg { transform: rotate(-90deg); }
+.progress-ring .ring-text {
+  position: absolute; inset: 0; display: flex;
+  align-items: center; justify-content: center;
+  font-size: 14px; font-weight: 700;
+}
+
+.chip {
+  display: inline-flex; align-items: center; gap: 4px;
+  padding: 4px 10px; border-radius: 100px; font-size: 11px;
+  font-weight: 600;
+}
+.chip-primary { background: var(--primary-bg); color: var(--primary); }
+.chip-accent { background: var(--accent-bg); color: var(--accent); }
+.chip-success { background: var(--success-bg); color: var(--success); }
+.chip-danger { background: var(--danger-bg); color: var(--danger); }
+
+/* Task items */
+.task-item {
+  display: flex; align-items: center; gap: 12px;
+  padding: 14px 16px; transition: background 0.15s;
+}
+.task-item:active { background: var(--card-hover); }
+.task-check {
+  width: 22px; height: 22px; border-radius: 50%;
+  border: 2px solid var(--border); flex-shrink: 0;
+  display: flex; align-items: center; justify-content: center;
+  transition: all 0.2s;
+}
+.task-check.done { background: var(--success); border-color: var(--success); }
+.task-check.done::after { content: '✓'; color: white; font-size: 12px; font-weight: 700; }
+.task-check.priority-high { border-color: var(--danger); }
+.task-check.priority-medium { border-color: var(--accent); }
+.task-title { font-size: 15px; font-weight: 500; flex: 1; }
+.task-title.done { text-decoration: line-through; color: var(--text3); }
+.task-time { font-size: 12px; color: var(--text2); font-weight: 500; }
+
+/* Cards */
+.card {
+  background: var(--surface); border-radius: 16px; padding: 16px;
+  box-shadow: 0 1px 3px var(--shadow); transition: all 0.2s;
+}
+
+/* === TODAY SCREEN A: MINIMAL === */
+.today-a .greeting { font-size: 16px; color: var(--text2); font-weight: 500; margin-bottom: 4px; }
+.today-a .task-list { padding-bottom: 120px; }
+.today-a .section-label {
+  font-size: 12px; font-weight: 700; text-transform: uppercase;
+  letter-spacing: 1.2px; color: var(--text3); padding: 20px 20px 8px;
+}
+.today-a .divider { height: 0.5px; background: var(--border); margin: 0 20px; }
+
+/* === TODAY SCREEN B: GLASSMORPHISM === */
+.today-b { background: linear-gradient(180deg, #2E1065 0%, #1E1B4B 50%, var(--bg) 100%); }
+.today-b .glass-card {
+  background: var(--glass); backdrop-filter: blur(20px);
+  border: 1px solid var(--glass-border); border-radius: 20px;
+  padding: 20px; margin: 0 16px 12px;
+}
+.today-b .hero-card {
+  background: linear-gradient(135deg, rgba(91,76,219,0.3), rgba(139,92,246,0.2));
+  backdrop-filter: blur(24px); border: 1px solid rgba(255,255,255,0.15);
+  border-radius: 24px; padding: 24px; margin: 12px 16px 16px;
+  color: white;
+}
+.today-b .hero-greeting { font-size: 14px; opacity: 0.8; }
+.today-b .hero-title { font-size: 28px; font-weight: 700; margin: 4px 0 16px; }
+.today-b .hero-stats { display: flex; gap: 20px; }
+.today-b .hero-stat-val { font-size: 24px; font-weight: 700; }
+.today-b .hero-stat-label { font-size: 11px; opacity: 0.7; }
+.today-b .glass-task {
+  display: flex; align-items: center; gap: 12px; padding: 12px 0;
+  border-bottom: 0.5px solid rgba(255,255,255,0.08);
+}
+.today-b .glass-task:last-child { border-bottom: none; }
+
+/* === TODAY SCREEN C: COLORFUL === */
+.today-c .color-header {
+  background: linear-gradient(135deg, var(--primary), #8B5CF6, #EC4899);
+  padding: 20px 20px 24px; color: white; border-radius: 0 0 28px 28px;
+}
+.today-c .color-header .greeting { opacity: 0.85; font-size: 15px; }
+.today-c .color-header h2 { font-size: 26px; font-weight: 700; margin: 4px 0 16px; }
+.today-c .stats-row { display: flex; gap: 10px; }
+.today-c .stat-pill {
+  flex: 1; background: rgba(255,255,255,0.2); border-radius: 14px;
+  padding: 12px; text-align: center; backdrop-filter: blur(10px);
+}
+.today-c .stat-pill .num { font-size: 22px; font-weight: 700; }
+.today-c .stat-pill .label { font-size: 10px; opacity: 0.85; text-transform: uppercase; letter-spacing: 0.5px; }
+.today-c .task-card-rich {
+  background: var(--surface); border-radius: 16px; padding: 14px;
+  margin: 8px 16px; box-shadow: 0 2px 8px var(--shadow);
+  display: flex; align-items: flex-start; gap: 12px;
+}
+.today-c .priority-bar {
+  width: 4px; height: 44px; border-radius: 2px; flex-shrink: 0; margin-top: 2px;
+}
+.today-c .tag-row { display: flex; gap: 6px; margin-top: 6px; flex-wrap: wrap; }
+.today-c .mini-tag {
+  font-size: 10px; padding: 2px 8px; border-radius: 100px;
+  font-weight: 600;
+}
+
+/* === TASK CARDS SECTION === */
+.task-card-minimal {
+  display: flex; align-items: center; gap: 12px;
+  padding: 14px 20px; border-bottom: 0.5px solid var(--border);
+}
+.task-card-full {
+  background: var(--surface); border-radius: 16px; padding: 16px;
+  margin: 8px 16px; box-shadow: 0 2px 8px var(--shadow);
+}
+.task-card-full .header { display: flex; align-items: center; gap: 10px; margin-bottom: 8px; }
+.task-card-full .progress-bar {
+  height: 4px; background: var(--surface2); border-radius: 2px; overflow: hidden; margin: 10px 0;
+}
+.task-card-full .progress-fill { height: 100%; border-radius: 2px; background: var(--primary); }
+.task-card-full .meta { display: flex; gap: 8px; align-items: center; margin-top: 8px; }
+
+.timeline-item {
+  display: flex; gap: 16px; padding: 0 20px; min-height: 72px;
+}
+.timeline-left {
+  display: flex; flex-direction: column; align-items: center; width: 48px; flex-shrink: 0;
+}
+.timeline-time { font-size: 12px; font-weight: 600; color: var(--text2); }
+.timeline-dot {
+  width: 10px; height: 10px; border-radius: 50%; background: var(--primary);
+  margin: 6px 0; flex-shrink: 0;
+}
+.timeline-line { width: 2px; flex: 1; background: var(--border); }
+.timeline-content {
+  flex: 1; background: var(--surface); border-radius: 14px;
+  padding: 12px 14px; margin-bottom: 8px;
+  box-shadow: 0 1px 4px var(--shadow);
+}
+
+/* === TASK CREATION === */
+.quick-add {
+  display: flex; align-items: center; gap: 10px;
+  margin: 16px; padding: 14px 16px;
+  background: var(--surface); border-radius: 14px;
+  border: 1.5px dashed var(--border);
+}
+.quick-add input {
+  flex: 1; border: none; background: none; font-family: inherit;
+  font-size: 15px; color: var(--text); outline: none;
+}
+.quick-add input::placeholder { color: var(--text3); }
+.quick-add-actions { display: flex; gap: 4px; }
+.quick-add-btn {
+  width: 36px; height: 36px; border-radius: 10px; border: none;
+  background: var(--surface2); color: var(--text2); font-size: 16px;
+  cursor: pointer; display: flex; align-items: center; justify-content: center;
+}
+
+.bottom-sheet {
+  position: absolute; bottom: 0; left: 0; right: 0;
+  background: var(--surface); border-radius: 24px 24px 0 0;
+  padding: 12px 20px 40px; z-index: 30;
+  box-shadow: 0 -8px 40px var(--shadow2);
+}
+.sheet-handle {
+  width: 36px; height: 4px; border-radius: 2px;
+  background: var(--text3); margin: 0 auto 20px;
+}
+.sheet-field {
+  padding: 12px 0; border-bottom: 0.5px solid var(--border);
+  display: flex; align-items: center; gap: 12px;
+}
+.sheet-field-icon { color: var(--text2); font-size: 20px; width: 24px; text-align: center; }
+.sheet-field-text { font-size: 15px; color: var(--text2); }
+.sheet-field-text.filled { color: var(--text); }
+.priority-dots { display: flex; gap: 8px; margin-left: auto; }
+.priority-dot {
+  width: 24px; height: 24px; border-radius: 50%;
+  border: 2px solid; display: flex; align-items: center; justify-content: center;
+  font-size: 10px;
+}
+.sheet-save {
+  width: 100%; padding: 16px; border-radius: 14px; border: none;
+  background: var(--primary); color: white; font-family: inherit;
+  font-size: 16px; font-weight: 600; margin-top: 20px; cursor: pointer;
+}
+
+/* === CALENDAR === */
+.cal-grid {
+  display: grid; grid-template-columns: repeat(7, 1fr); gap: 2px;
+  padding: 0 12px;
+}
+.cal-day-name {
+  text-align: center; font-size: 11px; font-weight: 600;
+  color: var(--text3); padding: 8px 0;
+}
+.cal-day {
+  aspect-ratio: 1; display: flex; flex-direction: column;
+  align-items: center; justify-content: center; border-radius: 12px;
+  font-size: 14px; font-weight: 500; position: relative; cursor: pointer;
+  transition: background 0.15s;
+}
+.cal-day:hover { background: var(--surface2); }
+.cal-day.today { background: var(--primary-bg); color: var(--primary); font-weight: 700; }
+.cal-day.selected { background: var(--primary); color: white; font-weight: 700; }
+.cal-day.other { color: var(--text3); }
+.cal-dots {
+  display: flex; gap: 3px; margin-top: 2px; position: absolute; bottom: 4px;
+}
+.cal-dot { width: 4px; height: 4px; border-radius: 50%; }
+
+.week-timeline { padding: 0 16px; }
+.week-row {
+  display: flex; gap: 6px; margin-bottom: 12px;
+}
+.week-day-col {
+  flex: 1; text-align: center; padding: 8px 4px;
+  border-radius: 14px; cursor: pointer; transition: all 0.15s;
+}
+.week-day-col.selected { background: var(--primary); color: white; }
+.week-day-col .day-name { font-size: 11px; font-weight: 600; opacity: 0.6; }
+.week-day-col .day-num { font-size: 18px; font-weight: 700; margin-top: 2px; }
+.week-day-col.selected .day-name { opacity: 1; }
+.hour-row {
+  display: flex; align-items: flex-start; min-height: 56px;
+  border-top: 0.5px solid var(--border); padding: 4px 0;
+}
+.hour-label { width: 44px; font-size: 11px; color: var(--text3); font-weight: 500; padding-top: 2px; }
+.hour-content { flex: 1; min-height: 48px; }
+.hour-event {
+  background: var(--primary-bg); border-left: 3px solid var(--primary);
+  border-radius: 0 8px 8px 0; padding: 6px 10px; margin: 2px 0;
+  font-size: 13px; font-weight: 500;
+}
+
+/* === EMPTY STATES === */
+.empty-state {
+  display: flex; flex-direction: column; align-items: center;
+  justify-content: center; height: calc(100% - 180px); padding: 40px;
+  text-align: center;
+}
+.empty-illustration {
+  width: 200px; height: 200px; margin-bottom: 24px;
+  position: relative;
+}
+.empty-illustration .circle1 {
+  width: 160px; height: 160px; border-radius: 50%;
+  background: var(--primary-bg); position: absolute;
+  top: 50%; left: 50%; transform: translate(-50%,-50%);
+  animation: pulse-soft 3s ease-in-out infinite;
+}
+.empty-illustration .circle2 {
+  width: 100px; height: 100px; border-radius: 50%;
+  background: var(--accent-bg); position: absolute;
+  top: 50%; left: 50%; transform: translate(-50%,-50%);
+  animation: pulse-soft 3s ease-in-out infinite 0.5s;
+}
+.empty-illustration .icon {
+  position: absolute; top: 50%; left: 50%;
+  transform: translate(-50%,-50%); font-size: 48px; z-index: 1;
+}
+@keyframes pulse-soft {
+  0%, 100% { transform: translate(-50%,-50%) scale(1); opacity: 1; }
+  50% { transform: translate(-50%,-50%) scale(1.08); opacity: 0.8; }
+}
+.empty-title { font-size: 20px; font-weight: 700; margin-bottom: 8px; }
+.empty-text { font-size: 14px; color: var(--text2); margin-bottom: 24px; max-width: 260px; }
+.empty-btn {
+  padding: 14px 32px; border-radius: 14px; border: none;
+  background: var(--primary); color: white; font-family: inherit;
+  font-size: 15px; font-weight: 600; cursor: pointer;
+}
+
+.empty-minimal {
+  display: flex; flex-direction: column; align-items: center;
+  justify-content: center; height: calc(100% - 180px); padding: 40px;
+  text-align: center;
+}
+.empty-minimal .icon-wrap {
+  width: 80px; height: 80px; border-radius: 20px;
+  background: var(--surface2); display: flex;
+  align-items: center; justify-content: center;
+  font-size: 32px; margin-bottom: 20px;
+}
+
+/* === SETTINGS === */
+.settings-header {
+  padding: 20px; display: flex; align-items: center; gap: 16px;
+}
+.avatar {
+  width: 60px; height: 60px; border-radius: 50%;
+  background: linear-gradient(135deg, var(--primary), #8B5CF6);
+  display: flex; align-items: center; justify-content: center;
+  color: white; font-size: 24px; font-weight: 700;
+}
+.stats-grid {
+  display: grid; grid-template-columns: repeat(2, 1fr); gap: 10px;
+  padding: 0 16px 16px;
+}
+.stat-card {
+  background: var(--surface); border-radius: 16px; padding: 16px;
+  box-shadow: 0 1px 3px var(--shadow);
+}
+.stat-value { font-size: 28px; font-weight: 800; }
+.stat-label { font-size: 12px; color: var(--text2); margin-top: 2px; }
+.stat-icon { font-size: 20px; margin-bottom: 8px; }
+.settings-group { padding: 0 16px; margin-bottom: 16px; }
+.settings-group-title {
+  font-size: 12px; font-weight: 700; text-transform: uppercase;
+  letter-spacing: 1px; color: var(--primary); padding: 16px 0 8px;
+}
+.settings-item {
+  display: flex; align-items: center; gap: 14px;
+  padding: 14px 0; border-bottom: 0.5px solid var(--border);
+}
+.settings-item:last-child { border-bottom: none; }
+.settings-item-icon {
+  width: 36px; height: 36px; border-radius: 10px;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 18px;
+}
+.settings-item-text { flex: 1; }
+.settings-item-title { font-size: 15px; font-weight: 500; }
+.settings-item-sub { font-size: 12px; color: var(--text2); }
+.toggle-track {
+  width: 44px; height: 26px; border-radius: 13px;
+  background: var(--success); position: relative; cursor: pointer;
+}
+.toggle-track.off { background: var(--text3); }
+.toggle-thumb {
+  width: 22px; height: 22px; border-radius: 50%; background: white;
+  position: absolute; top: 2px; right: 2px;
+  box-shadow: 0 1px 3px rgba(0,0,0,0.2);
+  transition: all 0.2s;
+}
+.toggle-track.off .toggle-thumb { right: auto; left: 2px; }
+
+/* === COMPLETION ANIMATION === */
+.completion-demo {
+  display: flex; flex-direction: column; align-items: center;
+  justify-content: center; height: calc(100% - 100px);
+  padding: 40px; text-align: center;
+}
+.confetti-container { position: relative; width: 200px; height: 200px; margin-bottom: 24px; }
+.check-circle {
+  width: 100px; height: 100px; border-radius: 50%;
+  background: var(--success); position: absolute;
+  top: 50%; left: 50%; transform: translate(-50%,-50%);
+  display: flex; align-items: center; justify-content: center;
+  animation: check-pop 0.6s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards;
+}
+.check-circle svg { width: 48px; height: 48px; }
+.check-circle svg path {
+  stroke: white; stroke-width: 3; fill: none;
+  stroke-dasharray: 50; stroke-dashoffset: 50;
+  animation: check-draw 0.5s 0.4s ease forwards;
+}
+@keyframes check-pop {
+  0% { transform: translate(-50%,-50%) scale(0); }
+  50% { transform: translate(-50%,-50%) scale(1.15); }
+  100% { transform: translate(-50%,-50%) scale(1); }
+}
+@keyframes check-draw {
+  to { stroke-dashoffset: 0; }
+}
+
+.confetti-piece {
+  position: absolute; width: 8px; height: 8px; border-radius: 2px;
+  animation: confetti-fly 1s ease-out forwards;
+}
+@keyframes confetti-fly {
+  0% { opacity: 1; transform: translate(0,0) rotate(0deg) scale(1); }
+  100% { opacity: 0; transform: var(--fly-to) rotate(720deg) scale(0); }
+}
+
+.ripple-ring {
+  position: absolute; top: 50%; left: 50%;
+  width: 100px; height: 100px; border-radius: 50%;
+  border: 3px solid var(--success);
+  transform: translate(-50%,-50%) scale(1);
+  animation: ripple 0.8s ease-out forwards;
+  opacity: 0;
+}
+.ripple-ring:nth-child(2) { animation-delay: 0.15s; }
+.ripple-ring:nth-child(3) { animation-delay: 0.3s; }
+@keyframes ripple {
+  0% { transform: translate(-50%,-50%) scale(1); opacity: 0.6; }
+  100% { transform: translate(-50%,-50%) scale(2.5); opacity: 0; }
+}
+
+.completion-text { font-size: 22px; font-weight: 700; margin-bottom: 4px; }
+.completion-sub { font-size: 14px; color: var(--text2); }
+.streak-badge {
+  display: inline-flex; align-items: center; gap: 6px;
+  background: var(--accent-bg); color: var(--accent);
+  padding: 8px 16px; border-radius: 100px; margin-top: 16px;
+  font-weight: 700; font-size: 14px;
+}
+
+/* Replay button */
+.replay-btn {
+  position: absolute; bottom: 120px; left: 50%;
+  transform: translateX(-50%); padding: 10px 24px;
+  border-radius: 100px; border: 1px solid var(--border);
+  background: var(--surface); color: var(--text); font-family: inherit;
+  font-weight: 600; font-size: 13px; cursor: pointer;
+  z-index: 20;
+}
+
+/* UX Principles */
+.principles {
+  max-width: 900px; margin: 0 auto; padding: 60px 20px;
+}
+.principle {
+  display: flex; gap: 20px; padding: 20px 0;
+  border-bottom: 1px solid var(--border);
+}
+.principle-num {
+  font-size: 32px; font-weight: 800; color: var(--primary); opacity: 0.3;
+  min-width: 48px;
+}
+.principle-title { font-size: 16px; font-weight: 700; margin-bottom: 4px; }
+.principle-desc { font-size: 14px; color: var(--text2); }
+</style>
+</head>
+<body>
+
+<div class="page-header">
+  <h1>Планер</h1>
+  <p>UX-мокапы премиум планировщика задач</p>
+</div>
+
+<div class="controls">
+  <button class="active" onclick="toggleTheme(this)">Светлая / Тёмная тема</button>
+</div>
+
+<!-- ===================== TODAY A: MINIMAL ===================== -->
+<div class="section">
+  <div class="section-title">Экран «Сегодня»</div>
+  <div class="section-subtitle">Главный экран приложения — 3 варианта дизайна</div>
+  <div class="variants">
+
+    <!-- Variant A -->
+    <div class="variant">
+      <div class="variant-label">A — Минималистичный (Things 3)</div>
+      <div class="phone">
+        <div class="phone-inner today-a">
+          <div class="status-bar"><span>9:41</span><div class="status-icons">📶 🔋</div></div>
+          <div class="app-bar">
+            <div class="greeting">Доброе утро ☀️</div>
+            <div class="app-bar-title">Сегодня</div>
+            <div class="app-bar-sub">18 марта, среда</div>
+          </div>
+          <div style="display:flex;align-items:center;gap:14px;padding:16px 20px;background:var(--surface);margin:0 16px;border-radius:16px;">
+            <div class="progress-ring">
+              <svg width="64" height="64" viewBox="0 0 64 64">
+                <circle cx="32" cy="32" r="28" fill="none" stroke="var(--surface2)" stroke-width="5"/>
+                <circle cx="32" cy="32" r="28" fill="none" stroke="var(--primary)" stroke-width="5"
+                  stroke-dasharray="175.9" stroke-dashoffset="52.8" stroke-linecap="round"/>
+              </svg>
+              <div class="ring-text">70%</div>
+            </div>
+            <div>
+              <div style="font-size:15px;font-weight:600;">7 из 10 задач</div>
+              <div style="font-size:13px;color:var(--text2);">Осталось 3 — отличный темп!</div>
+            </div>
+          </div>
+
+          <div class="section-label">Приоритетные</div>
+          <div class="task-item"><div class="task-check priority-high"></div><div class="task-title">Презентация для клиента</div><div class="task-time">10:00</div></div>
+          <div class="task-item"><div class="task-check priority-high"></div><div class="task-title">Ревью кода PR #142</div><div class="task-time">11:30</div></div>
+          <div class="divider"></div>
+          <div class="section-label">Сегодня</div>
+          <div class="task-item"><div class="task-check done"></div><div class="task-title done">Утренняя зарядка</div><div class="task-time">07:00</div></div>
+          <div class="task-item"><div class="task-check done"></div><div class="task-title done">Проверить почту</div><div class="task-time">08:00</div></div>
+          <div class="task-item"><div class="task-check done"></div><div class="task-title done">Стендап-митинг</div><div class="task-time">09:00</div></div>
+          <div class="task-item"><div class="task-check priority-medium"></div><div class="task-title">Написать тесты</div><div class="task-time">14:00</div></div>
+          <div class="task-item"><div class="task-check"></div><div class="task-title">Обед с командой</div><div class="task-time">13:00</div></div>
+          <div class="task-item"><div class="task-check done"></div><div class="task-title done">Обновить зависимости</div><div class="task-time">09:30</div></div>
+          <div class="task-item"><div class="task-check done"></div><div class="task-title done">Созвон с дизайнером</div><div class="task-time">10:30</div></div>
+          <div style="height:120px;"></div>
+          <button class="fab">+</button>
+          <div class="bottom-nav">
+            <div class="nav-item active">
+              <svg viewBox="0 0 24 24" fill="currentColor"><rect x="3" y="3" width="7" height="7" rx="2"/><rect x="14" y="3" width="7" height="7" rx="2" opacity=".5"/><rect x="3" y="14" width="7" height="7" rx="2" opacity=".5"/><rect x="14" y="14" width="7" height="7" rx="2" opacity=".5"/></svg>
+              <span>Сегодня</span>
+            </div>
+            <div class="nav-item">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="3"/><path d="M9 11l2 2 4-4"/></svg>
+              <span>Задачи</span>
+            </div>
+            <div class="nav-item">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="18" rx="3"/><path d="M3 10h18M8 2v4M16 2v4"/></svg>
+              <span>Календарь</span>
+            </div>
+            <div class="nav-item">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 7a4 4 0 014-4h10a4 4 0 014 4v10a4 4 0 01-4 4H7a4 4 0 01-4-4z"/><circle cx="12" cy="12" r="3"/></svg>
+              <span>Настройки</span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Variant B: Glassmorphism -->
+    <div class="variant">
+      <div class="variant-label">B — Гласморфизм (iOS)</div>
+      <div class="phone">
+        <div class="phone-inner today-b">
+          <div class="status-bar" style="color:white;"><span>9:41</span><div class="status-icons">📶 🔋</div></div>
+          <div class="hero-card">
+            <div class="hero-greeting">Среда, 18 марта</div>
+            <div class="hero-title">Привет, Пользователь 👋</div>
+            <div class="hero-stats">
+              <div><div class="hero-stat-val">7</div><div class="hero-stat-label">Выполнено</div></div>
+              <div><div class="hero-stat-val">3</div><div class="hero-stat-label">Осталось</div></div>
+              <div><div class="hero-stat-val">🔥 12</div><div class="hero-stat-label">Дней подряд</div></div>
+            </div>
+          </div>
+
+          <div class="glass-card">
+            <div style="font-size:13px;font-weight:700;text-transform:uppercase;letter-spacing:1px;color:var(--text2);margin-bottom:10px;">Ближайшие</div>
+            <div class="glass-task">
+              <div class="task-check priority-high"></div>
+              <div style="flex:1">
+                <div style="font-size:15px;font-weight:500;">Презентация для клиента</div>
+                <div style="font-size:12px;color:var(--text2);">10:00 · Работа</div>
+              </div>
+              <span class="chip chip-danger">!!!</span>
+            </div>
+            <div class="glass-task">
+              <div class="task-check priority-medium"></div>
+              <div style="flex:1">
+                <div style="font-size:15px;font-weight:500;">Ревью кода PR #142</div>
+                <div style="font-size:12px;color:var(--text2);">11:30 · Разработка</div>
+              </div>
+            </div>
+            <div class="glass-task">
+              <div class="task-check"></div>
+              <div style="flex:1">
+                <div style="font-size:15px;font-weight:500;">Обед с командой</div>
+                <div style="font-size:12px;color:var(--text2);">13:00</div>
+              </div>
+            </div>
+          </div>
+
+          <div class="glass-card">
+            <div style="font-size:13px;font-weight:700;text-transform:uppercase;letter-spacing:1px;color:var(--text2);margin-bottom:10px;">Выполнено ✓</div>
+            <div class="glass-task">
+              <div class="task-check done"></div>
+              <div style="flex:1"><div class="task-title done">Утренняя зарядка</div></div>
+            </div>
+            <div class="glass-task">
+              <div class="task-check done"></div>
+              <div style="flex:1"><div class="task-title done">Проверить почту</div></div>
+            </div>
+            <div class="glass-task">
+              <div class="task-check done"></div>
+              <div style="flex:1"><div class="task-title done">Стендап-митинг</div></div>
+            </div>
+          </div>
+          <div style="height:120px;"></div>
+          <button class="fab">+</button>
+          <div class="bottom-nav">
+            <div class="nav-item active"><svg viewBox="0 0 24 24" fill="currentColor"><rect x="3" y="3" width="7" height="7" rx="2"/><rect x="14" y="3" width="7" height="7" rx="2" opacity=".5"/><rect x="3" y="14" width="7" height="7" rx="2" opacity=".5"/><rect x="14" y="14" width="7" height="7" rx="2" opacity=".5"/></svg><span>Сегодня</span></div>
+            <div class="nav-item"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="3"/><path d="M9 11l2 2 4-4"/></svg><span>Задачи</span></div>
+            <div class="nav-item"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="18" rx="3"/><path d="M3 10h18M8 2v4M16 2v4"/></svg><span>Календарь</span></div>
+            <div class="nav-item"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="9"/><circle cx="12" cy="12" r="3"/></svg><span>Настройки</span></div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Variant C: Colorful -->
+    <div class="variant">
+      <div class="variant-label">C — Яркий (TickTick)</div>
+      <div class="phone">
+        <div class="phone-inner today-c" style="background:var(--bg);">
+          <div class="status-bar" style="color:white;position:relative;z-index:2;"><span>9:41</span><div class="status-icons">📶 🔋</div></div>
+          <div class="color-header">
+            <div class="greeting">Среда, 18 марта</div>
+            <h2>Мой день</h2>
+            <div class="stats-row">
+              <div class="stat-pill"><div class="num">7</div><div class="label">Сделано</div></div>
+              <div class="stat-pill"><div class="num">3</div><div class="label">В работе</div></div>
+              <div class="stat-pill"><div class="num">🔥12</div><div class="label">Серия</div></div>
+            </div>
+          </div>
+
+          <div style="padding:12px 0 0;">
+            <div class="task-card-rich">
+              <div class="priority-bar" style="background:var(--danger);"></div>
+              <div class="task-check priority-high"></div>
+              <div style="flex:1;">
+                <div style="font-size:15px;font-weight:600;">Презентация для клиента</div>
+                <div style="font-size:12px;color:var(--text2);margin-top:2px;">10:00 — 11:00</div>
+                <div class="tag-row">
+                  <span class="mini-tag chip-danger">Срочно</span>
+                  <span class="mini-tag chip-primary">Работа</span>
+                </div>
+              </div>
+            </div>
+            <div class="task-card-rich">
+              <div class="priority-bar" style="background:var(--accent);"></div>
+              <div class="task-check priority-medium"></div>
+              <div style="flex:1;">
+                <div style="font-size:15px;font-weight:600;">Ревью кода PR #142</div>
+                <div style="font-size:12px;color:var(--text2);margin-top:2px;">11:30</div>
+                <div class="tag-row">
+                  <span class="mini-tag chip-accent">Средний</span>
+                  <span class="mini-tag chip-primary">Код</span>
+                </div>
+              </div>
+            </div>
+            <div class="task-card-rich">
+              <div class="priority-bar" style="background:var(--success);"></div>
+              <div class="task-check done"></div>
+              <div style="flex:1;">
+                <div class="task-title done" style="font-size:15px;">Утренняя зарядка</div>
+                <div style="font-size:12px;color:var(--text3);margin-top:2px;">07:00</div>
+                <div class="tag-row"><span class="mini-tag chip-success">Здоровье</span></div>
+              </div>
+            </div>
+            <div class="task-card-rich">
+              <div class="priority-bar" style="background:var(--success);"></div>
+              <div class="task-check done"></div>
+              <div style="flex:1;">
+                <div class="task-title done" style="font-size:15px;">Проверить почту</div>
+                <div style="font-size:12px;color:var(--text3);margin-top:2px;">08:00</div>
+              </div>
+            </div>
+            <div class="task-card-rich">
+              <div class="priority-bar" style="background:var(--border);"></div>
+              <div class="task-check"></div>
+              <div style="flex:1;">
+                <div style="font-size:15px;font-weight:600;">Написать тесты</div>
+                <div style="font-size:12px;color:var(--text2);margin-top:2px;">14:00</div>
+                <div class="tag-row"><span class="mini-tag chip-primary">Разработка</span></div>
+              </div>
+            </div>
+          </div>
+          <div style="height:120px;"></div>
+          <button class="fab" style="border-radius:50%;background:linear-gradient(135deg,var(--primary),#EC4899);">+</button>
+          <div class="bottom-nav">
+            <div class="nav-item active"><svg viewBox="0 0 24 24" fill="currentColor"><rect x="3" y="3" width="7" height="7" rx="2"/><rect x="14" y="3" width="7" height="7" rx="2" opacity=".5"/><rect x="3" y="14" width="7" height="7" rx="2" opacity=".5"/><rect x="14" y="14" width="7" height="7" rx="2" opacity=".5"/></svg><span>Сегодня</span></div>
+            <div class="nav-item"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="3"/><path d="M9 11l2 2 4-4"/></svg><span>Задачи</span></div>
+            <div class="nav-item"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="18" rx="3"/><path d="M3 10h18M8 2v4M16 2v4"/></svg><span>Календарь</span></div>
+            <div class="nav-item"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="9"/><circle cx="12" cy="12" r="3"/></svg><span>Настройки</span></div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<!-- ===================== TASK CARDS ===================== -->
+<div class="section">
+  <div class="section-title">Карточки задач</div>
+  <div class="section-subtitle">3 варианта отображения задач</div>
+  <div class="variants">
+
+    <!-- Minimal line -->
+    <div class="variant">
+      <div class="variant-label">Минимальная строка</div>
+      <div class="phone">
+        <div class="phone-inner">
+          <div class="status-bar"><span>9:41</span><div class="status-icons">📶 🔋</div></div>
+          <div class="app-bar">
+            <div class="app-bar-title">Задачи</div>
+            <div class="app-bar-sub">10 задач · 4 выполнено</div>
+          </div>
+          <div class="task-card-minimal"><div class="task-check priority-high"></div><div style="flex:1;font-size:15px;font-weight:500;">Презентация для клиента</div><span class="chip chip-danger" style="font-size:10px;">Высокий</span></div>
+          <div class="task-card-minimal"><div class="task-check priority-medium"></div><div style="flex:1;font-size:15px;font-weight:500;">Ревью кода PR #142</div><span style="font-size:12px;color:var(--text2);">11:30</span></div>
+          <div class="task-card-minimal"><div class="task-check done"></div><div style="flex:1;font-size:15px;text-decoration:line-through;color:var(--text3);">Утренняя зарядка</div><span style="font-size:12px;color:var(--text3);">07:00</span></div>
+          <div class="task-card-minimal"><div class="task-check done"></div><div style="flex:1;font-size:15px;text-decoration:line-through;color:var(--text3);">Проверить почту</div><span style="font-size:12px;color:var(--text3);">08:00</span></div>
+          <div class="task-card-minimal"><div class="task-check done"></div><div style="flex:1;font-size:15px;text-decoration:line-through;color:var(--text3);">Стендап-митинг</div><span style="font-size:12px;color:var(--text3);">09:00</span></div>
+          <div class="task-card-minimal"><div class="task-check"></div><div style="flex:1;font-size:15px;font-weight:500;">Написать тесты</div><span style="font-size:12px;color:var(--text2);">14:00</span></div>
+          <div class="task-card-minimal"><div class="task-check"></div><div style="flex:1;font-size:15px;font-weight:500;">Обед с командой</div><span style="font-size:12px;color:var(--text2);">13:00</span></div>
+          <div class="task-card-minimal"><div class="task-check done"></div><div style="flex:1;font-size:15px;text-decoration:line-through;color:var(--text3);">Обновить зависимости</div></div>
+          <div class="task-card-minimal"><div class="task-check"></div><div style="flex:1;font-size:15px;font-weight:500;">Позвонить врачу</div></div>
+          <div class="task-card-minimal"><div class="task-check"></div><div style="flex:1;font-size:15px;font-weight:500;">Купить продукты</div><span style="font-size:12px;color:var(--text2);">19:00</span></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Rich card -->
+    <div class="variant">
+      <div class="variant-label">Расширенная карточка</div>
+      <div class="phone">
+        <div class="phone-inner">
+          <div class="status-bar"><span>9:41</span><div class="status-icons">📶 🔋</div></div>
+          <div class="app-bar">
+            <div class="app-bar-title">Задачи</div>
+          </div>
+          <div class="task-card-full" style="margin-bottom:4px;">
+            <div class="header">
+              <div class="task-check priority-high"></div>
+              <div style="flex:1;font-size:16px;font-weight:600;">Презентация для клиента</div>
+            </div>
+            <div style="font-size:13px;color:var(--text2);margin-bottom:6px;">Подготовить слайды Q1 отчёта для встречи с заказчиком</div>
+            <div class="progress-bar"><div class="progress-fill" style="width:60%;"></div></div>
+            <div style="font-size:11px;color:var(--text2);">3 из 5 подзадач</div>
+            <div class="meta">
+              <span class="chip chip-danger">Высокий</span>
+              <span class="chip chip-primary">Работа</span>
+              <span style="font-size:12px;color:var(--text2);margin-left:auto;">📅 Сегодня, 10:00</span>
+            </div>
+          </div>
+          <div class="task-card-full" style="margin-bottom:4px;">
+            <div class="header">
+              <div class="task-check priority-medium"></div>
+              <div style="flex:1;font-size:16px;font-weight:600;">Написать юнит-тесты</div>
+            </div>
+            <div style="font-size:13px;color:var(--text2);margin-bottom:6px;">Покрыть тестами модуль авторизации</div>
+            <div class="progress-bar"><div class="progress-fill" style="width:30%;background:var(--accent);"></div></div>
+            <div style="font-size:11px;color:var(--text2);">2 из 7 подзадач</div>
+            <div class="meta">
+              <span class="chip chip-accent">Средний</span>
+              <span class="chip chip-primary">Код</span>
+              <span style="font-size:12px;color:var(--text2);margin-left:auto;">📅 Сегодня, 14:00</span>
+            </div>
+          </div>
+          <div class="task-card-full" style="opacity:0.6;">
+            <div class="header">
+              <div class="task-check done"></div>
+              <div style="flex:1;font-size:16px;font-weight:500;text-decoration:line-through;color:var(--text3);">Утренняя зарядка</div>
+            </div>
+            <div class="progress-bar"><div class="progress-fill" style="width:100%;background:var(--success);"></div></div>
+            <div class="meta">
+              <span class="chip chip-success">Готово</span>
+              <span class="chip" style="background:var(--success-bg);color:var(--success);">Здоровье</span>
+            </div>
+          </div>
+          <div style="height:100px;"></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Timeline -->
+    <div class="variant">
+      <div class="variant-label">Таймлайн</div>
+      <div class="phone">
+        <div class="phone-inner">
+          <div class="status-bar"><span>9:41</span><div class="status-icons">📶 🔋</div></div>
+          <div class="app-bar">
+            <div class="app-bar-title">Таймлайн</div>
+            <div class="app-bar-sub">18 марта, среда</div>
+          </div>
+          <div style="padding-top:8px;">
+            <div class="timeline-item">
+              <div class="timeline-left">
+                <div class="timeline-time">07:00</div>
+                <div class="timeline-dot" style="background:var(--success);"></div>
+                <div class="timeline-line"></div>
+              </div>
+              <div class="timeline-content" style="opacity:0.5;text-decoration:line-through;">
+                <div style="font-size:14px;font-weight:500;">Утренняя зарядка</div>
+                <div style="font-size:11px;color:var(--text3);">✓ Выполнено</div>
+              </div>
+            </div>
+            <div class="timeline-item">
+              <div class="timeline-left">
+                <div class="timeline-time">09:00</div>
+                <div class="timeline-dot" style="background:var(--success);"></div>
+                <div class="timeline-line"></div>
+              </div>
+              <div class="timeline-content" style="opacity:0.5;text-decoration:line-through;">
+                <div style="font-size:14px;font-weight:500;">Стендап-митинг</div>
+                <div style="font-size:11px;color:var(--text3);">✓ Выполнено</div>
+              </div>
+            </div>
+            <div class="timeline-item">
+              <div class="timeline-left">
+                <div class="timeline-time">10:00</div>
+                <div class="timeline-dot" style="background:var(--danger);"></div>
+                <div class="timeline-line"></div>
+              </div>
+              <div class="timeline-content" style="border-left:3px solid var(--danger);background:var(--danger-bg);">
+                <div style="font-size:14px;font-weight:600;">Презентация для клиента</div>
+                <div style="font-size:11px;color:var(--danger);">Высокий приоритет · Работа</div>
+              </div>
+            </div>
+            <div class="timeline-item">
+              <div class="timeline-left">
+                <div class="timeline-time">11:30</div>
+                <div class="timeline-dot" style="background:var(--accent);"></div>
+                <div class="timeline-line"></div>
+              </div>
+              <div class="timeline-content">
+                <div style="font-size:14px;font-weight:500;">Ревью кода PR #142</div>
+                <div style="font-size:11px;color:var(--text2);">Средний · Разработка</div>
+              </div>
+            </div>
+            <div class="timeline-item">
+              <div class="timeline-left">
+                <div class="timeline-time">13:00</div>
+                <div class="timeline-dot"></div>
+                <div class="timeline-line"></div>
+              </div>
+              <div class="timeline-content">
+                <div style="font-size:14px;font-weight:500;">Обед с командой</div>
+                <div style="font-size:11px;color:var(--text2);">Ресторан «Место»</div>
+              </div>
+            </div>
+            <div class="timeline-item">
+              <div class="timeline-left">
+                <div class="timeline-time">14:00</div>
+                <div class="timeline-dot" style="background:var(--accent);"></div>
+                <div class="timeline-line"></div>
+              </div>
+              <div class="timeline-content">
+                <div style="font-size:14px;font-weight:500;">Написать тесты</div>
+                <div style="font-size:11px;color:var(--text2);">Средний · Код</div>
+              </div>
+            </div>
+            <div class="timeline-item">
+              <div class="timeline-left">
+                <div class="timeline-time">19:00</div>
+                <div class="timeline-dot"></div>
+                <div class="timeline-line" style="opacity:0;"></div>
+              </div>
+              <div class="timeline-content">
+                <div style="font-size:14px;font-weight:500;">Купить продукты</div>
+                <div style="font-size:11px;color:var(--text2);">Личное</div>
+              </div>
+            </div>
+          </div>
+          <div style="height:100px;"></div>
+        </div>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<!-- ===================== TASK CREATION ===================== -->
+<div class="section">
+  <div class="section-title">Создание задачи</div>
+  <div class="section-subtitle">Быстрое добавление и полная форма</div>
+  <div class="variants">
+
+    <!-- Quick add -->
+    <div class="variant">
+      <div class="variant-label">Быстрое добавление (inline)</div>
+      <div class="phone">
+        <div class="phone-inner">
+          <div class="status-bar"><span>9:41</span><div class="status-icons">📶 🔋</div></div>
+          <div class="app-bar">
+            <div class="app-bar-title">Сегодня</div>
+            <div class="app-bar-sub">18 марта, среда</div>
+          </div>
+
+          <div class="quick-add">
+            <div style="color:var(--primary);font-size:20px;font-weight:700;">+</div>
+            <input type="text" placeholder="Новая задача..." value="Купить молоко">
+            <div class="quick-add-actions">
+              <div class="quick-add-btn">📅</div>
+              <div class="quick-add-btn">🏷</div>
+              <div class="quick-add-btn" style="background:var(--primary);color:white;">↑</div>
+            </div>
+          </div>
+
+          <div style="padding:0 16px 8px;display:flex;gap:8px;flex-wrap:wrap;">
+            <span class="chip chip-primary" style="cursor:pointer;">Сегодня</span>
+            <span class="chip" style="background:var(--surface2);cursor:pointer;">Завтра</span>
+            <span class="chip" style="background:var(--surface2);cursor:pointer;">На неделе</span>
+          </div>
+
+          <div style="padding:4px 0;">
+            <div class="task-item"><div class="task-check priority-high"></div><div class="task-title">Презентация для клиента</div><div class="task-time">10:00</div></div>
+            <div class="task-item"><div class="task-check done"></div><div class="task-title done">Утренняя зарядка</div><div class="task-time">07:00</div></div>
+            <div class="task-item"><div class="task-check done"></div><div class="task-title done">Проверить почту</div><div class="task-time">08:00</div></div>
+            <div class="task-item"><div class="task-check"></div><div class="task-title">Написать тесты</div><div class="task-time">14:00</div></div>
+            <div class="task-item"><div class="task-check"></div><div class="task-title">Обед с командой</div><div class="task-time">13:00</div></div>
+          </div>
+          <div style="height:80px;"></div>
+          <div class="bottom-nav">
+            <div class="nav-item active"><svg viewBox="0 0 24 24" fill="currentColor"><rect x="3" y="3" width="7" height="7" rx="2"/><rect x="14" y="3" width="7" height="7" rx="2" opacity=".5"/><rect x="3" y="14" width="7" height="7" rx="2" opacity=".5"/><rect x="14" y="14" width="7" height="7" rx="2" opacity=".5"/></svg><span>Сегодня</span></div>
+            <div class="nav-item"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="3"/><path d="M9 11l2 2 4-4"/></svg><span>Задачи</span></div>
+            <div class="nav-item"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="18" rx="3"/><path d="M3 10h18M8 2v4M16 2v4"/></svg><span>Календарь</span></div>
+            <div class="nav-item"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="9"/><circle cx="12" cy="12" r="3"/></svg><span>Настройки</span></div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Full form bottom sheet -->
+    <div class="variant">
+      <div class="variant-label">Полная форма (bottom sheet)</div>
+      <div class="phone">
+        <div class="phone-inner" style="background:rgba(0,0,0,0.4);">
+          <div class="bottom-sheet">
+            <div class="sheet-handle"></div>
+            <div style="font-size:20px;font-weight:700;margin-bottom:16px;">Новая задача</div>
+
+            <div style="margin-bottom:16px;">
+              <input type="text" value="Подготовить отчёт Q1" style="width:100%;border:none;background:none;font-family:inherit;font-size:18px;font-weight:600;color:var(--text);outline:none;padding:0;">
+            </div>
+            <div style="margin-bottom:16px;">
+              <textarea placeholder="Описание..." style="width:100%;border:none;background:var(--surface2);font-family:inherit;font-size:14px;color:var(--text);outline:none;padding:12px;border-radius:12px;resize:none;height:60px;">Собрать данные по продажам, создать графики</textarea>
+            </div>
+
+            <div class="sheet-field">
+              <div class="sheet-field-icon">📅</div>
+              <div class="sheet-field-text filled">Сегодня, 18 марта</div>
+            </div>
+            <div class="sheet-field">
+              <div class="sheet-field-icon">🕐</div>
+              <div class="sheet-field-text filled">14:00</div>
+            </div>
+            <div class="sheet-field">
+              <div class="sheet-field-icon">🔔</div>
+              <div class="sheet-field-text filled">За 15 минут</div>
+            </div>
+            <div class="sheet-field">
+              <div class="sheet-field-icon">🔄</div>
+              <div class="sheet-field-text">Не повторяется</div>
+            </div>
+            <div class="sheet-field">
+              <div class="sheet-field-icon">📁</div>
+              <div class="sheet-field-text filled">Работа</div>
+            </div>
+            <div class="sheet-field">
+              <div class="sheet-field-icon">⚡</div>
+              <div style="font-size:13px;color:var(--text2);">Приоритет</div>
+              <div class="priority-dots">
+                <div class="priority-dot" style="border-color:var(--success);color:var(--success);">↓</div>
+                <div class="priority-dot" style="border-color:var(--accent);background:var(--accent-bg);color:var(--accent);">—</div>
+                <div class="priority-dot" style="border-color:var(--danger);color:var(--danger);">↑</div>
+              </div>
+            </div>
+            <div class="sheet-field" style="border:none;">
+              <div class="sheet-field-icon">🏷</div>
+              <div style="display:flex;gap:6px;flex-wrap:wrap;">
+                <span class="chip chip-primary">отчёт</span>
+                <span class="chip chip-accent">Q1</span>
+                <span class="chip" style="background:var(--surface2);color:var(--text2);cursor:pointer;">+ тег</span>
+              </div>
+            </div>
+
+            <button class="sheet-save">Сохранить</button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<!-- ===================== CALENDAR ===================== -->
+<div class="section">
+  <div class="section-title">Календарь</div>
+  <div class="section-subtitle">Месячный и недельный вид</div>
+  <div class="variants">
+
+    <!-- Monthly -->
+    <div class="variant">
+      <div class="variant-label">Месяц с точками</div>
+      <div class="phone">
+        <div class="phone-inner">
+          <div class="status-bar"><span>9:41</span><div class="status-icons">📶 🔋</div></div>
+          <div style="display:flex;align-items:center;padding:8px 20px 4px;">
+            <div style="font-size:10px;color:var(--text2);cursor:pointer;">◀</div>
+            <div style="flex:1;text-align:center;font-size:18px;font-weight:700;">Март 2026</div>
+            <div style="font-size:10px;color:var(--text2);cursor:pointer;">▶</div>
+          </div>
+          <div class="cal-grid">
+            <div class="cal-day-name">Пн</div><div class="cal-day-name">Вт</div><div class="cal-day-name">Ср</div><div class="cal-day-name">Чт</div><div class="cal-day-name">Пт</div><div class="cal-day-name">Сб</div><div class="cal-day-name">Вс</div>
+            <div class="cal-day other">23</div><div class="cal-day other">24</div><div class="cal-day other">25</div><div class="cal-day other">26</div><div class="cal-day other">27</div><div class="cal-day other">28</div>
+            <div class="cal-day">1</div>
+            <div class="cal-day">2<div class="cal-dots"><div class="cal-dot" style="background:var(--primary);"></div></div></div>
+            <div class="cal-day">3</div>
+            <div class="cal-day">4<div class="cal-dots"><div class="cal-dot" style="background:var(--danger);"></div><div class="cal-dot" style="background:var(--primary);"></div></div></div>
+            <div class="cal-day">5<div class="cal-dots"><div class="cal-dot" style="background:var(--primary);"></div></div></div>
+            <div class="cal-day">6</div><div class="cal-day">7</div><div class="cal-day">8</div>
+            <div class="cal-day">9<div class="cal-dots"><div class="cal-dot" style="background:var(--accent);"></div></div></div>
+            <div class="cal-day">10</div><div class="cal-day">11<div class="cal-dots"><div class="cal-dot" style="background:var(--primary);"></div></div></div>
+            <div class="cal-day">12</div><div class="cal-day">13</div><div class="cal-day">14</div><div class="cal-day">15</div>
+            <div class="cal-day">16<div class="cal-dots"><div class="cal-dot" style="background:var(--primary);"></div><div class="cal-dot" style="background:var(--accent);"></div></div></div>
+            <div class="cal-day">17</div>
+            <div class="cal-day selected">18<div class="cal-dots"><div class="cal-dot" style="background:white;"></div><div class="cal-dot" style="background:white;"></div><div class="cal-dot" style="background:white;"></div></div></div>
+            <div class="cal-day">19</div><div class="cal-day">20<div class="cal-dots"><div class="cal-dot" style="background:var(--primary);"></div></div></div>
+            <div class="cal-day">21</div>
+            <div class="cal-day">22</div><div class="cal-day">23</div><div class="cal-day">24</div><div class="cal-day">25<div class="cal-dots"><div class="cal-dot" style="background:var(--danger);"></div></div></div>
+            <div class="cal-day">26</div><div class="cal-day">27</div><div class="cal-day">28</div>
+            <div class="cal-day">29</div><div class="cal-day">30</div><div class="cal-day">31</div>
+            <div class="cal-day other">1</div><div class="cal-day other">2</div><div class="cal-day other">3</div><div class="cal-day other">4</div><div class="cal-day other">5</div>
+          </div>
+          <div style="height:1px;background:var(--border);margin:8px 0;"></div>
+          <div style="padding:8px 20px;font-size:14px;font-weight:700;">18 марта — Среда</div>
+          <div class="task-item"><div class="task-check priority-high"></div><div class="task-title">Презентация для клиента</div><div class="task-time">10:00</div></div>
+          <div class="task-item"><div class="task-check priority-medium"></div><div class="task-title">Ревью кода</div><div class="task-time">11:30</div></div>
+          <div class="task-item"><div class="task-check"></div><div class="task-title">Обед с командой</div><div class="task-time">13:00</div></div>
+          <div style="height:80px;"></div>
+          <button class="fab">+</button>
+          <div class="bottom-nav">
+            <div class="nav-item"><svg viewBox="0 0 24 24" fill="currentColor" style="opacity:.4;"><rect x="3" y="3" width="7" height="7" rx="2"/><rect x="14" y="3" width="7" height="7" rx="2"/><rect x="3" y="14" width="7" height="7" rx="2"/><rect x="14" y="14" width="7" height="7" rx="2"/></svg><span>Сегодня</span></div>
+            <div class="nav-item"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="3"/><path d="M9 11l2 2 4-4"/></svg><span>Задачи</span></div>
+            <div class="nav-item active"><svg viewBox="0 0 24 24" fill="currentColor"><rect x="3" y="4" width="18" height="18" rx="3"/><path d="M3 10h18" fill="none" stroke="var(--bg)" stroke-width="2"/><rect x="7" y="1" width="2" height="5" rx="1"/><rect x="15" y="1" width="2" height="5" rx="1"/></svg><span>Календарь</span></div>
+            <div class="nav-item"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="9"/><circle cx="12" cy="12" r="3"/></svg><span>Настройки</span></div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Weekly timeline -->
+    <div class="variant">
+      <div class="variant-label">Недельный таймлайн</div>
+      <div class="phone">
+        <div class="phone-inner">
+          <div class="status-bar"><span>9:41</span><div class="status-icons">📶 🔋</div></div>
+          <div style="display:flex;align-items:center;padding:8px 20px 4px;">
+            <div style="font-size:10px;color:var(--text2);cursor:pointer;">◀</div>
+            <div style="flex:1;text-align:center;font-size:16px;font-weight:700;">16 мар — 22 мар</div>
+            <div style="font-size:10px;color:var(--text2);cursor:pointer;">▶</div>
+          </div>
+          <div class="week-timeline">
+            <div class="week-row">
+              <div class="week-day-col"><div class="day-name">Пн</div><div class="day-num">16</div></div>
+              <div class="week-day-col"><div class="day-name">Вт</div><div class="day-num">17</div></div>
+              <div class="week-day-col selected"><div class="day-name">Ср</div><div class="day-num">18</div></div>
+              <div class="week-day-col"><div class="day-name">Чт</div><div class="day-num">19</div></div>
+              <div class="week-day-col"><div class="day-name">Пт</div><div class="day-num">20</div></div>
+              <div class="week-day-col"><div class="day-name">Сб</div><div class="day-num">21</div></div>
+              <div class="week-day-col"><div class="day-name">Вс</div><div class="day-num">22</div></div>
+            </div>
+          </div>
+          <div style="height:1px;background:var(--border);"></div>
+          <div style="padding:0 16px;overflow-y:auto;">
+            <div class="hour-row"><div class="hour-label">07:00</div><div class="hour-content"><div class="hour-event" style="opacity:0.5;text-decoration:line-through;">Утренняя зарядка ✓</div></div></div>
+            <div class="hour-row"><div class="hour-label">08:00</div><div class="hour-content"><div class="hour-event" style="opacity:0.5;text-decoration:line-through;">Проверить почту ✓</div></div></div>
+            <div class="hour-row"><div class="hour-label">09:00</div><div class="hour-content"><div class="hour-event" style="opacity:0.5;text-decoration:line-through;">Стендап-митинг ✓</div></div></div>
+            <div class="hour-row"><div class="hour-label">10:00</div><div class="hour-content"><div class="hour-event" style="border-left-color:var(--danger);background:var(--danger-bg);">Презентация для клиента</div></div></div>
+            <div class="hour-row"><div class="hour-label">11:00</div><div class="hour-content"></div></div>
+            <div class="hour-row"><div class="hour-label">11:30</div><div class="hour-content"><div class="hour-event" style="border-left-color:var(--accent);background:var(--accent-bg);">Ревью кода PR #142</div></div></div>
+            <div class="hour-row"><div class="hour-label">12:00</div><div class="hour-content"></div></div>
+            <div class="hour-row"><div class="hour-label">13:00</div><div class="hour-content"><div class="hour-event">Обед с командой</div></div></div>
+            <div class="hour-row"><div class="hour-label">14:00</div><div class="hour-content"><div class="hour-event" style="border-left-color:var(--accent);background:var(--accent-bg);">Написать тесты</div></div></div>
+            <div class="hour-row"><div class="hour-label">15:00</div><div class="hour-content"></div></div>
+            <div class="hour-row"><div class="hour-label">16:00</div><div class="hour-content"></div></div>
+          </div>
+          <div style="height:80px;"></div>
+          <button class="fab">+</button>
+          <div class="bottom-nav">
+            <div class="nav-item"><svg viewBox="0 0 24 24" fill="currentColor" style="opacity:.4;"><rect x="3" y="3" width="7" height="7" rx="2"/><rect x="14" y="3" width="7" height="7" rx="2"/><rect x="3" y="14" width="7" height="7" rx="2"/><rect x="14" y="14" width="7" height="7" rx="2"/></svg><span>Сегодня</span></div>
+            <div class="nav-item"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="3"/><path d="M9 11l2 2 4-4"/></svg><span>Задачи</span></div>
+            <div class="nav-item active"><svg viewBox="0 0 24 24" fill="currentColor"><rect x="3" y="4" width="18" height="18" rx="3"/><path d="M3 10h18" fill="none" stroke="var(--bg)" stroke-width="2"/><rect x="7" y="1" width="2" height="5" rx="1"/><rect x="15" y="1" width="2" height="5" rx="1"/></svg><span>Календарь</span></div>
+            <div class="nav-item"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="9"/><circle cx="12" cy="12" r="3"/></svg><span>Настройки</span></div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<!-- ===================== EMPTY STATES ===================== -->
+<div class="section">
+  <div class="section-title">Пустые состояния</div>
+  <div class="section-subtitle">Когда список задач пуст</div>
+  <div class="variants">
+
+    <!-- With illustration -->
+    <div class="variant">
+      <div class="variant-label">С иллюстрацией</div>
+      <div class="phone">
+        <div class="phone-inner">
+          <div class="status-bar"><span>9:41</span><div class="status-icons">📶 🔋</div></div>
+          <div class="app-bar">
+            <div class="app-bar-title">Сегодня</div>
+            <div class="app-bar-sub">18 марта, среда</div>
+          </div>
+          <div class="empty-state">
+            <div class="empty-illustration">
+              <div class="circle1"></div>
+              <div class="circle2"></div>
+              <div class="icon">☀️</div>
+            </div>
+            <div class="empty-title">День свободен!</div>
+            <div class="empty-text">У вас нет задач на сегодня. Добавьте задачу или наслаждайтесь свободным временем</div>
+            <button class="empty-btn">+ Добавить задачу</button>
+          </div>
+          <div class="bottom-nav">
+            <div class="nav-item active"><svg viewBox="0 0 24 24" fill="currentColor"><rect x="3" y="3" width="7" height="7" rx="2"/><rect x="14" y="3" width="7" height="7" rx="2" opacity=".5"/><rect x="3" y="14" width="7" height="7" rx="2" opacity=".5"/><rect x="14" y="14" width="7" height="7" rx="2" opacity=".5"/></svg><span>Сегодня</span></div>
+            <div class="nav-item"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="3"/><path d="M9 11l2 2 4-4"/></svg><span>Задачи</span></div>
+            <div class="nav-item"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="18" rx="3"/><path d="M3 10h18M8 2v4M16 2v4"/></svg><span>Календарь</span></div>
+            <div class="nav-item"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="9"/><circle cx="12" cy="12" r="3"/></svg><span>Настройки</span></div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Minimalist -->
+    <div class="variant">
+      <div class="variant-label">Минималистичный</div>
+      <div class="phone">
+        <div class="phone-inner">
+          <div class="status-bar"><span>9:41</span><div class="status-icons">📶 🔋</div></div>
+          <div class="app-bar">
+            <div class="app-bar-title">Задачи</div>
+            <div class="app-bar-sub">Все задачи</div>
+          </div>
+          <div class="empty-minimal">
+            <div class="icon-wrap">📋</div>
+            <div class="empty-title">Пока пусто</div>
+            <div style="font-size:14px;color:var(--text2);max-width:240px;margin-bottom:20px;">Нажмите +, чтобы создать первую задачу</div>
+            <div style="display:flex;gap:8px;">
+              <button class="empty-btn" style="padding:12px 24px;font-size:14px;">+ Новая задача</button>
+            </div>
+          </div>
+          <button class="fab">+</button>
+          <div class="bottom-nav">
+            <div class="nav-item"><svg viewBox="0 0 24 24" fill="currentColor" style="opacity:.4;"><rect x="3" y="3" width="7" height="7" rx="2"/><rect x="14" y="3" width="7" height="7" rx="2"/><rect x="3" y="14" width="7" height="7" rx="2"/><rect x="14" y="14" width="7" height="7" rx="2"/></svg><span>Сегодня</span></div>
+            <div class="nav-item active"><svg viewBox="0 0 24 24" fill="currentColor"><rect x="3" y="3" width="18" height="18" rx="3"/><path d="M9 11l2 2 4-4" fill="none" stroke="var(--bg)" stroke-width="2"/></svg><span>Задачи</span></div>
+            <div class="nav-item"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="18" rx="3"/><path d="M3 10h18M8 2v4M16 2v4"/></svg><span>Календарь</span></div>
+            <div class="nav-item"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="9"/><circle cx="12" cy="12" r="3"/></svg><span>Настройки</span></div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<!-- ===================== SETTINGS ===================== -->
+<div class="section">
+  <div class="section-title">Настройки и профиль</div>
+  <div class="section-subtitle">С дашбордом статистики</div>
+  <div class="variants">
+    <div class="variant">
+      <div class="variant-label">Профиль + статистика</div>
+      <div class="phone">
+        <div class="phone-inner">
+          <div class="status-bar"><span>9:41</span><div class="status-icons">📶 🔋</div></div>
+          <div class="app-bar" style="padding-bottom:4px;">
+            <div class="app-bar-title">Настройки</div>
+          </div>
+
+          <div class="settings-header">
+            <div class="avatar">П</div>
+            <div>
+              <div style="font-size:18px;font-weight:700;">Пользователь</div>
+              <div style="font-size:13px;color:var(--text2);">Планер v1.0.0</div>
+            </div>
+          </div>
+
+          <div class="stats-grid">
+            <div class="stat-card">
+              <div class="stat-icon">🎯</div>
+              <div class="stat-value" style="color:var(--primary);">247</div>
+              <div class="stat-label">Задач выполнено</div>
+            </div>
+            <div class="stat-card">
+              <div class="stat-icon">🔥</div>
+              <div class="stat-value" style="color:var(--accent);">12</div>
+              <div class="stat-label">Дней подряд</div>
+            </div>
+            <div class="stat-card">
+              <div class="stat-icon">⚡</div>
+              <div class="stat-value" style="color:var(--success);">89%</div>
+              <div class="stat-label">Продуктивность</div>
+            </div>
+            <div class="stat-card">
+              <div class="stat-icon">📊</div>
+              <div class="stat-value">5.2</div>
+              <div class="stat-label">Задач в день</div>
+            </div>
+          </div>
+
+          <div class="settings-group">
+            <div class="settings-group-title">Внешний вид</div>
+            <div class="settings-item">
+              <div class="settings-item-icon" style="background:var(--primary-bg);">🌙</div>
+              <div class="settings-item-text">
+                <div class="settings-item-title">Тёмная тема</div>
+                <div class="settings-item-sub">Включена</div>
+              </div>
+              <div class="toggle-track"><div class="toggle-thumb"></div></div>
+            </div>
+            <div class="settings-item">
+              <div class="settings-item-icon" style="background:var(--accent-bg);">🎨</div>
+              <div class="settings-item-text">
+                <div class="settings-item-title">Акцентный цвет</div>
+                <div class="settings-item-sub">Фиолетовый</div>
+              </div>
+              <div style="display:flex;gap:6px;">
+                <div style="width:20px;height:20px;border-radius:50%;background:#5B4CDB;border:2px solid var(--text);"></div>
+                <div style="width:20px;height:20px;border-radius:50%;background:#4CAF50;"></div>
+                <div style="width:20px;height:20px;border-radius:50%;background:#FF9800;"></div>
+              </div>
+            </div>
+          </div>
+
+          <div class="settings-group">
+            <div class="settings-group-title">Данные</div>
+            <div class="settings-item">
+              <div class="settings-item-icon" style="background:var(--success-bg);">☁️</div>
+              <div class="settings-item-text">
+                <div class="settings-item-title">Облачная синхронизация</div>
+                <div class="settings-item-sub">Последняя: 5 мин назад</div>
+              </div>
+              <span style="color:var(--text3);">›</span>
+            </div>
+            <div class="settings-item">
+              <div class="settings-item-icon" style="background:var(--surface2);">📤</div>
+              <div class="settings-item-text">
+                <div class="settings-item-title">Экспорт данных</div>
+                <div class="settings-item-sub">JSON бэкап</div>
+              </div>
+              <span style="color:var(--text3);">›</span>
+            </div>
+          </div>
+
+          <div class="settings-group">
+            <div class="settings-group-title">Уведомления</div>
+            <div class="settings-item">
+              <div class="settings-item-icon" style="background:var(--danger-bg);">🔔</div>
+              <div class="settings-item-text">
+                <div class="settings-item-title">Push-уведомления</div>
+                <div class="settings-item-sub">Разрешены</div>
+              </div>
+              <div class="toggle-track"><div class="toggle-thumb"></div></div>
+            </div>
+          </div>
+          <div style="height:100px;"></div>
+
+          <div class="bottom-nav">
+            <div class="nav-item"><svg viewBox="0 0 24 24" fill="currentColor" style="opacity:.4;"><rect x="3" y="3" width="7" height="7" rx="2"/><rect x="14" y="3" width="7" height="7" rx="2"/><rect x="3" y="14" width="7" height="7" rx="2"/><rect x="14" y="14" width="7" height="7" rx="2"/></svg><span>Сегодня</span></div>
+            <div class="nav-item"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="3"/><path d="M9 11l2 2 4-4"/></svg><span>Задачи</span></div>
+            <div class="nav-item"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="18" rx="3"/><path d="M3 10h18M8 2v4M16 2v4"/></svg><span>Календарь</span></div>
+            <div class="nav-item active"><svg viewBox="0 0 24 24" fill="currentColor"><circle cx="12" cy="12" r="9"/><circle cx="12" cy="12" r="3" fill="var(--bg)"/></svg><span>Настройки</span></div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ===================== COMPLETION ANIMATION ===================== -->
+<div class="section">
+  <div class="section-title">Анимация завершения задачи</div>
+  <div class="section-subtitle">Peak-End Rule: яркий момент при выполнении задачи</div>
+  <div class="variants">
+    <div class="variant">
+      <div class="variant-label">Празднование (CSS анимация)</div>
+      <div class="phone">
+        <div class="phone-inner" id="completion-phone">
+          <div class="status-bar"><span>9:41</span><div class="status-icons">📶 🔋</div></div>
+          <div class="completion-demo" id="completion-demo">
+            <div class="confetti-container" id="confetti-container">
+              <div class="ripple-ring"></div>
+              <div class="ripple-ring"></div>
+              <div class="ripple-ring"></div>
+              <div class="check-circle">
+                <svg viewBox="0 0 48 48"><path d="M14 24 L22 32 L34 16" stroke-linecap="round" stroke-linejoin="round"/></svg>
+              </div>
+            </div>
+            <div class="completion-text">Отлично!</div>
+            <div class="completion-sub">Задача «Презентация» выполнена</div>
+            <div class="streak-badge">🔥 12 дней подряд — так держать!</div>
+          </div>
+          <button class="replay-btn" onclick="replayAnimation()">↻ Повторить анимацию</button>
+          <div class="bottom-nav">
+            <div class="nav-item active"><svg viewBox="0 0 24 24" fill="currentColor"><rect x="3" y="3" width="7" height="7" rx="2"/><rect x="14" y="3" width="7" height="7" rx="2" opacity=".5"/><rect x="3" y="14" width="7" height="7" rx="2" opacity=".5"/><rect x="14" y="14" width="7" height="7" rx="2" opacity=".5"/></svg><span>Сегодня</span></div>
+            <div class="nav-item"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="3"/><path d="M9 11l2 2 4-4"/></svg><span>Задачи</span></div>
+            <div class="nav-item"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="18" rx="3"/><path d="M3 10h18M8 2v4M16 2v4"/></svg><span>Календарь</span></div>
+            <div class="nav-item"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="9"/><circle cx="12" cy="12" r="3"/></svg><span>Настройки</span></div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ===================== UX PRINCIPLES ===================== -->
+<div class="principles">
+  <div class="section-title" style="margin-bottom:24px;">7 UX-принципов в дизайне</div>
+  <div class="principle">
+    <div class="principle-num">01</div>
+    <div>
+      <div class="principle-title">Эффект ореола (Halo Effect)</div>
+      <div class="principle-desc">Градиентные хедеры, стеклянные карточки и аккуратная типографика создают впечатление премиум-продукта с первого экрана.</div>
+    </div>
+  </div>
+  <div class="principle">
+    <div class="principle-num">02</div>
+    <div>
+      <div class="principle-title">Когнитивная нагрузка (Cognitive Load)</div>
+      <div class="principle-desc">Вариант A (минимальный) показывает только суть: чекбокс, название, время. Никаких отвлекающих элементов.</div>
+    </div>
+  </div>
+  <div class="principle">
+    <div class="principle-num">03</div>
+    <div>
+      <div class="principle-title">Правило пика и конца (Peak-End Rule)</div>
+      <div class="principle-desc">Анимация с конфетти и ободряющим текстом при завершении задачи — яркий момент, который запоминается.</div>
+    </div>
+  </div>
+  <div class="principle">
+    <div class="principle-num">04</div>
+    <div>
+      <div class="principle-title">Закон Фиттса (Fitts's Law)</div>
+      <div class="principle-desc">FAB 56px в зоне большого пальца, чекбоксы 22px с увеличенной зоной касания, кнопки минимум 44px.</div>
+    </div>
+  </div>
+  <div class="principle">
+    <div class="principle-num">05</div>
+    <div>
+      <div class="principle-title">Эффект Фон Ресторфф (Von Restorff)</div>
+      <div class="principle-desc">Один акцентный элемент на экран: кольцо прогресса, красная карточка приоритета, или яркая кнопка «Сохранить».</div>
+    </div>
+  </div>
+  <div class="principle">
+    <div class="principle-num">06</div>
+    <div>
+      <div class="principle-title">Эффект владения (Endowment Effect)</div>
+      <div class="principle-desc">Персонализированное приветствие «Привет, Пользователь», «Ваш день», серия продуктивности — данные принадлежат пользователю.</div>
+    </div>
+  </div>
+  <div class="principle">
+    <div class="principle-num">07</div>
+    <div>
+      <div class="principle-title">Якорение (Anchoring)</div>
+      <div class="principle-desc">Прогресс «7 из 10» и «70%» — якорь, который мотивирует завершить оставшиеся задачи. Статистика в настройках усиливает эффект.</div>
+    </div>
+  </div>
+</div>
+
+<div style="text-align:center;padding:40px;color:var(--text3);font-size:13px;">
+  Планер UX Mockups — создано для визуальной референции при разработке Flutter UI
+</div>
+
+<script>
+// Theme toggle
+function toggleTheme(btn) {
+  const isDark = document.documentElement.getAttribute('data-theme') === 'dark';
+  document.documentElement.setAttribute('data-theme', isDark ? '' : 'dark');
+  btn.classList.toggle('active');
+}
+
+// Confetti for completion animation
+function createConfetti() {
+  const container = document.getElementById('confetti-container');
+  const colors = ['#5B4CDB','#FF9F0A','#34C759','#FF3B30','#8B5CF6','#EC4899','#06B6D4'];
+  // Remove old confetti
+  container.querySelectorAll('.confetti-piece').forEach(el => el.remove());
+  for (let i = 0; i < 20; i++) {
+    const piece = document.createElement('div');
+    piece.className = 'confetti-piece';
+    const angle = (i / 20) * Math.PI * 2;
+    const dist = 60 + Math.random() * 80;
+    const x = Math.cos(angle) * dist;
+    const y = Math.sin(angle) * dist;
+    piece.style.cssText = `
+      left: 50%; top: 50%;
+      background: ${colors[i % colors.length]};
+      width: ${6 + Math.random()*6}px;
+      height: ${6 + Math.random()*6}px;
+      border-radius: ${Math.random() > 0.5 ? '50%' : '2px'};
+      --fly-to: translate(${x}px, ${y}px);
+      animation-delay: ${Math.random() * 0.3}s;
+      animation-duration: ${0.6 + Math.random() * 0.5}s;
+    `;
+    container.appendChild(piece);
+  }
+}
+
+function replayAnimation() {
+  const demo = document.getElementById('completion-demo');
+  const clone = demo.cloneNode(true);
+  demo.parentNode.replaceChild(clone, demo);
+  clone.id = 'completion-demo';
+  // Re-create confetti
+  const container = clone.querySelector('.confetti-container');
+  container.id = 'confetti-container';
+  setTimeout(() => createConfetti(), 100);
+}
+
+// Initial confetti
+window.addEventListener('load', () => {
+  setTimeout(createConfetti, 500);
+});
+</script>
+
+</body>
+</html>

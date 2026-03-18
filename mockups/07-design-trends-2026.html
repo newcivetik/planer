@@ -1,0 +1,2133 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Фаза 10 — 10 Трендов Дизайна 2026</title>
+<style>
+/* ========== RESET & BASE ========== */
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+:root {
+  --bg: #fafafa;
+  --bg-alt: #f0f0f0;
+  --surface: #ffffff;
+  --text: #1a1a1a;
+  --text-secondary: #6b6b6b;
+  --accent: #e44332;
+  --accent-light: rgba(228,67,50,0.12);
+  --accent-glow: rgba(228,67,50,0.4);
+  --border: rgba(0,0,0,0.08);
+  --glass-bg: rgba(255,255,255,0.55);
+  --glass-border: rgba(255,255,255,0.35);
+  --skeleton-base: #e8e8e8;
+  --skeleton-shine: #f5f5f5;
+  --shadow-sm: 0 1px 3px rgba(0,0,0,0.06);
+  --shadow-md: 0 4px 16px rgba(0,0,0,0.08);
+  --shadow-lg: 0 8px 32px rgba(0,0,0,0.12);
+  --radius: 16px;
+  --radius-sm: 10px;
+  --radius-xs: 6px;
+  --font: 'Segoe UI', -apple-system, BlinkMacSystemFont, sans-serif;
+  --mono: 'SF Mono', 'Fira Code', 'Consolas', monospace;
+}
+
+[data-theme="dark"] {
+  --bg: #1a1a1a;
+  --bg-alt: #242424;
+  --surface: #2a2a2a;
+  --text: #f0f0f0;
+  --text-secondary: #999;
+  --border: rgba(255,255,255,0.08);
+  --glass-bg: rgba(40,40,40,0.65);
+  --glass-border: rgba(255,255,255,0.12);
+  --skeleton-base: #333;
+  --skeleton-shine: #3d3d3d;
+  --shadow-sm: 0 1px 3px rgba(0,0,0,0.2);
+  --shadow-md: 0 4px 16px rgba(0,0,0,0.3);
+  --shadow-lg: 0 8px 32px rgba(0,0,0,0.4);
+}
+
+html { scroll-behavior: smooth; }
+
+body {
+  font-family: var(--font);
+  background: var(--bg);
+  color: var(--text);
+  line-height: 1.5;
+  -webkit-font-smoothing: antialiased;
+}
+
+/* ========== HEADER ========== */
+.page-header {
+  position: sticky;
+  top: 0;
+  z-index: 100;
+  background: var(--bg);
+  border-bottom: 1px solid var(--border);
+  padding: 16px 24px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.page-header h1 {
+  font-size: 18px;
+  font-weight: 700;
+  letter-spacing: -0.3px;
+}
+
+.page-header h1 span { color: var(--accent); }
+
+.theme-toggle {
+  width: 44px;
+  height: 24px;
+  border-radius: 12px;
+  background: var(--border);
+  border: none;
+  cursor: pointer;
+  position: relative;
+  transition: background 0.3s;
+}
+
+.theme-toggle::after {
+  content: '';
+  position: absolute;
+  width: 18px;
+  height: 18px;
+  border-radius: 50%;
+  background: var(--accent);
+  top: 3px;
+  left: 3px;
+  transition: transform 0.3s;
+}
+
+[data-theme="dark"] .theme-toggle::after {
+  transform: translateX(20px);
+}
+
+/* ========== LAYOUT ========== */
+.trends-container {
+  max-width: 800px;
+  margin: 0 auto;
+  padding: 24px 16px 80px;
+  display: flex;
+  flex-direction: column;
+  gap: 48px;
+}
+
+/* ========== TREND SECTION ========== */
+.trend-section {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.trend-label {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  font-size: 11px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 1.5px;
+  color: var(--accent);
+}
+
+.trend-label::before {
+  content: '';
+  width: 20px;
+  height: 2px;
+  background: var(--accent);
+  border-radius: 1px;
+}
+
+.trend-title {
+  font-size: 22px;
+  font-weight: 800;
+  letter-spacing: -0.5px;
+}
+
+.trend-desc {
+  font-size: 13px;
+  color: var(--text-secondary);
+  line-height: 1.6;
+  max-width: 500px;
+}
+
+/* ========== PHONE FRAME ========== */
+.phone-frame {
+  width: 375px;
+  height: 812px;
+  border-radius: 40px;
+  overflow: hidden;
+  position: relative;
+  box-shadow: var(--shadow-lg), 0 0 0 1px var(--border);
+  margin: 0 auto;
+  background: var(--surface);
+  flex-shrink: 0;
+}
+
+.phone-frame .status-bar {
+  height: 54px;
+  padding: 14px 24px 0;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  font-size: 14px;
+  font-weight: 600;
+  position: relative;
+  z-index: 5;
+}
+
+.phone-frame .status-bar .time { font-weight: 700; }
+.phone-frame .status-bar .icons { display: flex; gap: 6px; align-items: center; }
+
+.status-dot {
+  width: 4px;
+  height: 4px;
+  border-radius: 50%;
+  background: currentColor;
+}
+
+.home-indicator {
+  position: absolute;
+  bottom: 8px;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 134px;
+  height: 5px;
+  border-radius: 3px;
+  background: var(--text);
+  opacity: 0.2;
+  z-index: 5;
+}
+
+.phone-content {
+  height: calc(100% - 54px - 20px);
+  overflow-y: auto;
+  overflow-x: hidden;
+  scrollbar-width: none;
+}
+
+.phone-content::-webkit-scrollbar { display: none; }
+
+/* ========== TREND 1: GLASSMORPHISM 2.0 ========== */
+.glass-bg {
+  background: linear-gradient(135deg, #667eea 0%, #e44332 40%, #f093fb 70%, #4facfe 100%);
+  background-size: 300% 300%;
+  animation: gradientShift 8s ease infinite;
+}
+
+@keyframes gradientShift {
+  0%, 100% { background-position: 0% 50%; }
+  50% { background-position: 100% 50%; }
+}
+
+.glass-content {
+  padding: 20px;
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  height: 100%;
+}
+
+.glass-header {
+  color: #fff;
+  font-size: 20px;
+  font-weight: 700;
+  padding: 8px 0 4px;
+}
+
+.glass-sub {
+  color: rgba(255,255,255,0.8);
+  font-size: 13px;
+}
+
+.glass-card {
+  background: var(--glass-bg);
+  backdrop-filter: blur(24px) saturate(180%);
+  -webkit-backdrop-filter: blur(24px) saturate(180%);
+  border: 1px solid var(--glass-border);
+  border-radius: var(--radius);
+  padding: 18px;
+  box-shadow: 0 8px 32px rgba(0,0,0,0.15), inset 0 1px 0 rgba(255,255,255,0.3);
+  position: relative;
+  overflow: hidden;
+}
+
+.glass-card::before {
+  content: '';
+  position: absolute;
+  top: -1px;
+  left: -1px;
+  right: -1px;
+  bottom: -1px;
+  border-radius: var(--radius);
+  border: 1px solid transparent;
+  background: linear-gradient(135deg, rgba(255,255,255,0.4), rgba(255,255,255,0.05)) border-box;
+  mask: linear-gradient(#fff 0 0) padding-box, linear-gradient(#fff 0 0);
+  mask-composite: exclude;
+  -webkit-mask-composite: xor;
+  pointer-events: none;
+}
+
+.glass-card-title {
+  font-weight: 700;
+  font-size: 15px;
+  margin-bottom: 6px;
+  color: var(--text);
+}
+
+.glass-card-meta {
+  font-size: 12px;
+  color: var(--text-secondary);
+  margin-bottom: 12px;
+}
+
+.glass-tasks {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.glass-task-item {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 10px 14px;
+  background: rgba(255,255,255,0.25);
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+  border-radius: var(--radius-sm);
+  border: 1px solid rgba(255,255,255,0.2);
+  font-size: 14px;
+  transition: transform 0.2s, box-shadow 0.2s;
+}
+
+.glass-task-item:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+}
+
+.glass-check {
+  width: 20px;
+  height: 20px;
+  border-radius: 50%;
+  border: 2px solid var(--accent);
+  flex-shrink: 0;
+  position: relative;
+}
+
+.glass-check.done {
+  background: var(--accent);
+}
+
+.glass-check.done::after {
+  content: '';
+  position: absolute;
+  left: 5px;
+  top: 2px;
+  width: 6px;
+  height: 10px;
+  border: solid #fff;
+  border-width: 0 2px 2px 0;
+  transform: rotate(45deg);
+}
+
+.glass-layer-2 {
+  background: rgba(255,255,255,0.15);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  border: 1px solid rgba(255,255,255,0.15);
+  border-radius: var(--radius);
+  padding: 16px;
+  margin-top: auto;
+}
+
+.glass-layer-2 .mini-stat {
+  display: flex;
+  justify-content: space-between;
+  color: rgba(255,255,255,0.9);
+  font-size: 13px;
+}
+
+.glass-layer-2 .mini-stat strong {
+  color: #fff;
+  font-size: 20px;
+}
+
+.glass-glow {
+  position: absolute;
+  width: 200px;
+  height: 200px;
+  border-radius: 50%;
+  background: var(--accent-glow);
+  filter: blur(60px);
+  opacity: 0.3;
+  pointer-events: none;
+  animation: glowPulse 4s ease-in-out infinite;
+}
+
+@keyframes glowPulse {
+  0%, 100% { opacity: 0.2; transform: scale(1); }
+  50% { opacity: 0.4; transform: scale(1.1); }
+}
+
+/* ========== TREND 2: MOTION NARRATIVE ========== */
+.motion-phone .phone-content {
+  background: var(--bg);
+}
+
+.motion-inner {
+  padding: 20px;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.motion-header {
+  opacity: 0;
+  transform: translateY(20px);
+  font-size: 22px;
+  font-weight: 800;
+  letter-spacing: -0.5px;
+  padding-bottom: 4px;
+}
+
+.motion-stats-row {
+  display: flex;
+  gap: 10px;
+  opacity: 0;
+  transform: translateY(20px);
+}
+
+.motion-stat-card {
+  flex: 1;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  padding: 14px;
+  text-align: center;
+}
+
+.motion-stat-card .num {
+  font-size: 28px;
+  font-weight: 800;
+  color: var(--accent);
+}
+
+.motion-stat-card .label {
+  font-size: 11px;
+  color: var(--text-secondary);
+  margin-top: 2px;
+}
+
+.motion-task {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  padding: 14px 16px;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  opacity: 0;
+  transform: translateY(24px);
+  transition: box-shadow 0.2s;
+}
+
+.motion-task:hover {
+  box-shadow: var(--shadow-md);
+}
+
+.motion-task .priority-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  flex-shrink: 0;
+}
+
+.motion-task .task-text {
+  flex: 1;
+  font-size: 14px;
+  font-weight: 500;
+}
+
+.motion-task .task-time {
+  font-size: 11px;
+  color: var(--text-secondary);
+  white-space: nowrap;
+}
+
+.motion-phone.animate .motion-header {
+  animation: motionFadeIn 0.6s ease forwards;
+}
+
+.motion-phone.animate .motion-stats-row {
+  animation: motionFadeIn 0.6s ease 0.2s forwards;
+}
+
+.motion-phone.animate .motion-task:nth-child(1) { animation: motionFadeIn 0.5s ease 0.4s forwards; }
+.motion-phone.animate .motion-task:nth-child(2) { animation: motionFadeIn 0.5s ease 0.55s forwards; }
+.motion-phone.animate .motion-task:nth-child(3) { animation: motionFadeIn 0.5s ease 0.7s forwards; }
+.motion-phone.animate .motion-task:nth-child(4) { animation: motionFadeIn 0.5s ease 0.85s forwards; }
+.motion-phone.animate .motion-task:nth-child(5) { animation: motionFadeIn 0.5s ease 1.0s forwards; }
+.motion-phone.animate .motion-task:nth-child(6) { animation: motionFadeIn 0.5s ease 1.15s forwards; }
+.motion-phone.animate .motion-task:nth-child(7) { animation: motionFadeIn 0.5s ease 1.3s forwards; }
+
+@keyframes motionFadeIn {
+  to { opacity: 1; transform: translateY(0); }
+}
+
+.scroll-progress {
+  position: absolute;
+  top: 54px;
+  right: 8px;
+  width: 3px;
+  height: 60px;
+  background: var(--border);
+  border-radius: 2px;
+  z-index: 10;
+}
+
+.scroll-progress-fill {
+  width: 100%;
+  height: 30%;
+  background: var(--accent);
+  border-radius: 2px;
+  animation: scrollIndicator 3s ease-in-out infinite;
+}
+
+@keyframes scrollIndicator {
+  0% { transform: translateY(0); }
+  50% { transform: translateY(40px); }
+  100% { transform: translateY(0); }
+}
+
+/* ========== TREND 3: ORGANIC / BENTO GRID ========== */
+.bento-phone .phone-content {
+  background: var(--bg);
+}
+
+.bento-inner {
+  padding: 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.bento-title {
+  font-size: 20px;
+  font-weight: 800;
+  padding: 4px 4px 8px;
+  letter-spacing: -0.5px;
+}
+
+.bento-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  grid-template-rows: auto;
+  gap: 10px;
+}
+
+.bento-card {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 20px;
+  padding: 18px;
+  position: relative;
+  overflow: hidden;
+  transition: transform 0.2s;
+}
+
+.bento-card:hover {
+  transform: scale(1.02);
+}
+
+.bento-big {
+  grid-column: 1 / -1;
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  padding: 24px 20px;
+  background: var(--accent);
+  color: #fff;
+  border-color: var(--accent);
+}
+
+.bento-big .bento-icon {
+  width: 56px;
+  height: 56px;
+  border-radius: 50%;
+  background: rgba(255,255,255,0.2);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 24px;
+  flex-shrink: 0;
+}
+
+.bento-big .bento-big-text .num {
+  font-size: 32px;
+  font-weight: 800;
+}
+
+.bento-big .bento-big-text .label {
+  font-size: 13px;
+  opacity: 0.85;
+}
+
+.bento-card .card-label {
+  font-size: 11px;
+  color: var(--text-secondary);
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  margin-bottom: 10px;
+}
+
+.bento-big .card-label {
+  color: rgba(255,255,255,0.7);
+}
+
+.bento-card .card-value {
+  font-size: 28px;
+  font-weight: 800;
+}
+
+.bento-card .card-sub {
+  font-size: 12px;
+  color: var(--text-secondary);
+  margin-top: 4px;
+}
+
+.bento-blob {
+  position: absolute;
+  border-radius: 50% 40% 60% 45%;
+  opacity: 0.06;
+  pointer-events: none;
+}
+
+.bento-blob-1 {
+  width: 80px;
+  height: 80px;
+  background: var(--accent);
+  bottom: -20px;
+  right: -15px;
+  transform: rotate(30deg);
+}
+
+.bento-blob-2 {
+  width: 50px;
+  height: 50px;
+  background: #667eea;
+  top: -10px;
+  left: -10px;
+  transform: rotate(-20deg);
+}
+
+.bento-actions {
+  grid-column: 1 / -1;
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 8px;
+}
+
+.bento-action {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 6px;
+  padding: 14px 8px;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 16px;
+  font-size: 10px;
+  color: var(--text-secondary);
+  transition: transform 0.2s, border-color 0.2s;
+  cursor: pointer;
+}
+
+.bento-action:hover {
+  transform: translateY(-2px);
+  border-color: var(--accent);
+}
+
+.bento-action-icon {
+  width: 36px;
+  height: 36px;
+  border-radius: 12px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 18px;
+}
+
+.bento-breakout {
+  grid-column: 1 / -1;
+  background: linear-gradient(135deg, var(--surface), var(--bg-alt));
+  border: 1px solid var(--border);
+  border-radius: 24px;
+  padding: 20px;
+  position: relative;
+}
+
+.bento-breakout::before {
+  content: '';
+  position: absolute;
+  top: -6px;
+  right: 24px;
+  width: 12px;
+  height: 12px;
+  background: var(--accent);
+  border-radius: 50%;
+}
+
+.bento-breakout .habit-row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 8px 0;
+}
+
+.bento-breakout .habit-row + .habit-row {
+  border-top: 1px solid var(--border);
+}
+
+.habit-dots {
+  display: flex;
+  gap: 4px;
+  margin-left: auto;
+}
+
+.habit-dot {
+  width: 10px;
+  height: 10px;
+  border-radius: 3px;
+  background: var(--border);
+}
+
+.habit-dot.filled { background: var(--accent); }
+.habit-dot.half { background: var(--accent-light); }
+
+/* ========== TREND 4: ARCHIVAL INDEX ========== */
+.archival-phone .phone-content {
+  background: #faf9f7;
+}
+
+[data-theme="dark"] .archival-phone .phone-content {
+  background: #1e1e1c;
+}
+
+.archival-inner {
+  padding: 20px;
+}
+
+.archival-header {
+  border-bottom: 2px solid var(--text);
+  padding-bottom: 12px;
+  margin-bottom: 20px;
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+}
+
+.archival-header h2 {
+  font-family: var(--mono);
+  font-size: 14px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 2px;
+}
+
+.archival-header .date {
+  font-family: var(--mono);
+  font-size: 11px;
+  color: var(--text-secondary);
+}
+
+.archival-list {
+  display: flex;
+  flex-direction: column;
+}
+
+.archival-item {
+  display: flex;
+  gap: 16px;
+  padding: 14px 0;
+  border-bottom: 1px solid var(--border);
+  align-items: flex-start;
+  transition: background 0.2s;
+}
+
+.archival-item:hover {
+  background: var(--accent-light);
+  margin: 0 -20px;
+  padding-left: 20px;
+  padding-right: 20px;
+}
+
+.archival-num {
+  font-family: var(--mono);
+  font-size: 28px;
+  font-weight: 300;
+  color: var(--text-secondary);
+  opacity: 0.4;
+  line-height: 1;
+  min-width: 48px;
+  padding-top: 2px;
+}
+
+.archival-content {
+  flex: 1;
+}
+
+.archival-content .title {
+  font-size: 15px;
+  font-weight: 600;
+  margin-bottom: 4px;
+}
+
+.archival-content .meta {
+  font-family: var(--mono);
+  font-size: 11px;
+  color: var(--text-secondary);
+  display: flex;
+  gap: 12px;
+}
+
+.archival-tag {
+  display: inline-block;
+  padding: 2px 8px;
+  border: 1px solid var(--accent);
+  border-radius: 2px;
+  font-family: var(--mono);
+  font-size: 10px;
+  color: var(--accent);
+  text-transform: uppercase;
+  letter-spacing: 1px;
+}
+
+.archival-footer {
+  margin-top: 24px;
+  padding-top: 16px;
+  border-top: 2px solid var(--text);
+  display: flex;
+  justify-content: space-between;
+  font-family: var(--mono);
+  font-size: 11px;
+  color: var(--text-secondary);
+}
+
+/* ========== TREND 5: HUMAN-MADE ========== */
+.human-phone .phone-content {
+  background: #fff8f0;
+}
+
+[data-theme="dark"] .human-phone .phone-content {
+  background: #221f1b;
+}
+
+.human-inner {
+  padding: 20px;
+}
+
+.human-header {
+  font-size: 24px;
+  font-weight: 800;
+  margin-bottom: 4px;
+  position: relative;
+  display: inline-block;
+}
+
+.wavy-underline {
+  display: block;
+  margin-top: -4px;
+  margin-bottom: 16px;
+}
+
+.human-greeting {
+  font-size: 14px;
+  color: var(--text-secondary);
+  margin-bottom: 20px;
+  font-style: italic;
+}
+
+.human-task-list {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.human-task {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 14px 16px;
+  background: var(--surface);
+  border-radius: 20px 20px 20px 4px;
+  border: 1px solid var(--border);
+  position: relative;
+  transition: transform 0.2s;
+}
+
+.human-task:nth-child(even) {
+  border-radius: 20px 20px 4px 20px;
+}
+
+.human-task:hover {
+  transform: rotate(-0.5deg) scale(1.01);
+}
+
+.human-check {
+  width: 22px;
+  height: 22px;
+  border-radius: 50% 45% 55% 48%;
+  border: 2px solid var(--accent);
+  flex-shrink: 0;
+  position: relative;
+}
+
+.human-check.done {
+  background: var(--accent);
+  border-radius: 48% 52% 46% 54%;
+}
+
+.human-check.done::after {
+  content: '';
+  position: absolute;
+  left: 5px;
+  top: 2px;
+  width: 7px;
+  height: 11px;
+  border: solid #fff;
+  border-width: 0 2.5px 2.5px 0;
+  transform: rotate(45deg);
+}
+
+.human-task-text {
+  flex: 1;
+  font-size: 14px;
+}
+
+.human-task-text.crossed {
+  text-decoration: line-through;
+  opacity: 0.5;
+}
+
+.human-category-chip {
+  display: inline-block;
+  padding: 3px 10px;
+  border-radius: 20px;
+  font-size: 11px;
+  background: var(--accent-light);
+  color: var(--accent);
+  font-weight: 600;
+}
+
+.organic-divider {
+  display: block;
+  margin: 16px 0;
+  opacity: 0.3;
+}
+
+.human-quote {
+  padding: 16px;
+  background: var(--accent-light);
+  border-radius: 20px 20px 20px 4px;
+  font-size: 13px;
+  font-style: italic;
+  color: var(--text-secondary);
+  position: relative;
+  margin-top: 8px;
+}
+
+.human-quote::before {
+  content: '';
+  position: absolute;
+  top: -6px;
+  left: 20px;
+  width: 14px;
+  height: 14px;
+  border-radius: 50% 40% 60% 50%;
+  background: var(--accent);
+  opacity: 0.3;
+}
+
+/* ========== TREND 6: ACCESSIBILITY-FIRST ========== */
+.a11y-phone .phone-content {
+  background: var(--bg);
+}
+
+.a11y-inner {
+  padding: 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+.a11y-toolbar {
+  display: flex;
+  gap: 6px;
+  flex-wrap: wrap;
+}
+
+.a11y-btn {
+  padding: 8px 12px;
+  border-radius: var(--radius-xs);
+  border: 2px solid var(--border);
+  background: var(--surface);
+  font-size: 11px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s;
+  color: var(--text);
+}
+
+.a11y-btn:hover, .a11y-btn:focus {
+  border-color: var(--accent);
+  outline: 3px solid var(--accent-light);
+  outline-offset: 1px;
+}
+
+.a11y-btn.active {
+  background: var(--accent);
+  color: #fff;
+  border-color: var(--accent);
+}
+
+.a11y-heading {
+  font-size: 20px;
+  font-weight: 800;
+  padding: 4px 0;
+}
+
+.a11y-task-list {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.a11y-task {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  padding: 16px;
+  background: var(--surface);
+  border: 2px solid var(--border);
+  border-radius: var(--radius-sm);
+  cursor: pointer;
+  transition: all 0.2s;
+  position: relative;
+}
+
+.a11y-task:focus-within, .a11y-task:hover {
+  border-color: var(--accent);
+  box-shadow: 0 0 0 3px var(--accent-light);
+}
+
+.a11y-task-check {
+  width: 24px;
+  height: 24px;
+  border-radius: 6px;
+  border: 3px solid var(--accent);
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.a11y-task-check.done {
+  background: var(--accent);
+}
+
+.a11y-task-check.done::after {
+  content: '\2713';
+  color: #fff;
+  font-size: 14px;
+  font-weight: 800;
+}
+
+.a11y-task-text {
+  flex: 1;
+  font-size: 16px;
+  font-weight: 500;
+}
+
+.a11y-task-priority {
+  padding: 4px 10px;
+  border-radius: var(--radius-xs);
+  font-size: 12px;
+  font-weight: 700;
+}
+
+.priority-high {
+  background: #dc2626;
+  color: #fff;
+}
+
+.priority-medium {
+  background: #f59e0b;
+  color: #000;
+}
+
+.priority-low {
+  background: #16a34a;
+  color: #fff;
+}
+
+.a11y-contrast-info {
+  padding: 12px 16px;
+  background: var(--bg-alt);
+  border-radius: var(--radius-sm);
+  border-left: 4px solid var(--accent);
+  font-size: 12px;
+  color: var(--text-secondary);
+  line-height: 1.6;
+}
+
+.a11y-palette {
+  display: flex;
+  gap: 8px;
+  padding: 8px 0;
+}
+
+.a11y-swatch {
+  width: 36px;
+  height: 36px;
+  border-radius: 8px;
+  border: 2px solid var(--border);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 9px;
+  font-weight: 700;
+  color: #fff;
+}
+
+.a11y-skip-link {
+  display: block;
+  text-align: center;
+  padding: 8px;
+  background: var(--accent);
+  color: #fff;
+  border-radius: var(--radius-xs);
+  font-size: 12px;
+  font-weight: 600;
+  text-decoration: none;
+  margin-top: 4px;
+}
+
+/* ========== TREND 7: PERFORMANCE-FIRST / SKELETON ========== */
+.skeleton-phone .phone-content {
+  background: var(--bg);
+}
+
+.skeleton-inner {
+  padding: 20px;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.skeleton-label {
+  font-size: 11px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  color: var(--text-secondary);
+  margin-bottom: -8px;
+}
+
+.skeleton-row {
+  display: flex;
+  gap: 16px;
+  align-items: center;
+}
+
+.skel {
+  background: var(--skeleton-base);
+  border-radius: 6px;
+  position: relative;
+  overflow: hidden;
+}
+
+.skel::after {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: -100%;
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(90deg, transparent, var(--skeleton-shine), transparent);
+  animation: shimmer 1.8s ease-in-out infinite;
+}
+
+@keyframes shimmer {
+  0% { left: -100%; }
+  100% { left: 100%; }
+}
+
+.skel-avatar { width: 40px; height: 40px; border-radius: 50%; }
+.skel-title { height: 20px; flex: 1; }
+.skel-subtitle { height: 14px; width: 60%; }
+.skel-card {
+  height: 80px;
+  width: 100%;
+  border-radius: var(--radius-sm);
+}
+.skel-stat {
+  height: 60px;
+  flex: 1;
+  border-radius: var(--radius-sm);
+}
+.skel-line { height: 14px; width: 100%; margin: 3px 0; }
+.skel-line-short { height: 14px; width: 70%; margin: 3px 0; }
+.skel-btn {
+  height: 44px;
+  width: 100%;
+  border-radius: var(--radius-sm);
+}
+
+.loaded-content {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.loaded-task {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 12px 14px;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  animation: contentReveal 0.4s ease forwards;
+  opacity: 0;
+}
+
+.loaded-task:nth-child(1) { animation-delay: 2s; }
+.loaded-task:nth-child(2) { animation-delay: 2.15s; }
+.loaded-task:nth-child(3) { animation-delay: 2.3s; }
+
+@keyframes contentReveal {
+  from { opacity: 0; transform: translateY(8px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+.loaded-check {
+  width: 18px;
+  height: 18px;
+  border-radius: 50%;
+  border: 2px solid var(--accent);
+  flex-shrink: 0;
+}
+
+.loaded-text {
+  font-size: 14px;
+  flex: 1;
+}
+
+.skeleton-phase-label {
+  text-align: center;
+  font-size: 10px;
+  color: var(--text-secondary);
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  padding: 8px;
+  background: var(--bg-alt);
+  border-radius: var(--radius-xs);
+}
+
+.skeleton-split {
+  display: flex;
+  gap: 16px;
+}
+
+.skeleton-split-col {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.skeleton-split-col .col-label {
+  font-size: 10px;
+  text-align: center;
+  text-transform: uppercase;
+  letter-spacing: 0.8px;
+  color: var(--text-secondary);
+  font-weight: 700;
+  padding-bottom: 4px;
+  border-bottom: 1px solid var(--border);
+}
+
+.skel-visible {
+  animation: shimmer 1.8s ease-in-out infinite;
+}
+
+.progressive-bar {
+  height: 4px;
+  background: var(--skeleton-base);
+  border-radius: 2px;
+  overflow: hidden;
+  margin: 4px 0;
+}
+
+.progressive-fill {
+  height: 100%;
+  background: var(--accent);
+  border-radius: 2px;
+  width: 0%;
+  animation: progressFill 2.5s ease forwards;
+}
+
+@keyframes progressFill {
+  0% { width: 0%; }
+  100% { width: 100%; }
+}
+
+/* ========== NAV LABEL ========== */
+.trend-nav {
+  position: fixed;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  background: var(--surface);
+  border-top: 1px solid var(--border);
+  padding: 8px 16px calc(8px + env(safe-area-inset-bottom));
+  display: flex;
+  justify-content: center;
+  gap: 6px;
+  z-index: 100;
+  flex-wrap: wrap;
+}
+
+.trend-nav a {
+  padding: 6px 10px;
+  border-radius: 20px;
+  font-size: 10px;
+  font-weight: 600;
+  text-decoration: none;
+  color: var(--text-secondary);
+  background: var(--bg-alt);
+  transition: all 0.2s;
+  white-space: nowrap;
+}
+
+.trend-nav a:hover {
+  background: var(--accent);
+  color: #fff;
+}
+
+/* ========== RESPONSIVE ========== */
+@media (max-width: 420px) {
+  .phone-frame {
+    width: 100%;
+    border-radius: 0;
+    height: auto;
+    min-height: 700px;
+  }
+  .trends-container { padding: 16px 8px 100px; }
+}
+</style>
+</head>
+<body>
+
+<!-- Header -->
+<header class="page-header">
+  <h1><span>10</span> Трендов Дизайна 2026</h1>
+  <button class="theme-toggle" onclick="toggleTheme()" aria-label="Переключить тему"></button>
+</header>
+
+<!-- Navigation -->
+<nav class="trend-nav">
+  <a href="#glass">Стекло</a>
+  <a href="#motion">Движение</a>
+  <a href="#bento">Бенто</a>
+  <a href="#archival">Архив</a>
+  <a href="#human">Рукотворный</a>
+  <a href="#a11y">Доступность</a>
+  <a href="#skeleton">Скелетон</a>
+</nav>
+
+<main class="trends-container">
+
+  <!-- ===== TREND 1: GLASSMORPHISM 2.0 ===== -->
+  <section class="trend-section" id="glass">
+    <div class="trend-label">Тренд 01</div>
+    <h2 class="trend-title">Glassmorphism 2.0</h2>
+    <p class="trend-desc">
+      Многослойная прозрачность с размытием фона. Карточки задач словно парят над
+      градиентным фоном, создавая глубину и воздушность интерфейса.
+    </p>
+
+    <div class="phone-frame glass-bg">
+      <div class="status-bar" style="color:#fff;">
+        <span class="time">09:41</span>
+        <span class="icons">
+          <span class="status-dot"></span>
+          <span class="status-dot"></span>
+          <span class="status-dot"></span>
+        </span>
+      </div>
+      <div class="phone-content glass-content">
+        <div class="glass-glow" style="top:100px;left:-50px;"></div>
+        <div class="glass-glow" style="bottom:150px;right:-60px;animation-delay:2s;"></div>
+
+        <div class="glass-header">Мой день</div>
+        <div class="glass-sub">Среда, 18 марта 2026</div>
+
+        <div class="glass-card" style="margin-top:8px;">
+          <div class="glass-card-title">Рабочие задачи</div>
+          <div class="glass-card-meta">4 из 7 выполнено</div>
+          <div class="glass-tasks">
+            <div class="glass-task-item">
+              <div class="glass-check done"></div>
+              <span>Ревью кода команды</span>
+            </div>
+            <div class="glass-task-item">
+              <div class="glass-check done"></div>
+              <span>Обновить API документацию</span>
+            </div>
+            <div class="glass-task-item">
+              <div class="glass-check"></div>
+              <span>Подготовить презентацию</span>
+            </div>
+            <div class="glass-task-item">
+              <div class="glass-check"></div>
+              <span>Созвон с клиентом в 15:00</span>
+            </div>
+          </div>
+        </div>
+
+        <div class="glass-card">
+          <div class="glass-card-title">Личное</div>
+          <div class="glass-card-meta">2 задачи</div>
+          <div class="glass-tasks">
+            <div class="glass-task-item">
+              <div class="glass-check"></div>
+              <span>Записаться к врачу</span>
+            </div>
+            <div class="glass-task-item">
+              <div class="glass-check done"></div>
+              <span>Купить продукты</span>
+            </div>
+          </div>
+        </div>
+
+        <div class="glass-layer-2">
+          <div class="mini-stat">
+            <div>
+              <div style="font-size:11px;opacity:0.7;">Продуктивность</div>
+              <strong>72%</strong>
+            </div>
+            <div style="text-align:right;">
+              <div style="font-size:11px;opacity:0.7;">Серия</div>
+              <strong>5 дн</strong>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="home-indicator" style="background:#fff;"></div>
+    </div>
+  </section>
+
+  <!-- ===== TREND 2: MOTION NARRATIVE ===== -->
+  <section class="trend-section" id="motion">
+    <div class="trend-label">Тренд 02</div>
+    <h2 class="trend-title">Motion Narrative</h2>
+    <p class="trend-desc">
+      Последовательное появление элементов рассказывает историю. Заголовок, статистика,
+      задачи — каждый элемент появляется в нужный момент, направляя внимание пользователя.
+    </p>
+
+    <div class="phone-frame motion-phone" id="motionPhone">
+      <div class="status-bar">
+        <span class="time">09:41</span>
+        <span class="icons">
+          <span class="status-dot"></span>
+          <span class="status-dot"></span>
+          <span class="status-dot"></span>
+        </span>
+      </div>
+      <div class="scroll-progress">
+        <div class="scroll-progress-fill"></div>
+      </div>
+      <div class="phone-content">
+        <div class="motion-inner">
+          <div class="motion-header">Задачи на сегодня</div>
+
+          <div class="motion-stats-row">
+            <div class="motion-stat-card">
+              <div class="num">12</div>
+              <div class="label">Всего</div>
+            </div>
+            <div class="motion-stat-card">
+              <div class="num">5</div>
+              <div class="label">Готово</div>
+            </div>
+            <div class="motion-stat-card">
+              <div class="num">3</div>
+              <div class="label">Срочных</div>
+            </div>
+          </div>
+
+          <div style="font-size:12px;color:var(--text-secondary);font-weight:600;text-transform:uppercase;letter-spacing:1px;padding:8px 0 4px;opacity:0;" class="motion-task" style="background:transparent;border:none;padding:8px 0;">
+          </div>
+
+          <div class="motion-task">
+            <div class="priority-dot" style="background:#dc2626;"></div>
+            <span class="task-text">Финальный релиз v2.0</span>
+            <span class="task-time">10:00</span>
+          </div>
+          <div class="motion-task">
+            <div class="priority-dot" style="background:#dc2626;"></div>
+            <span class="task-text">Исправить критический баг</span>
+            <span class="task-time">11:30</span>
+          </div>
+          <div class="motion-task">
+            <div class="priority-dot" style="background:#f59e0b;"></div>
+            <span class="task-text">Дизайн-ревью с командой</span>
+            <span class="task-time">13:00</span>
+          </div>
+          <div class="motion-task">
+            <div class="priority-dot" style="background:#f59e0b;"></div>
+            <span class="task-text">Написать тесты для модуля</span>
+            <span class="task-time">14:30</span>
+          </div>
+          <div class="motion-task">
+            <div class="priority-dot" style="background:#16a34a;"></div>
+            <span class="task-text">Обновить зависимости</span>
+            <span class="task-time">16:00</span>
+          </div>
+          <div class="motion-task">
+            <div class="priority-dot" style="background:#16a34a;"></div>
+            <span class="task-text">Подготовить отчёт</span>
+            <span class="task-time">17:00</span>
+          </div>
+          <div class="motion-task">
+            <div class="priority-dot" style="background:#6366f1;"></div>
+            <span class="task-text">Прочитать статью о Flutter</span>
+            <span class="task-time">Вечер</span>
+          </div>
+        </div>
+      </div>
+      <div class="home-indicator"></div>
+    </div>
+    <button onclick="replayMotion()" style="align-self:center;padding:10px 24px;border-radius:20px;border:1px solid var(--border);background:var(--surface);color:var(--text);font-size:13px;font-weight:600;cursor:pointer;transition:all 0.2s;">
+      Воспроизвести анимацию
+    </button>
+  </section>
+
+  <!-- ===== TREND 3: ORGANIC / BENTO GRID ===== -->
+  <section class="trend-section" id="bento">
+    <div class="trend-label">Тренд 03</div>
+    <h2 class="trend-title">Organic Layouts / Bento Grid</h2>
+    <p class="trend-desc">
+      Асимметричная сетка в стиле японского бенто. Большие карточки статистики
+      соседствуют с компактными действиями, а органические формы смягчают геометрию.
+    </p>
+
+    <div class="phone-frame bento-phone">
+      <div class="status-bar">
+        <span class="time">09:41</span>
+        <span class="icons">
+          <span class="status-dot"></span>
+          <span class="status-dot"></span>
+          <span class="status-dot"></span>
+        </span>
+      </div>
+      <div class="phone-content">
+        <div class="bento-inner">
+          <div class="bento-title">Панель управления</div>
+
+          <div class="bento-grid">
+            <!-- Big hero card -->
+            <div class="bento-card bento-big">
+              <div class="bento-icon">
+                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2" stroke-linecap="round"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg>
+              </div>
+              <div class="bento-big-text">
+                <div class="card-label">Выполнено сегодня</div>
+                <div class="num">8 / 12</div>
+                <div class="label">задач завершено</div>
+              </div>
+            </div>
+
+            <!-- Stats -->
+            <div class="bento-card" style="position:relative;">
+              <div class="card-label">Серия</div>
+              <div class="card-value">14</div>
+              <div class="card-sub">дней подряд</div>
+              <div class="bento-blob bento-blob-1"></div>
+            </div>
+
+            <div class="bento-card" style="position:relative;">
+              <div class="card-label">Фокус</div>
+              <div class="card-value">2ч</div>
+              <div class="card-sub">глубокой работы</div>
+              <div class="bento-blob bento-blob-2"></div>
+            </div>
+
+            <!-- Quick actions -->
+            <div class="bento-actions">
+              <div class="bento-action">
+                <div class="bento-action-icon" style="background:#fee2e2;">
+                  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#dc2626" stroke-width="2" stroke-linecap="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+                </div>
+                Задача
+              </div>
+              <div class="bento-action">
+                <div class="bento-action-icon" style="background:#dbeafe;">
+                  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#2563eb" stroke-width="2" stroke-linecap="round"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
+                </div>
+                Событие
+              </div>
+              <div class="bento-action">
+                <div class="bento-action-icon" style="background:#fef3c7;">
+                  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#d97706" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+                </div>
+                Таймер
+              </div>
+              <div class="bento-action">
+                <div class="bento-action-icon" style="background:#d1fae5;">
+                  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#059669" stroke-width="2" stroke-linecap="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>
+                </div>
+                Заметка
+              </div>
+            </div>
+
+            <!-- Breakout habits card -->
+            <div class="bento-breakout">
+              <div class="card-label" style="margin-bottom:10px;">Привычки на этой неделе</div>
+              <div class="habit-row">
+                <span style="font-size:14px;">Медитация</span>
+                <div class="habit-dots">
+                  <div class="habit-dot filled"></div>
+                  <div class="habit-dot filled"></div>
+                  <div class="habit-dot filled"></div>
+                  <div class="habit-dot half"></div>
+                  <div class="habit-dot"></div>
+                  <div class="habit-dot"></div>
+                  <div class="habit-dot"></div>
+                </div>
+              </div>
+              <div class="habit-row">
+                <span style="font-size:14px;">Чтение</span>
+                <div class="habit-dots">
+                  <div class="habit-dot filled"></div>
+                  <div class="habit-dot filled"></div>
+                  <div class="habit-dot"></div>
+                  <div class="habit-dot filled"></div>
+                  <div class="habit-dot"></div>
+                  <div class="habit-dot"></div>
+                  <div class="habit-dot"></div>
+                </div>
+              </div>
+              <div class="habit-row">
+                <span style="font-size:14px;">Спорт</span>
+                <div class="habit-dots">
+                  <div class="habit-dot filled"></div>
+                  <div class="habit-dot"></div>
+                  <div class="habit-dot filled"></div>
+                  <div class="habit-dot"></div>
+                  <div class="habit-dot"></div>
+                  <div class="habit-dot"></div>
+                  <div class="habit-dot"></div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="home-indicator"></div>
+    </div>
+  </section>
+
+  <!-- ===== TREND 4: ARCHIVAL INDEX ===== -->
+  <section class="trend-section" id="archival">
+    <div class="trend-label">Тренд 04</div>
+    <h2 class="trend-title">Archival Index</h2>
+    <p class="trend-desc">
+      Нумерованный каталог задач в духе библиотечных карточек. Моноширинный шрифт,
+      минимальная палитра и акцент на структуре создают ощущение порядка и системности.
+    </p>
+
+    <div class="phone-frame archival-phone">
+      <div class="status-bar">
+        <span class="time">09:41</span>
+        <span class="icons">
+          <span class="status-dot"></span>
+          <span class="status-dot"></span>
+          <span class="status-dot"></span>
+        </span>
+      </div>
+      <div class="phone-content">
+        <div class="archival-inner">
+          <div class="archival-header">
+            <h2>Каталог задач</h2>
+            <span class="date">18.03.2026</span>
+          </div>
+
+          <div class="archival-list">
+            <div class="archival-item">
+              <span class="archival-num">01</span>
+              <div class="archival-content">
+                <div class="title">Разработка архитектуры модуля</div>
+                <div class="meta">
+                  <span>Проект: Планер</span>
+                  <span>Приоритет: A</span>
+                </div>
+                <div style="margin-top:6px;">
+                  <span class="archival-tag">В работе</span>
+                </div>
+              </div>
+            </div>
+
+            <div class="archival-item">
+              <span class="archival-num">02</span>
+              <div class="archival-content">
+                <div class="title">Написать unit-тесты</div>
+                <div class="meta">
+                  <span>Проект: Планер</span>
+                  <span>Приоритет: A</span>
+                </div>
+                <div style="margin-top:6px;">
+                  <span class="archival-tag">Ожидание</span>
+                </div>
+              </div>
+            </div>
+
+            <div class="archival-item">
+              <span class="archival-num">03</span>
+              <div class="archival-content">
+                <div class="title">Обновить зависимости проекта</div>
+                <div class="meta">
+                  <span>Проект: Инфра</span>
+                  <span>Приоритет: B</span>
+                </div>
+                <div style="margin-top:6px;">
+                  <span class="archival-tag">В работе</span>
+                </div>
+              </div>
+            </div>
+
+            <div class="archival-item">
+              <span class="archival-num">04</span>
+              <div class="archival-content">
+                <div class="title">Провести код-ревью PR #247</div>
+                <div class="meta">
+                  <span>Проект: Планер</span>
+                  <span>Приоритет: A</span>
+                </div>
+                <div style="margin-top:6px;">
+                  <span class="archival-tag">Ожидание</span>
+                </div>
+              </div>
+            </div>
+
+            <div class="archival-item">
+              <span class="archival-num">05</span>
+              <div class="archival-content">
+                <div class="title">Подготовить документацию API</div>
+                <div class="meta">
+                  <span>Проект: Документы</span>
+                  <span>Приоритет: B</span>
+                </div>
+                <div style="margin-top:6px;">
+                  <span class="archival-tag">В работе</span>
+                </div>
+              </div>
+            </div>
+
+            <div class="archival-item">
+              <span class="archival-num">06</span>
+              <div class="archival-content">
+                <div class="title">Настроить CI/CD пайплайн</div>
+                <div class="meta">
+                  <span>Проект: DevOps</span>
+                  <span>Приоритет: C</span>
+                </div>
+                <div style="margin-top:6px;">
+                  <span class="archival-tag">Запланировано</span>
+                </div>
+              </div>
+            </div>
+
+            <div class="archival-item">
+              <span class="archival-num">07</span>
+              <div class="archival-content">
+                <div class="title">Оптимизация запросов к БД</div>
+                <div class="meta">
+                  <span>Проект: Бэкенд</span>
+                  <span>Приоритет: B</span>
+                </div>
+                <div style="margin-top:6px;">
+                  <span class="archival-tag">Запланировано</span>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div class="archival-footer">
+            <span>Записей: 07</span>
+            <span>Стр. 1 / 1</span>
+          </div>
+        </div>
+      </div>
+      <div class="home-indicator"></div>
+    </div>
+  </section>
+
+  <!-- ===== TREND 5: HUMAN-MADE DESIGN ===== -->
+  <section class="trend-section" id="human">
+    <div class="trend-label">Тренд 05</div>
+    <h2 class="trend-title">Human-Made Design</h2>
+    <p class="trend-desc">
+      Рукотворные акценты: волнистые линии, органические формы и тёплая типографика.
+      Дизайн, который выглядит дружелюбно и по-человечески, а не сгенерирован машиной.
+    </p>
+
+    <div class="phone-frame human-phone">
+      <div class="status-bar">
+        <span class="time">09:41</span>
+        <span class="icons">
+          <span class="status-dot"></span>
+          <span class="status-dot"></span>
+          <span class="status-dot"></span>
+        </span>
+      </div>
+      <div class="phone-content">
+        <div class="human-inner">
+          <div class="human-header">Привет, Алексей!</div>
+          <svg class="wavy-underline" width="180" height="12" viewBox="0 0 180 12">
+            <path d="M0 6 Q 10 0, 20 6 T 40 6 T 60 6 T 80 6 T 100 6 T 120 6 T 140 6 T 160 6 T 180 6"
+                  stroke="var(--accent)" stroke-width="2.5" fill="none" stroke-linecap="round"/>
+          </svg>
+
+          <div class="human-greeting">Сегодня отличный день, чтобы завершить 5 задач!</div>
+
+          <div class="human-task-list">
+            <div class="human-task">
+              <div class="human-check done"></div>
+              <span class="human-task-text crossed">Утренняя медитация</span>
+              <span class="human-category-chip">Здоровье</span>
+            </div>
+
+            <div class="human-task">
+              <div class="human-check done"></div>
+              <span class="human-task-text crossed">Позвонить маме</span>
+              <span class="human-category-chip" style="background:#dbeafe;color:#2563eb;">Семья</span>
+            </div>
+
+            <div class="human-task">
+              <div class="human-check"></div>
+              <span class="human-task-text">Дописать главу книги</span>
+              <span class="human-category-chip" style="background:#fef3c7;color:#d97706;">Хобби</span>
+            </div>
+
+            <div class="human-task">
+              <div class="human-check"></div>
+              <span class="human-task-text">Приготовить ужин</span>
+              <span class="human-category-chip" style="background:#d1fae5;color:#059669;">Дом</span>
+            </div>
+
+            <div class="human-task">
+              <div class="human-check"></div>
+              <span class="human-task-text">Пробежка в парке</span>
+              <span class="human-category-chip">Здоровье</span>
+            </div>
+          </div>
+
+          <!-- Organic divider -->
+          <svg class="organic-divider" width="100%" height="20" viewBox="0 0 335 20" preserveAspectRatio="none">
+            <path d="M0 10 C 40 3, 80 18, 120 8 C 160 -2, 200 15, 240 10 C 280 5, 310 16, 335 10"
+                  stroke="var(--text)" stroke-width="1" fill="none" stroke-linecap="round"/>
+          </svg>
+
+          <div class="human-quote">
+            "Путь в тысячу миль начинается с одного шага" — Лао-цзы
+          </div>
+
+          <!-- Organic stat bubbles -->
+          <div style="display:flex;gap:12px;margin-top:16px;justify-content:center;">
+            <div style="width:80px;height:80px;border-radius:50% 45% 55% 48%;background:var(--accent-light);display:flex;flex-direction:column;align-items:center;justify-content:center;">
+              <span style="font-size:22px;font-weight:800;color:var(--accent);">2</span>
+              <span style="font-size:10px;color:var(--text-secondary);">готово</span>
+            </div>
+            <div style="width:80px;height:80px;border-radius:48% 52% 46% 54%;background:#dbeafe;display:flex;flex-direction:column;align-items:center;justify-content:center;">
+              <span style="font-size:22px;font-weight:800;color:#2563eb;">3</span>
+              <span style="font-size:10px;color:var(--text-secondary);">осталось</span>
+            </div>
+            <div style="width:80px;height:80px;border-radius:52% 48% 50% 52%;background:#fef3c7;display:flex;flex-direction:column;align-items:center;justify-content:center;">
+              <span style="font-size:22px;font-weight:800;color:#d97706;">40%</span>
+              <span style="font-size:10px;color:var(--text-secondary);">прогресс</span>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="home-indicator"></div>
+    </div>
+  </section>
+
+  <!-- ===== TREND 6: ACCESSIBILITY-FIRST ===== -->
+  <section class="trend-section" id="a11y">
+    <div class="trend-label">Тренд 06</div>
+    <h2 class="trend-title">Accessibility-First</h2>
+    <p class="trend-desc">
+      Инклюзивный дизайн с высоким контрастом, крупным текстом и видимыми индикаторами
+      фокуса. Палитра безопасна для дальтоников, а навигация доступна с клавиатуры.
+    </p>
+
+    <div class="phone-frame a11y-phone">
+      <div class="status-bar">
+        <span class="time">09:41</span>
+        <span class="icons">
+          <span class="status-dot"></span>
+          <span class="status-dot"></span>
+          <span class="status-dot"></span>
+        </span>
+      </div>
+      <div class="phone-content">
+        <div class="a11y-inner">
+          <div class="a11y-toolbar">
+            <button class="a11y-btn active">Aa Крупный</button>
+            <button class="a11y-btn">Контраст+</button>
+            <button class="a11y-btn">Фокус</button>
+            <button class="a11y-btn">Моно</button>
+          </div>
+
+          <div class="a11y-heading">Задачи на сегодня</div>
+
+          <div class="a11y-contrast-info">
+            Все цвета соответствуют WCAG 2.2 AA (контраст 4.5:1+).
+            Индикаторы фокуса видны при навигации с клавиатуры.
+          </div>
+
+          <div class="a11y-palette">
+            <div class="a11y-swatch" style="background:#1a1a1a;">Текст</div>
+            <div class="a11y-swatch" style="background:#dc2626;">Выс.</div>
+            <div class="a11y-swatch" style="background:#b45309;">Сред.</div>
+            <div class="a11y-swatch" style="background:#15803d;">Низ.</div>
+            <div class="a11y-swatch" style="background:#1d4ed8;">Инфо</div>
+          </div>
+
+          <div class="a11y-task-list">
+            <div class="a11y-task" tabindex="0" role="checkbox" aria-checked="true">
+              <div class="a11y-task-check done"></div>
+              <span class="a11y-task-text" style="text-decoration:line-through;opacity:0.6;">Проверить доступность форм</span>
+              <span class="a11y-task-priority priority-high">P1</span>
+            </div>
+
+            <div class="a11y-task" tabindex="0" role="checkbox" aria-checked="false">
+              <div class="a11y-task-check"></div>
+              <span class="a11y-task-text">Добавить aria-метки</span>
+              <span class="a11y-task-priority priority-high">P1</span>
+            </div>
+
+            <div class="a11y-task" tabindex="0" role="checkbox" aria-checked="false">
+              <div class="a11y-task-check"></div>
+              <span class="a11y-task-text">Тест с экранным чтецом</span>
+              <span class="a11y-task-priority priority-medium">P2</span>
+            </div>
+
+            <div class="a11y-task" tabindex="0" role="checkbox" aria-checked="false">
+              <div class="a11y-task-check"></div>
+              <span class="a11y-task-text">Навигация с клавиатуры</span>
+              <span class="a11y-task-priority priority-medium">P2</span>
+            </div>
+
+            <div class="a11y-task" tabindex="0" role="checkbox" aria-checked="false">
+              <div class="a11y-task-check"></div>
+              <span class="a11y-task-text">Увеличить размер тапов</span>
+              <span class="a11y-task-priority priority-low">P3</span>
+            </div>
+
+            <div class="a11y-task" tabindex="0" role="checkbox" aria-checked="false">
+              <div class="a11y-task-check"></div>
+              <span class="a11y-task-text">Проверить контраст цветов</span>
+              <span class="a11y-task-priority priority-low">P3</span>
+            </div>
+          </div>
+
+          <a href="#" class="a11y-skip-link" role="link">
+            Перейти к основному содержимому
+          </a>
+        </div>
+      </div>
+      <div class="home-indicator"></div>
+    </div>
+  </section>
+
+  <!-- ===== TREND 7: PERFORMANCE-FIRST / SKELETON ===== -->
+  <section class="trend-section" id="skeleton">
+    <div class="trend-label">Тренд 07</div>
+    <h2 class="trend-title">Performance-First</h2>
+    <p class="trend-desc">
+      Скелетные экраны с эффектом мерцания показывают структуру до загрузки данных.
+      Прогрессивное появление контента создаёт ощущение скорости и отзывчивости.
+    </p>
+
+    <div class="phone-frame skeleton-phone" id="skeletonPhone">
+      <div class="status-bar">
+        <span class="time">09:41</span>
+        <span class="icons">
+          <span class="status-dot"></span>
+          <span class="status-dot"></span>
+          <span class="status-dot"></span>
+        </span>
+      </div>
+      <div class="phone-content">
+        <div class="skeleton-inner">
+
+          <div class="skeleton-phase-label">Фаза загрузки</div>
+          <div class="progressive-bar">
+            <div class="progressive-fill"></div>
+          </div>
+
+          <div class="skeleton-split">
+            <!-- Skeleton side -->
+            <div class="skeleton-split-col">
+              <div class="col-label">Скелетон</div>
+
+              <div class="skeleton-row">
+                <div class="skel skel-avatar"></div>
+                <div style="flex:1;display:flex;flex-direction:column;gap:6px;">
+                  <div class="skel skel-title"></div>
+                  <div class="skel skel-subtitle"></div>
+                </div>
+              </div>
+
+              <div class="skel skel-card"></div>
+
+              <div style="display:flex;gap:8px;">
+                <div class="skel skel-stat"></div>
+                <div class="skel skel-stat"></div>
+              </div>
+
+              <div class="skel skel-line"></div>
+              <div class="skel skel-line-short"></div>
+              <div class="skel skel-line"></div>
+              <div class="skel skel-line-short"></div>
+
+              <div class="skel skel-btn"></div>
+            </div>
+
+            <!-- Loaded side -->
+            <div class="skeleton-split-col">
+              <div class="col-label">Загружено</div>
+
+              <div class="skeleton-row" style="opacity:0;animation:contentReveal 0.4s ease 1.5s forwards;">
+                <div style="width:40px;height:40px;border-radius:50%;background:var(--accent);display:flex;align-items:center;justify-content:center;color:#fff;font-weight:700;font-size:16px;">АК</div>
+                <div style="flex:1;">
+                  <div style="font-size:14px;font-weight:700;">Алексей К.</div>
+                  <div style="font-size:11px;color:var(--text-secondary);">5 задач на сегодня</div>
+                </div>
+              </div>
+
+              <div class="loaded-content">
+                <div class="loaded-task">
+                  <div class="loaded-check"></div>
+                  <span class="loaded-text">Утренний стендап</span>
+                </div>
+                <div class="loaded-task">
+                  <div class="loaded-check"></div>
+                  <span class="loaded-text">Код-ревью</span>
+                </div>
+                <div class="loaded-task">
+                  <div class="loaded-check"></div>
+                  <span class="loaded-text">Деплой на прод</span>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div class="skeleton-phase-label" style="margin-top:12px;">Полная загрузка ниже</div>
+
+          <!-- Full skeleton demo -->
+          <div style="display:flex;flex-direction:column;gap:10px;">
+            <div class="skeleton-row">
+              <div class="skel skel-avatar"></div>
+              <div style="flex:1;display:flex;flex-direction:column;gap:6px;">
+                <div class="skel" style="height:16px;width:50%;"></div>
+                <div class="skel" style="height:12px;width:80%;"></div>
+              </div>
+            </div>
+
+            <div class="skel" style="height:100px;width:100%;border-radius:var(--radius-sm);"></div>
+
+            <div style="display:flex;gap:10px;">
+              <div class="skel" style="height:48px;flex:1;border-radius:var(--radius-sm);"></div>
+              <div class="skel" style="height:48px;flex:1;border-radius:var(--radius-sm);"></div>
+              <div class="skel" style="height:48px;flex:1;border-radius:var(--radius-sm);"></div>
+            </div>
+
+            <div class="skel" style="height:14px;width:100%;"></div>
+            <div class="skel" style="height:14px;width:85%;"></div>
+            <div class="skel" style="height:14px;width:92%;"></div>
+            <div class="skel" style="height:14px;width:60%;"></div>
+
+            <div class="skel" style="height:50px;width:100%;border-radius:var(--radius-sm);"></div>
+          </div>
+
+        </div>
+      </div>
+      <div class="home-indicator"></div>
+    </div>
+    <button onclick="replaySkeleton()" style="align-self:center;padding:10px 24px;border-radius:20px;border:1px solid var(--border);background:var(--surface);color:var(--text);font-size:13px;font-weight:600;cursor:pointer;transition:all 0.2s;">
+      Перезапустить загрузку
+    </button>
+  </section>
+
+</main>
+
+<script>
+// Theme toggle
+function toggleTheme() {
+  const html = document.documentElement;
+  const current = html.getAttribute('data-theme');
+  html.setAttribute('data-theme', current === 'dark' ? 'light' : 'dark');
+}
+
+// Motion Narrative - IntersectionObserver for auto-trigger
+const motionPhone = document.getElementById('motionPhone');
+
+const motionObserver = new IntersectionObserver((entries) => {
+  entries.forEach(entry => {
+    if (entry.isIntersecting) {
+      entry.target.classList.add('animate');
+    }
+  });
+}, { threshold: 0.3 });
+
+motionObserver.observe(motionPhone);
+
+function replayMotion() {
+  motionPhone.classList.remove('animate');
+  void motionPhone.offsetWidth; // trigger reflow
+  motionPhone.classList.add('animate');
+}
+
+// Skeleton replay
+function replaySkeleton() {
+  const phone = document.getElementById('skeletonPhone');
+  const clone = phone.cloneNode(true);
+  clone.id = 'skeletonPhone';
+  phone.parentNode.replaceChild(clone, phone);
+}
+
+// Smooth scroll for nav links
+document.querySelectorAll('.trend-nav a').forEach(a => {
+  a.addEventListener('click', (e) => {
+    e.preventDefault();
+    const target = document.querySelector(a.getAttribute('href'));
+    if (target) {
+      target.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    }
+  });
+});
+</script>
+
+</body>
+</html>

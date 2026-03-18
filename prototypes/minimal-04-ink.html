@@ -1,0 +1,1002 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+<title>Planer — Ink</title>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,600;1,400;1,600&family=Inter:wght@300;400;500&display=swap" rel="stylesheet">
+<style>
+* { margin:0; padding:0; box-sizing:border-box; -webkit-tap-highlight-color:transparent; }
+
+:root {
+  --bg: #FAF9F6;
+  --fg: #2D2D2D;
+  --mid: #999;
+  --light: #EEECE8;
+  --accent: #C4956A;
+  --serif: 'Playfair Display', Georgia, serif;
+  --sans: 'Inter', -apple-system, sans-serif;
+  --fs-base: 15px;
+  --fs-scale: 1;
+  --transition: 0.35s ease;
+}
+
+.dark {
+  --bg: #1A1A18;
+  --fg: #E8E4DE;
+  --mid: #7A7A74;
+  --light: #2A2A26;
+  --accent: #C4956A;
+}
+
+html, body {
+  width: 375px; height: 812px;
+  max-width: 375px; max-height: 812px;
+  overflow: hidden;
+  font-family: var(--sans);
+  font-size: calc(var(--fs-base) * var(--fs-scale));
+  color: var(--fg);
+  background: var(--bg);
+  transition: background var(--transition), color var(--transition);
+  position: relative;
+}
+
+/* Paper grain texture */
+body::before {
+  content: '';
+  position: fixed;
+  inset: 0;
+  opacity: 0.03;
+  pointer-events: none;
+  z-index: 9999;
+  background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)'/%3E%3C/svg%3E");
+  background-size: 128px 128px;
+}
+
+.dark body::before { opacity: 0.02; }
+
+/* Top tab bar */
+.tab-bar {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0;
+  padding: 52px 20px 12px;
+  border-bottom: 0.5px solid var(--light);
+  background: var(--bg);
+  position: relative;
+  z-index: 100;
+  transition: background var(--transition), border-color var(--transition);
+}
+
+.tab-bar button {
+  background: none; border: none; outline: none; cursor: pointer;
+  font-family: var(--sans);
+  font-size: calc(13px * var(--fs-scale));
+  font-weight: 400;
+  color: var(--mid);
+  padding: 6px 16px;
+  letter-spacing: 0.02em;
+  transition: color var(--transition);
+  position: relative;
+}
+
+.tab-bar button.active {
+  color: var(--fg);
+  font-weight: 500;
+}
+
+.tab-bar button.active::after {
+  content: '';
+  position: absolute;
+  bottom: -13px;
+  left: 50%; transform: translateX(-50%);
+  width: 4px; height: 4px;
+  border-radius: 50%;
+  background: var(--fg);
+}
+
+.tab-bar button.menu-tab {
+  font-size: calc(18px * var(--fs-scale));
+  letter-spacing: 3px;
+  padding: 4px 16px;
+}
+
+/* Screens */
+.screen {
+  position: absolute;
+  top: 0; left: 0; right: 0; bottom: 0;
+  padding-top: 92px;
+  overflow-y: auto;
+  opacity: 0;
+  visibility: hidden;
+  transition: opacity 0.4s ease, visibility 0.4s ease;
+  -webkit-overflow-scrolling: touch;
+}
+
+.screen.active {
+  opacity: 1;
+  visibility: visible;
+}
+
+.screen-inner {
+  padding: 24px 28px 100px;
+}
+
+/* Scrollbar */
+.screen::-webkit-scrollbar { width: 2px; }
+.screen::-webkit-scrollbar-track { background: transparent; }
+.screen::-webkit-scrollbar-thumb { background: var(--light); border-radius: 1px; }
+
+/* ===== SCREEN: Сегодня ===== */
+.today-date {
+  font-family: var(--serif);
+  font-style: italic;
+  font-size: calc(22px * var(--fs-scale));
+  font-weight: 400;
+  color: var(--fg);
+  margin-bottom: 12px;
+  letter-spacing: 0.01em;
+}
+
+.today-line {
+  width: 40px;
+  height: 0;
+  border-top: 0.5px solid var(--mid);
+  margin-bottom: 32px;
+}
+
+.task-group { margin-bottom: 28px; }
+
+.task-item {
+  display: flex;
+  align-items: flex-start;
+  gap: 14px;
+  padding: 10px 0;
+  cursor: pointer;
+  transition: opacity var(--transition);
+}
+
+.task-item.completed { opacity: 0.45; }
+
+.task-checkbox {
+  width: 14px; height: 14px; min-width: 14px;
+  border: 1.2px solid var(--fg);
+  margin-top: 2px;
+  transition: background var(--transition), border-color var(--transition);
+  position: relative;
+  cursor: pointer;
+}
+
+.task-item.completed .task-checkbox {
+  background: var(--fg);
+  border-color: var(--fg);
+}
+
+.task-item.today-accent .task-checkbox {
+  border-color: var(--accent);
+}
+.task-item.today-accent.completed .task-checkbox {
+  background: var(--accent);
+  border-color: var(--accent);
+}
+
+.task-content { flex: 1; }
+
+.task-text {
+  font-family: var(--sans);
+  font-size: calc(14px * var(--fs-scale));
+  font-weight: 400;
+  line-height: 1.5;
+  color: var(--fg);
+  transition: color var(--transition);
+}
+
+.task-item.completed .task-text {
+  text-decoration: line-through;
+  color: var(--mid);
+}
+
+.task-time {
+  font-family: var(--serif);
+  font-style: italic;
+  font-size: calc(12px * var(--fs-scale));
+  color: var(--mid);
+  margin-top: 2px;
+}
+
+.page-number {
+  text-align: center;
+  font-family: var(--serif);
+  font-style: italic;
+  font-size: calc(12px * var(--fs-scale));
+  color: var(--mid);
+  padding: 40px 0 20px;
+  letter-spacing: 0.15em;
+}
+
+/* New task input */
+.new-task-line {
+  display: flex;
+  align-items: flex-start;
+  gap: 14px;
+  padding: 10px 0;
+  cursor: text;
+  opacity: 0.35;
+  transition: opacity var(--transition);
+}
+
+.new-task-line:hover, .new-task-line.active { opacity: 1; }
+
+.new-task-line .task-checkbox {
+  border-style: dashed;
+  border-color: var(--mid);
+}
+
+.new-task-input {
+  flex: 1;
+  background: none; border: none; outline: none;
+  font-family: var(--sans);
+  font-size: calc(14px * var(--fs-scale));
+  font-weight: 400;
+  line-height: 1.5;
+  color: var(--fg);
+  padding: 0;
+}
+
+.new-task-input::placeholder {
+  color: var(--mid);
+  font-style: italic;
+}
+
+/* ===== SCREEN: Задачи ===== */
+.tasks-title {
+  font-family: var(--serif);
+  font-size: calc(24px * var(--fs-scale));
+  font-weight: 400;
+  margin-bottom: 28px;
+  letter-spacing: 0.01em;
+}
+
+.category-header {
+  font-family: var(--serif);
+  font-style: italic;
+  font-size: calc(14px * var(--fs-scale));
+  font-weight: 400;
+  color: var(--fg);
+  padding-bottom: 4px;
+  border-bottom: 0.5px solid var(--mid);
+  margin-bottom: 14px;
+  margin-top: 28px;
+}
+
+.category-header:first-of-type { margin-top: 0; }
+
+.numbered-item {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  padding: 8px 0;
+  cursor: pointer;
+}
+
+.item-number {
+  font-family: var(--serif);
+  font-size: calc(13px * var(--fs-scale));
+  color: var(--mid);
+  min-width: 20px;
+  text-align: right;
+  margin-top: 1px;
+}
+
+.numbered-item .task-checkbox {
+  margin-top: 3px;
+}
+
+.numbered-item .task-text {
+  flex: 1;
+}
+
+.numbered-item.completed .task-text {
+  text-decoration: line-through;
+  color: var(--mid);
+}
+
+.numbered-item.completed .item-number {
+  opacity: 0.4;
+}
+
+.numbered-item.completed .task-checkbox {
+  background: var(--fg);
+}
+
+/* New task in tasks screen */
+.tasks-new-line {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  padding: 8px 0;
+  opacity: 0.35;
+  transition: opacity var(--transition);
+  cursor: text;
+}
+.tasks-new-line:hover, .tasks-new-line.active { opacity: 1; }
+
+.tasks-new-input {
+  flex: 1;
+  background: none; border: none; outline: none;
+  font-family: var(--sans);
+  font-size: calc(14px * var(--fs-scale));
+  color: var(--fg);
+  padding: 0;
+  line-height: 1.5;
+}
+.tasks-new-input::placeholder {
+  color: var(--mid); font-style: italic;
+}
+
+/* ===== SCREEN: Заметки ===== */
+.notes-title {
+  font-family: var(--serif);
+  font-size: calc(24px * var(--fs-scale));
+  font-weight: 400;
+  margin-bottom: 24px;
+}
+
+.notes-container {
+  position: relative;
+}
+
+/* Lined paper background */
+.notes-container::before {
+  content: '';
+  position: absolute;
+  top: 0; left: 0; right: 0; bottom: 0;
+  background-image: repeating-linear-gradient(
+    to bottom,
+    transparent,
+    transparent calc(28px * var(--fs-scale) - 0.5px),
+    var(--light) calc(28px * var(--fs-scale) - 0.5px),
+    var(--light) calc(28px * var(--fs-scale))
+  );
+  pointer-events: none;
+  opacity: 0.7;
+}
+
+.note-card {
+  padding: 16px 0;
+  border-bottom: 0.5px solid var(--light);
+  cursor: pointer;
+  transition: opacity var(--transition);
+}
+
+.note-card:hover { opacity: 0.7; }
+
+.note-card-title {
+  font-family: var(--serif);
+  font-size: calc(15px * var(--fs-scale));
+  font-weight: 600;
+  margin-bottom: 6px;
+  line-height: calc(28px * var(--fs-scale));
+}
+
+.note-card-preview {
+  font-family: var(--serif);
+  font-size: calc(13px * var(--fs-scale));
+  font-weight: 400;
+  color: var(--mid);
+  line-height: calc(28px * var(--fs-scale));
+}
+
+.note-card-meta {
+  font-family: var(--sans);
+  font-size: calc(11px * var(--fs-scale));
+  color: var(--mid);
+  margin-top: 4px;
+  font-style: italic;
+}
+
+.note-linked {
+  display: inline-block;
+  font-family: var(--sans);
+  font-size: calc(10px * var(--fs-scale));
+  color: var(--accent);
+  border: 0.5px solid var(--accent);
+  padding: 1px 6px;
+  margin-top: 6px;
+  letter-spacing: 0.03em;
+}
+
+/* Note detail view */
+.note-detail {
+  display: none;
+}
+
+.note-detail.active {
+  display: block;
+}
+
+.note-detail-back {
+  font-family: var(--sans);
+  font-size: calc(13px * var(--fs-scale));
+  color: var(--mid);
+  background: none; border: none;
+  cursor: pointer;
+  padding: 0 0 16px;
+  letter-spacing: 0.02em;
+}
+
+.note-detail-title {
+  font-family: var(--serif);
+  font-size: calc(20px * var(--fs-scale));
+  font-weight: 400;
+  margin-bottom: 20px;
+  line-height: calc(28px * var(--fs-scale));
+}
+
+.note-detail-body {
+  font-family: var(--serif);
+  font-size: calc(14px * var(--fs-scale));
+  line-height: calc(28px * var(--fs-scale));
+  color: var(--fg);
+  white-space: pre-wrap;
+}
+
+/* ===== SCREEN: Menu ===== */
+.menu-title {
+  font-family: var(--serif);
+  font-size: calc(24px * var(--fs-scale));
+  font-weight: 400;
+  margin-bottom: 32px;
+}
+
+.menu-section {
+  margin-bottom: 32px;
+}
+
+.menu-section-title {
+  font-family: var(--serif);
+  font-style: italic;
+  font-size: calc(12px * var(--fs-scale));
+  color: var(--mid);
+  text-transform: uppercase;
+  letter-spacing: 0.12em;
+  margin-bottom: 14px;
+}
+
+.menu-item {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 14px 0;
+  border-bottom: 0.5px solid var(--light);
+  cursor: pointer;
+  transition: opacity var(--transition);
+}
+
+.menu-item:hover { opacity: 0.7; }
+
+.menu-item-label {
+  font-family: var(--sans);
+  font-size: calc(14px * var(--fs-scale));
+  font-weight: 400;
+}
+
+.menu-item-value {
+  font-family: var(--serif);
+  font-style: italic;
+  font-size: calc(13px * var(--fs-scale));
+  color: var(--mid);
+}
+
+/* Toggle switch */
+.toggle {
+  width: 36px; height: 20px;
+  border: 1.2px solid var(--fg);
+  border-radius: 10px;
+  position: relative;
+  cursor: pointer;
+  transition: background var(--transition), border-color var(--transition);
+}
+
+.toggle::after {
+  content: '';
+  position: absolute;
+  top: 2px; left: 2px;
+  width: 14px; height: 14px;
+  border-radius: 50%;
+  background: var(--fg);
+  transition: transform var(--transition), background var(--transition);
+}
+
+.toggle.on {
+  background: var(--fg);
+}
+
+.toggle.on::after {
+  transform: translateX(16px);
+  background: var(--bg);
+}
+
+/* Font size selector */
+.font-sizes {
+  display: flex;
+  gap: 0;
+}
+
+.font-size-btn {
+  background: none;
+  border: 0.5px solid var(--light);
+  cursor: pointer;
+  font-family: var(--serif);
+  color: var(--mid);
+  padding: 6px 14px;
+  transition: all var(--transition);
+}
+
+.font-size-btn:first-child { border-radius: 3px 0 0 3px; }
+.font-size-btn:last-child { border-radius: 0 3px 3px 0; }
+
+.font-size-btn.active {
+  color: var(--fg);
+  border-color: var(--fg);
+  background: var(--light);
+}
+
+/* About section */
+.about-section {
+  margin-top: 40px;
+  text-align: center;
+}
+
+.about-title {
+  font-family: var(--serif);
+  font-size: calc(18px * var(--fs-scale));
+  font-weight: 400;
+  margin-bottom: 8px;
+}
+
+.about-subtitle {
+  font-family: var(--serif);
+  font-style: italic;
+  font-size: calc(12px * var(--fs-scale));
+  color: var(--mid);
+  margin-bottom: 4px;
+}
+
+.about-ver {
+  font-family: var(--sans);
+  font-size: calc(11px * var(--fs-scale));
+  color: var(--mid);
+  letter-spacing: 0.06em;
+}
+
+.about-line {
+  width: 30px;
+  border-top: 0.5px solid var(--mid);
+  margin: 16px auto;
+}
+
+.about-quote {
+  font-family: var(--serif);
+  font-style: italic;
+  font-size: calc(13px * var(--fs-scale));
+  color: var(--mid);
+  line-height: 1.6;
+  max-width: 240px;
+  margin: 0 auto;
+}
+</style>
+</head>
+<body>
+
+<!-- Tab Bar -->
+<nav class="tab-bar">
+  <button class="active" data-tab="today">Сегодня</button>
+  <button data-tab="tasks">Задачи</button>
+  <button data-tab="notes">Заметки</button>
+  <button class="menu-tab" data-tab="menu">&bull;&bull;&bull;</button>
+</nav>
+
+<!-- Screen: Сегодня -->
+<div class="screen active" id="screen-today">
+  <div class="screen-inner">
+    <div class="today-date">18 марта, среда</div>
+    <div class="today-line"></div>
+
+    <!-- Morning group -->
+    <div class="task-group">
+      <div class="task-item today-accent" data-task="t1">
+        <div class="task-checkbox"></div>
+        <div class="task-content">
+          <div class="task-text">Утренняя пробежка в парке</div>
+          <div class="task-time">7:00</div>
+        </div>
+      </div>
+      <div class="task-item" data-task="t2">
+        <div class="task-checkbox"></div>
+        <div class="task-content">
+          <div class="task-text">Позвонить в клинику, записаться</div>
+          <div class="task-time">9:30</div>
+        </div>
+      </div>
+      <div class="task-item completed" data-task="t3">
+        <div class="task-checkbox"></div>
+        <div class="task-content">
+          <div class="task-text">Отправить отчёт Алексею</div>
+          <div class="task-time">10:00</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Afternoon group -->
+    <div class="task-group">
+      <div class="task-item" data-task="t4">
+        <div class="task-checkbox"></div>
+        <div class="task-content">
+          <div class="task-text">Встреча с командой дизайна</div>
+          <div class="task-time">13:00</div>
+        </div>
+      </div>
+      <div class="task-item" data-task="t5">
+        <div class="task-checkbox"></div>
+        <div class="task-content">
+          <div class="task-text">Забрать посылку с почты</div>
+          <div class="task-time">15:30</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Evening group -->
+    <div class="task-group">
+      <div class="task-item" data-task="t6">
+        <div class="task-checkbox"></div>
+        <div class="task-content">
+          <div class="task-text">Купить продукты на ужин</div>
+          <div class="task-time">18:00</div>
+        </div>
+      </div>
+      <div class="task-item completed" data-task="t7">
+        <div class="task-checkbox"></div>
+        <div class="task-content">
+          <div class="task-text">Прочитать главу книги</div>
+          <div class="task-time">21:00</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- New task -->
+    <div class="new-task-line" id="today-new-task">
+      <div class="task-checkbox"></div>
+      <input class="new-task-input" type="text" placeholder="Новая задача...">
+    </div>
+
+    <div class="page-number">&mdash; 1 &mdash;</div>
+  </div>
+</div>
+
+<!-- Screen: Задачи -->
+<div class="screen" id="screen-tasks">
+  <div class="screen-inner">
+    <div class="tasks-title">Задачи</div>
+
+    <div class="category-header">Работа</div>
+    <div class="numbered-item" data-task="n1">
+      <span class="item-number">1.</span>
+      <div class="task-checkbox"></div>
+      <span class="task-text">Подготовить презентацию для клиента</span>
+    </div>
+    <div class="numbered-item completed" data-task="n2">
+      <span class="item-number">2.</span>
+      <div class="task-checkbox"></div>
+      <span class="task-text">Ревью кода нового модуля</span>
+    </div>
+    <div class="numbered-item" data-task="n3">
+      <span class="item-number">3.</span>
+      <div class="task-checkbox"></div>
+      <span class="task-text">Обновить документацию API</span>
+    </div>
+    <div class="numbered-item" data-task="n4">
+      <span class="item-number">4.</span>
+      <div class="task-checkbox"></div>
+      <span class="task-text">Настроить CI/CD пайплайн</span>
+    </div>
+
+    <div class="category-header">Личное</div>
+    <div class="numbered-item" data-task="n5">
+      <span class="item-number">1.</span>
+      <div class="task-checkbox"></div>
+      <span class="task-text">Записаться на курс каллиграфии</span>
+    </div>
+    <div class="numbered-item completed" data-task="n6">
+      <span class="item-number">2.</span>
+      <div class="task-checkbox"></div>
+      <span class="task-text">Заказать подарок маме</span>
+    </div>
+    <div class="numbered-item" data-task="n7">
+      <span class="item-number">3.</span>
+      <div class="task-checkbox"></div>
+      <span class="task-text">Разобрать вещи в кладовой</span>
+    </div>
+
+    <div class="category-header">Покупки</div>
+    <div class="numbered-item completed" data-task="n8">
+      <span class="item-number">1.</span>
+      <div class="task-checkbox"></div>
+      <span class="task-text">Новые кроссовки для бега</span>
+    </div>
+    <div class="numbered-item" data-task="n9">
+      <span class="item-number">2.</span>
+      <div class="task-checkbox"></div>
+      <span class="task-text">Книга «Типографика» Эмиля Рудера</span>
+    </div>
+
+    <!-- New task at bottom of last category -->
+    <div class="tasks-new-line" id="tasks-new-task">
+      <span class="item-number" style="color:var(--mid)">3.</span>
+      <div class="task-checkbox" style="border-style:dashed;border-color:var(--mid)"></div>
+      <input class="tasks-new-input" type="text" placeholder="Добавить задачу...">
+    </div>
+
+    <div class="page-number">&mdash; 2 &mdash;</div>
+  </div>
+</div>
+
+<!-- Screen: Заметки -->
+<div class="screen" id="screen-notes">
+  <div class="screen-inner">
+    <!-- List view -->
+    <div class="notes-list-view" id="notes-list">
+      <div class="notes-title">Заметки</div>
+      <div class="notes-container">
+        <div class="note-card" data-note="0">
+          <div class="note-card-title">Идеи для презентации</div>
+          <div class="note-card-preview">Минимализм, чёрно-белая палитра, акцент на типографику...</div>
+          <div class="note-card-meta">сегодня, 11:20</div>
+          <span class="note-linked">Презентация для клиента</span>
+        </div>
+        <div class="note-card" data-note="1">
+          <div class="note-card-title">Список продуктов</div>
+          <div class="note-card-preview">Оливковое масло, базилик, моцарелла, томаты...</div>
+          <div class="note-card-meta">сегодня, 08:45</div>
+          <span class="note-linked">Купить продукты на ужин</span>
+        </div>
+        <div class="note-card" data-note="2">
+          <div class="note-card-title">Заметки по книге</div>
+          <div class="note-card-preview">Глава 12: о важности белого пространства в композиции...</div>
+          <div class="note-card-meta">вчера, 22:10</div>
+          <span class="note-linked">Прочитать главу книги</span>
+        </div>
+        <div class="note-card" data-note="3">
+          <div class="note-card-title">Архитектура проекта</div>
+          <div class="note-card-preview">Модульная структура, чистая архитектура, разделение слоёв...</div>
+          <div class="note-card-meta">16 марта</div>
+        </div>
+      </div>
+      <div class="page-number">&mdash; 3 &mdash;</div>
+    </div>
+
+    <!-- Detail view -->
+    <div class="note-detail" id="note-detail">
+      <button class="note-detail-back">&larr; Заметки</button>
+      <div class="note-detail-title" id="note-detail-title"></div>
+      <div class="notes-container">
+        <div class="note-detail-body" id="note-detail-body"></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Screen: Menu -->
+<div class="screen" id="screen-menu">
+  <div class="screen-inner">
+    <div class="menu-title">Настройки</div>
+
+    <div class="menu-section">
+      <div class="menu-section-title">Оформление</div>
+      <div class="menu-item" id="dark-mode-toggle">
+        <span class="menu-item-label">Тёмная тема</span>
+        <div class="toggle" id="dark-toggle"></div>
+      </div>
+      <div class="menu-item">
+        <span class="menu-item-label">Размер шрифта</span>
+        <div class="font-sizes">
+          <button class="font-size-btn" data-scale="0.9">A</button>
+          <button class="font-size-btn active" data-scale="1">A</button>
+          <button class="font-size-btn" data-scale="1.15" style="font-size:16px">A</button>
+        </div>
+      </div>
+    </div>
+
+    <div class="menu-section">
+      <div class="menu-section-title">Данные</div>
+      <div class="menu-item">
+        <span class="menu-item-label">Экспорт задач</span>
+        <span class="menu-item-value">JSON</span>
+      </div>
+      <div class="menu-item">
+        <span class="menu-item-label">Синхронизация</span>
+        <span class="menu-item-value">выкл.</span>
+      </div>
+    </div>
+
+    <div class="about-section">
+      <div class="about-line"></div>
+      <div class="about-title">Планер</div>
+      <div class="about-subtitle">минимальный ежедневник</div>
+      <div class="about-ver">v0.4 ink</div>
+      <div class="about-line"></div>
+      <div class="about-quote">&laquo;Совершенство достигается не тогда, когда нечего добавить, а когда нечего убрать.&raquo;</div>
+      <div style="font-family:var(--serif);font-style:italic;font-size:11px;color:var(--mid);margin-top:8px">Антуан де Сент-Экзюпери</div>
+    </div>
+
+    <div class="page-number">&mdash; &bull; &mdash;</div>
+  </div>
+</div>
+
+<script>
+// ===== DATA =====
+const notesData = [
+  {
+    title: 'Идеи для презентации',
+    body: 'Минимализм, чёрно-белая палитра, акцент на типографику.\n\nКлючевые слайды:\n— Проблема и контекст\n— Наше решение\n— Визуальные примеры\n— Метрики и результаты\n\nИспользовать Playfair Display для заголовков.\nМинимум текста на слайде — не более 20 слов.',
+    meta: 'сегодня, 11:20'
+  },
+  {
+    title: 'Список продуктов',
+    body: 'Оливковое масло (extra virgin)\nБазилик свежий\nМоцарелла — 2 шт.\nТоматы черри — 300 г\nЧиабатта\nЧеснок — 1 головка\nЛимон\nРуккола\nПармезан\nБальзамический уксус',
+    meta: 'сегодня, 08:45'
+  },
+  {
+    title: 'Заметки по книге',
+    body: 'Глава 12: о важности белого пространства в композиции.\n\nБелое пространство — не пустота, а активный элемент дизайна. Оно направляет взгляд, создаёт иерархию и даёт содержанию дышать.\n\n«Пространство между элементами так же важно, как сами элементы.»\n\nПрименение: увеличить отступы в макете на 30%, убрать лишние разделители.',
+    meta: 'вчера, 22:10'
+  },
+  {
+    title: 'Архитектура проекта',
+    body: 'Модульная структура:\n\n1. Presentation layer — UI компоненты\n2. Domain layer — бизнес-логика\n3. Data layer — репозитории и API\n\nПринципы:\n— Чистая архитектура\n— Dependency injection\n— Разделение ответственности\n— Тестируемость каждого слоя\n\nСтек: Flutter + Riverpod + Drift',
+    meta: '16 марта'
+  }
+];
+
+// ===== TAB NAVIGATION =====
+const tabs = document.querySelectorAll('.tab-bar button');
+const screens = document.querySelectorAll('.screen');
+
+tabs.forEach(tab => {
+  tab.addEventListener('click', () => {
+    const target = tab.dataset.tab;
+
+    // Reset note detail view when switching tabs
+    if (target !== 'notes') {
+      document.getElementById('notes-list').style.display = '';
+      document.getElementById('note-detail').classList.remove('active');
+    }
+
+    tabs.forEach(t => t.classList.remove('active'));
+    tab.classList.add('active');
+
+    screens.forEach(s => s.classList.remove('active'));
+    document.getElementById('screen-' + target).classList.add('active');
+  });
+});
+
+// ===== CHECKBOX TOGGLE =====
+function setupCheckboxes() {
+  document.querySelectorAll('.task-item, .numbered-item').forEach(item => {
+    item.addEventListener('click', (e) => {
+      if (e.target.closest('.new-task-input, .tasks-new-input')) return;
+      item.classList.toggle('completed');
+    });
+  });
+}
+setupCheckboxes();
+
+// ===== NEW TASK (Today) =====
+const todayNewTask = document.getElementById('today-new-task');
+const todayInput = todayNewTask.querySelector('.new-task-input');
+
+todayInput.addEventListener('focus', () => todayNewTask.classList.add('active'));
+todayInput.addEventListener('blur', () => {
+  if (!todayInput.value.trim()) todayNewTask.classList.remove('active');
+});
+
+todayInput.addEventListener('keydown', (e) => {
+  if (e.key === 'Enter' && todayInput.value.trim()) {
+    const text = todayInput.value.trim();
+    const group = todayNewTask.previousElementSibling;
+
+    const newItem = document.createElement('div');
+    newItem.className = 'task-item';
+    newItem.innerHTML = `
+      <div class="task-checkbox"></div>
+      <div class="task-content">
+        <div class="task-text">${text}</div>
+      </div>
+    `;
+    newItem.addEventListener('click', () => newItem.classList.toggle('completed'));
+
+    todayNewTask.parentNode.insertBefore(newItem, todayNewTask);
+    todayInput.value = '';
+    todayInput.focus();
+  }
+});
+
+// ===== NEW TASK (Tasks screen) =====
+const tasksNewLine = document.getElementById('tasks-new-task');
+const tasksInput = tasksNewLine.querySelector('.tasks-new-input');
+
+tasksInput.addEventListener('focus', () => tasksNewLine.classList.add('active'));
+tasksInput.addEventListener('blur', () => {
+  if (!tasksInput.value.trim()) tasksNewLine.classList.remove('active');
+});
+
+tasksInput.addEventListener('keydown', (e) => {
+  if (e.key === 'Enter' && tasksInput.value.trim()) {
+    const text = tasksInput.value.trim();
+    // Get current number from the placeholder line
+    const numEl = tasksNewLine.querySelector('.item-number');
+    const currentNum = parseInt(numEl.textContent);
+
+    const newItem = document.createElement('div');
+    newItem.className = 'numbered-item';
+    newItem.innerHTML = `
+      <span class="item-number">${currentNum}.</span>
+      <div class="task-checkbox"></div>
+      <span class="task-text">${text}</span>
+    `;
+    newItem.addEventListener('click', () => newItem.classList.toggle('completed'));
+
+    tasksNewLine.parentNode.insertBefore(newItem, tasksNewLine);
+    // Increment number for next
+    numEl.textContent = (currentNum + 1) + '.';
+    tasksInput.value = '';
+    tasksInput.focus();
+  }
+});
+
+// ===== NOTES NAVIGATION =====
+document.querySelectorAll('.note-card').forEach(card => {
+  card.addEventListener('click', () => {
+    const idx = parseInt(card.dataset.note);
+    const note = notesData[idx];
+
+    document.getElementById('note-detail-title').textContent = note.title;
+    document.getElementById('note-detail-body').textContent = note.body;
+
+    document.getElementById('notes-list').style.display = 'none';
+    document.getElementById('note-detail').classList.add('active');
+  });
+});
+
+document.querySelector('.note-detail-back').addEventListener('click', () => {
+  document.getElementById('notes-list').style.display = '';
+  document.getElementById('note-detail').classList.remove('active');
+});
+
+// ===== DARK MODE =====
+const darkToggle = document.getElementById('dark-toggle');
+const darkModeItem = document.getElementById('dark-mode-toggle');
+
+darkModeItem.addEventListener('click', (e) => {
+  if (e.target.closest('.toggle')) return;
+  toggleDark();
+});
+darkToggle.addEventListener('click', toggleDark);
+
+function toggleDark() {
+  document.documentElement.classList.toggle('dark');
+  darkToggle.classList.toggle('on');
+}
+
+// ===== FONT SIZE =====
+document.querySelectorAll('.font-size-btn').forEach(btn => {
+  btn.addEventListener('click', () => {
+    document.querySelectorAll('.font-size-btn').forEach(b => b.classList.remove('active'));
+    btn.classList.add('active');
+    document.documentElement.style.setProperty('--fs-scale', btn.dataset.scale);
+  });
+});
+</script>
+</body>
+</html>

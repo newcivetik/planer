@@ -1,0 +1,1345 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Planer — Linear Style</title>
+<style>
+:root {
+  --bg-primary: #1A1A2E;
+  --bg-secondary: #16162A;
+  --bg-tertiary: #222240;
+  --bg-hover: #2A2A4A;
+  --bg-active: #32325A;
+  --bg-surface: #1E1E38;
+  --bg-input: #14142A;
+  --text-primary: #E8E8F0;
+  --text-secondary: #8888A8;
+  --text-tertiary: #5C5C7A;
+  --accent: #7C5CFC;
+  --accent-hover: #9478FF;
+  --accent-dim: rgba(124,92,252,0.15);
+  --accent-glow: rgba(124,92,252,0.3);
+  --border: #2C2C4A;
+  --border-light: #3A3A58;
+  --red: #F04D6A;
+  --orange: #F0943D;
+  --green: #3DD68C;
+  --yellow: #E8D44D;
+  --blue: #4DA6F0;
+  --pink: #E066A0;
+  --cyan: #4DD6C8;
+  --sidebar-w: 240px;
+  --sidebar-collapsed-w: 56px;
+  --font-sans: -apple-system, BlinkMacSystemFont, 'Segoe UI', system-ui, sans-serif;
+  --font-mono: 'SF Mono', 'Fira Code', 'JetBrains Mono', 'Cascadia Code', monospace;
+  --radius: 4px;
+  --radius-lg: 6px;
+  --transition: 150ms ease;
+}
+
+[data-theme="light"] {
+  --bg-primary: #F5F5FA;
+  --bg-secondary: #EEEEF4;
+  --bg-tertiary: #E4E4EE;
+  --bg-hover: #DDDDE8;
+  --bg-active: #D0D0DE;
+  --bg-surface: #FFFFFF;
+  --bg-input: #FFFFFF;
+  --text-primary: #1A1A2E;
+  --text-secondary: #6A6A88;
+  --text-tertiary: #9A9AB0;
+  --border: #D8D8E8;
+  --border-light: #C8C8DA;
+  --accent-dim: rgba(124,92,252,0.1);
+}
+
+* { margin:0; padding:0; box-sizing:border-box; }
+
+body {
+  font-family: var(--font-sans);
+  background: var(--bg-primary);
+  color: var(--text-primary);
+  height: 100vh;
+  overflow: hidden;
+  display: flex;
+  font-size: 14px;
+  line-height: 1.5;
+  transition: background var(--transition), color var(--transition);
+}
+
+::-webkit-scrollbar { width: 6px; }
+::-webkit-scrollbar-track { background: transparent; }
+::-webkit-scrollbar-thumb { background: var(--border); border-radius: 3px; }
+::-webkit-scrollbar-thumb:hover { background: var(--border-light); }
+
+/* Sidebar */
+.sidebar {
+  width: var(--sidebar-w);
+  min-width: var(--sidebar-w);
+  background: var(--bg-secondary);
+  border-right: 1px solid var(--border);
+  display: flex;
+  flex-direction: column;
+  transition: width var(--transition), min-width var(--transition);
+  overflow: hidden;
+  position: relative;
+  z-index: 20;
+}
+.sidebar.collapsed { width: var(--sidebar-collapsed-w); min-width: var(--sidebar-collapsed-w); }
+
+.sidebar-header {
+  padding: 16px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  border-bottom: 1px solid var(--border);
+  height: 56px;
+}
+
+.sidebar-logo {
+  font-family: var(--font-mono);
+  font-size: 15px;
+  font-weight: 700;
+  color: var(--accent);
+  letter-spacing: -0.5px;
+  white-space: nowrap;
+  overflow: hidden;
+}
+.sidebar.collapsed .sidebar-logo { display: none; }
+
+.sidebar-toggle {
+  background: none; border: none; color: var(--text-tertiary);
+  cursor: pointer; padding: 4px; border-radius: var(--radius);
+  display: flex; align-items: center; justify-content: center; flex-shrink: 0;
+}
+.sidebar-toggle:hover { color: var(--text-primary); background: var(--bg-hover); }
+
+.sidebar-nav { flex: 1; padding: 8px; overflow-y: auto; }
+
+.nav-item {
+  display: flex; align-items: center; gap: 10px;
+  padding: 8px 10px; border-radius: var(--radius);
+  cursor: pointer; color: var(--text-secondary);
+  transition: all var(--transition); white-space: nowrap;
+  font-size: 13px;
+}
+.nav-item:hover { background: var(--bg-hover); color: var(--text-primary); }
+.nav-item.active { background: var(--accent-dim); color: var(--accent); }
+
+.nav-item .nav-icon {
+  width: 20px; height: 20px;
+  display: flex; align-items: center; justify-content: center;
+  flex-shrink: 0; font-size: 16px;
+}
+.nav-item .nav-label { overflow: hidden; }
+.sidebar.collapsed .nav-label { display: none; }
+
+.nav-item .nav-shortcut {
+  margin-left: auto; font-family: var(--font-mono); font-size: 10px;
+  color: var(--text-tertiary); background: var(--bg-tertiary);
+  padding: 2px 5px; border-radius: 3px; border: 1px solid var(--border);
+}
+.sidebar.collapsed .nav-shortcut { display: none; }
+
+.nav-section-label {
+  padding: 16px 10px 6px; font-size: 10px; font-weight: 600;
+  text-transform: uppercase; letter-spacing: 1px; color: var(--text-tertiary);
+  white-space: nowrap;
+}
+.sidebar.collapsed .nav-section-label { display: none; }
+
+.sidebar-footer { padding: 12px; border-top: 1px solid var(--border); }
+
+/* Main */
+.main { flex: 1; display: flex; flex-direction: column; overflow: hidden; min-width: 0; }
+
+.topbar {
+  height: 56px; display: flex; align-items: center;
+  padding: 0 24px; border-bottom: 1px solid var(--border);
+  gap: 16px; flex-shrink: 0;
+}
+.topbar-title { font-size: 16px; font-weight: 600; flex-shrink: 0; }
+.topbar-spacer { flex: 1; }
+
+.search-trigger {
+  display: flex; align-items: center; gap: 8px;
+  padding: 6px 12px; background: var(--bg-tertiary);
+  border: 1px solid var(--border); border-radius: var(--radius);
+  color: var(--text-tertiary); cursor: pointer; font-size: 13px;
+  transition: all var(--transition); font-family: var(--font-sans);
+}
+.search-trigger:hover { border-color: var(--border-light); color: var(--text-secondary); }
+.search-trigger kbd {
+  font-family: var(--font-mono); font-size: 10px;
+  background: var(--bg-hover); padding: 2px 5px;
+  border-radius: 3px; border: 1px solid var(--border);
+}
+
+.filter-group {
+  display: flex; gap: 2px; background: var(--bg-tertiary);
+  border-radius: var(--radius); padding: 2px;
+}
+.filter-btn {
+  padding: 4px 10px; background: none; border: none;
+  color: var(--text-tertiary); font-size: 12px; cursor: pointer;
+  border-radius: 3px; transition: all var(--transition); font-family: var(--font-sans);
+}
+.filter-btn:hover { color: var(--text-secondary); }
+.filter-btn.active { background: var(--bg-active); color: var(--text-primary); }
+
+.content { flex: 1; overflow-y: auto; padding: 24px; }
+
+.page { display: none; }
+.page.active { display: block; }
+
+/* Today */
+.today-date { font-family: var(--font-mono); font-size: 13px; color: var(--text-tertiary); margin-bottom: 20px; }
+
+.progress-container {
+  display: flex; align-items: center; gap: 16px;
+  padding: 20px 24px; background: var(--bg-surface);
+  border: 1px solid var(--border); border-radius: var(--radius-lg);
+  margin-bottom: 28px;
+}
+.progress-ring { position: relative; width: 52px; height: 52px; flex-shrink: 0; }
+.progress-ring svg { transform: rotate(-90deg); }
+.progress-ring-bg { stroke: var(--bg-tertiary); }
+.progress-ring-fill { stroke: var(--accent); transition: stroke-dashoffset 500ms ease; }
+.progress-stats { display: flex; flex-direction: column; gap: 2px; }
+.progress-label { font-family: var(--font-mono); font-size: 22px; font-weight: 700; }
+.progress-sublabel { font-size: 12px; color: var(--text-tertiary); }
+
+/* Task list */
+.task-list { display: flex; flex-direction: column; gap: 2px; }
+.task-item {
+  display: flex; align-items: center; gap: 12px;
+  padding: 10px 14px; background: var(--bg-surface);
+  border: 1px solid var(--border); border-radius: var(--radius);
+  cursor: pointer; transition: all var(--transition);
+}
+.task-item:hover { border-color: var(--border-light); background: var(--bg-hover); }
+.task-item.completed { opacity: 0.45; }
+.task-item.completed .task-title { text-decoration: line-through; }
+
+.task-checkbox {
+  width: 18px; height: 18px; border: 2px solid var(--border-light);
+  border-radius: 50%; cursor: pointer; flex-shrink: 0;
+  display: flex; align-items: center; justify-content: center;
+  transition: all var(--transition); background: none; padding: 0;
+}
+.task-checkbox:hover { border-color: var(--accent); }
+.task-checkbox.checked { background: var(--accent); border-color: var(--accent); }
+.task-checkbox.checked::after {
+  content: ''; display: block; width: 6px; height: 6px;
+  background: white; border-radius: 50%;
+}
+
+.task-body { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 2px; }
+.task-title {
+  font-size: 14px; font-weight: 500; white-space: nowrap;
+  overflow: hidden; text-overflow: ellipsis;
+}
+.task-meta {
+  display: flex; align-items: center; gap: 8px;
+  font-size: 11px; font-family: var(--font-mono); color: var(--text-tertiary);
+}
+
+.task-priority { width: 8px; height: 8px; border-radius: 50%; flex-shrink: 0; }
+.priority-high { background: var(--red); }
+.priority-medium { background: var(--orange); }
+.priority-low { background: var(--green); }
+
+.task-category-dot { width: 8px; height: 8px; border-radius: 2px; flex-shrink: 0; }
+
+.task-actions { display: flex; gap: 4px; opacity: 0; transition: opacity var(--transition); }
+.task-item:hover .task-actions { opacity: 1; }
+
+.task-action-btn {
+  background: none; border: none; color: var(--text-tertiary);
+  cursor: pointer; padding: 4px; border-radius: var(--radius);
+  font-size: 14px; display: flex; align-items: center; justify-content: center;
+}
+.task-action-btn:hover { color: var(--red); background: var(--bg-tertiary); }
+
+.task-list-header {
+  display: flex; align-items: center; justify-content: space-between;
+  margin-bottom: 12px;
+}
+.task-list-title {
+  font-size: 12px; font-weight: 600; text-transform: uppercase;
+  letter-spacing: 1px; color: var(--text-tertiary);
+}
+.task-count {
+  font-family: var(--font-mono); font-size: 11px; color: var(--text-tertiary);
+  background: var(--bg-tertiary); padding: 2px 6px; border-radius: 3px;
+}
+
+.add-task-btn {
+  display: flex; align-items: center; gap: 8px;
+  padding: 10px 14px; background: none;
+  border: 1px dashed var(--border); border-radius: var(--radius);
+  color: var(--text-tertiary); cursor: pointer; font-size: 13px;
+  width: 100%; transition: all var(--transition);
+  font-family: var(--font-sans); margin-top: 8px;
+}
+.add-task-btn:hover { border-color: var(--accent); color: var(--accent); background: var(--accent-dim); }
+.add-task-btn kbd {
+  margin-left: auto; font-family: var(--font-mono); font-size: 10px;
+  background: var(--bg-tertiary); padding: 2px 5px;
+  border-radius: 3px; border: 1px solid var(--border);
+}
+
+/* Modals */
+.modal-overlay {
+  display: none; position: fixed; inset: 0;
+  background: rgba(0,0,0,0.6); z-index: 100;
+  align-items: flex-start; justify-content: center;
+  padding-top: 15vh; backdrop-filter: blur(4px);
+}
+.modal-overlay.open { display: flex; }
+
+.modal {
+  background: var(--bg-surface); border: 1px solid var(--border);
+  border-radius: var(--radius-lg); width: 520px; max-width: 90vw;
+  box-shadow: 0 24px 80px rgba(0,0,0,0.5); overflow: hidden;
+  animation: modalIn 150ms ease;
+}
+@keyframes modalIn {
+  from { opacity:0; transform: translateY(-12px) scale(0.98); }
+  to { opacity:1; transform: translateY(0) scale(1); }
+}
+
+.modal-header {
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 16px 20px; border-bottom: 1px solid var(--border);
+}
+.modal-title { font-size: 14px; font-weight: 600; }
+.modal-close {
+  background: none; border: none; color: var(--text-tertiary);
+  cursor: pointer; font-size: 18px; padding: 4px;
+  border-radius: var(--radius); display: flex;
+}
+.modal-close:hover { color: var(--text-primary); background: var(--bg-hover); }
+.modal-body { padding: 20px; }
+
+.form-group { margin-bottom: 16px; }
+.form-label {
+  display: block; font-size: 11px; font-weight: 600;
+  text-transform: uppercase; letter-spacing: 0.5px;
+  color: var(--text-tertiary); margin-bottom: 6px;
+}
+.form-input, .form-select, .form-textarea {
+  width: 100%; padding: 8px 12px; background: var(--bg-input);
+  border: 1px solid var(--border); border-radius: var(--radius);
+  color: var(--text-primary); font-size: 14px;
+  font-family: var(--font-sans); outline: none;
+  transition: border-color var(--transition);
+}
+.form-input:focus, .form-select:focus, .form-textarea:focus { border-color: var(--accent); }
+.form-textarea { resize: vertical; min-height: 60px; }
+.form-select {
+  appearance: none; cursor: pointer;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='%238888A8' stroke-width='2'%3E%3Cpath d='M6 9l6 6 6-6'/%3E%3C/svg%3E");
+  background-repeat: no-repeat; background-position: right 10px center; padding-right: 30px;
+}
+.form-row { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+
+.modal-footer {
+  display: flex; justify-content: flex-end; gap: 8px;
+  padding: 16px 20px; border-top: 1px solid var(--border);
+}
+
+.btn {
+  padding: 8px 16px; border-radius: var(--radius); font-size: 13px;
+  font-weight: 500; cursor: pointer; border: none;
+  transition: all var(--transition); font-family: var(--font-sans);
+}
+.btn-ghost { background: none; color: var(--text-secondary); border: 1px solid var(--border); }
+.btn-ghost:hover { background: var(--bg-hover); color: var(--text-primary); }
+.btn-primary { background: var(--accent); color: white; }
+.btn-primary:hover { background: var(--accent-hover); }
+
+/* Command palette */
+.cmd-palette {
+  display: none; position: fixed; inset: 0; z-index: 200;
+  background: rgba(0,0,0,0.5); align-items: flex-start;
+  justify-content: center; padding-top: 20vh; backdrop-filter: blur(4px);
+}
+.cmd-palette.open { display: flex; }
+.cmd-box {
+  width: 520px; max-width: 90vw; background: var(--bg-surface);
+  border: 1px solid var(--border); border-radius: var(--radius-lg);
+  box-shadow: 0 24px 80px rgba(0,0,0,0.5); overflow: hidden;
+  animation: modalIn 120ms ease;
+}
+.cmd-input-wrap {
+  display: flex; align-items: center; gap: 10px;
+  padding: 14px 18px; border-bottom: 1px solid var(--border);
+}
+.cmd-input-icon { color: var(--text-tertiary); font-size: 16px; flex-shrink: 0; }
+.cmd-input {
+  flex: 1; background: none; border: none; color: var(--text-primary);
+  font-size: 15px; font-family: var(--font-sans); outline: none;
+}
+.cmd-input::placeholder { color: var(--text-tertiary); }
+.cmd-results { max-height: 300px; overflow-y: auto; padding: 6px; }
+.cmd-result-item {
+  display: flex; align-items: center; gap: 10px;
+  padding: 8px 12px; border-radius: var(--radius); cursor: pointer;
+  transition: background var(--transition);
+}
+.cmd-result-item:hover, .cmd-result-item.selected { background: var(--bg-hover); }
+.cmd-result-item .r-icon { color: var(--text-tertiary); font-size: 14px; width: 20px; text-align: center; }
+.cmd-result-item .r-text { flex: 1; font-size: 14px; }
+.cmd-result-item .r-hint { font-family: var(--font-mono); font-size: 10px; color: var(--text-tertiary); }
+.cmd-empty { padding: 24px; text-align: center; color: var(--text-tertiary); font-size: 13px; }
+
+/* Calendar */
+.calendar-grid {
+  display: grid; grid-template-columns: repeat(7, 1fr); gap: 1px;
+  background: var(--border); border: 1px solid var(--border);
+  border-radius: var(--radius-lg); overflow: hidden;
+}
+.cal-header-cell {
+  background: var(--bg-tertiary); padding: 8px; text-align: center;
+  font-size: 11px; font-weight: 600; text-transform: uppercase;
+  letter-spacing: 0.5px; color: var(--text-tertiary); font-family: var(--font-mono);
+}
+.cal-cell {
+  background: var(--bg-surface); min-height: 90px; padding: 6px;
+  cursor: pointer; transition: background var(--transition);
+}
+.cal-cell:hover { background: var(--bg-hover); }
+.cal-cell.other-month { opacity: 0.3; }
+.cal-cell.today { background: var(--accent-dim); }
+.cal-day {
+  font-family: var(--font-mono); font-size: 12px; font-weight: 600;
+  color: var(--text-secondary); margin-bottom: 4px;
+}
+.cal-cell.today .cal-day { color: var(--accent); }
+.cal-task {
+  font-size: 10px; padding: 2px 4px; border-radius: 2px;
+  margin-bottom: 2px; white-space: nowrap; overflow: hidden;
+  text-overflow: ellipsis; color: var(--text-primary);
+  background: var(--bg-tertiary); border-left: 2px solid var(--accent);
+}
+.cal-nav { display: flex; align-items: center; gap: 16px; margin-bottom: 16px; }
+.cal-nav-btn {
+  background: var(--bg-tertiary); border: 1px solid var(--border);
+  color: var(--text-secondary); padding: 6px 10px; border-radius: var(--radius);
+  cursor: pointer; font-size: 13px; font-family: var(--font-sans);
+}
+.cal-nav-btn:hover { background: var(--bg-hover); color: var(--text-primary); }
+.cal-month-label { font-size: 16px; font-weight: 600; font-family: var(--font-mono); }
+
+/* Categories */
+.category-list { display: flex; flex-direction: column; gap: 8px; }
+.category-item {
+  display: flex; align-items: center; gap: 12px;
+  padding: 12px 16px; background: var(--bg-surface);
+  border: 1px solid var(--border); border-radius: var(--radius);
+  transition: all var(--transition);
+}
+.category-item:hover { border-color: var(--border-light); }
+.category-color { width: 12px; height: 12px; border-radius: 3px; flex-shrink: 0; }
+.category-name { flex: 1; font-size: 14px; font-weight: 500; }
+.category-count { font-family: var(--font-mono); font-size: 12px; color: var(--text-tertiary); }
+.category-actions { display: flex; gap: 4px; }
+.cat-action-btn {
+  background: none; border: none; color: var(--text-tertiary);
+  cursor: pointer; padding: 4px 6px; border-radius: var(--radius); font-size: 13px;
+}
+.cat-action-btn:hover { color: var(--text-primary); background: var(--bg-hover); }
+.cat-action-btn.delete:hover { color: var(--red); }
+
+.add-cat-form { display: flex; gap: 8px; margin-top: 12px; }
+.add-cat-form .form-input { flex: 1; }
+.color-picker-row { display: flex; gap: 6px; margin-top: 8px; }
+.color-swatch {
+  width: 24px; height: 24px; border-radius: 4px; cursor: pointer;
+  border: 2px solid transparent; transition: all var(--transition);
+}
+.color-swatch:hover, .color-swatch.selected { border-color: var(--text-primary); transform: scale(1.1); }
+
+/* Settings */
+.settings-section { margin-bottom: 24px; }
+.settings-section-title {
+  font-size: 12px; font-weight: 600; text-transform: uppercase;
+  letter-spacing: 1px; color: var(--text-tertiary); margin-bottom: 12px;
+}
+.setting-item {
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 12px 16px; background: var(--bg-surface);
+  border: 1px solid var(--border); border-radius: var(--radius); margin-bottom: 4px;
+}
+.setting-label { font-size: 14px; }
+.setting-desc { font-size: 12px; color: var(--text-tertiary); margin-top: 2px; }
+
+.toggle {
+  width: 40px; height: 22px; background: var(--bg-tertiary);
+  border: 1px solid var(--border); border-radius: 11px;
+  cursor: pointer; position: relative; transition: all var(--transition); flex-shrink: 0;
+}
+.toggle.on { background: var(--accent); border-color: var(--accent); }
+.toggle::after {
+  content: ''; position: absolute; top: 2px; left: 2px;
+  width: 16px; height: 16px; background: white; border-radius: 50%;
+  transition: transform var(--transition);
+}
+.toggle.on::after { transform: translateX(18px); }
+
+.empty-state {
+  display: flex; flex-direction: column; align-items: center;
+  justify-content: center; padding: 48px; color: var(--text-tertiary);
+}
+.empty-state-icon { font-size: 32px; margin-bottom: 12px; opacity: 0.5; }
+.empty-state-text { font-size: 14px; }
+
+/* Responsive */
+@media (max-width: 768px) {
+  .sidebar {
+    position: fixed; left: 0; top: 0; bottom: 0; z-index: 50;
+    transform: translateX(-100%); transition: transform 200ms ease;
+  }
+  .sidebar.mobile-open { transform: translateX(0); }
+  .sidebar.collapsed { transform: translateX(-100%); }
+  .mobile-hamburger { display: flex !important; }
+  .cal-cell { min-height: 60px; }
+  .form-row { grid-template-columns: 1fr; }
+}
+.mobile-hamburger {
+  display: none; background: none; border: none;
+  color: var(--text-secondary); font-size: 20px; cursor: pointer; padding: 4px;
+}
+.mobile-overlay {
+  display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.4); z-index: 40;
+}
+.mobile-overlay.open { display: block; }
+</style>
+</head>
+<body>
+
+<div class="mobile-overlay" id="mobile-overlay" onclick="toggleMobileSidebar()"></div>
+
+<!-- Sidebar -->
+<aside class="sidebar" id="sidebar">
+  <div class="sidebar-header">
+    <span class="sidebar-logo">planer_</span>
+    <button class="sidebar-toggle" onclick="toggleSidebar()" title="Toggle sidebar">
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 12h18M3 6h18M3 18h18"/></svg>
+    </button>
+  </div>
+  <nav class="sidebar-nav">
+    <div class="nav-section-label">Навигация</div>
+    <div class="nav-item active" data-page="today" onclick="switchPage('today')">
+      <span class="nav-icon">&#9673;</span>
+      <span class="nav-label">Сегодня</span>
+      <span class="nav-shortcut">1</span>
+    </div>
+    <div class="nav-item" data-page="tasks" onclick="switchPage('tasks')">
+      <span class="nav-icon">&#9744;</span>
+      <span class="nav-label">Задачи</span>
+      <span class="nav-shortcut">2</span>
+    </div>
+    <div class="nav-item" data-page="calendar" onclick="switchPage('calendar')">
+      <span class="nav-icon">&#9635;</span>
+      <span class="nav-label">Календарь</span>
+      <span class="nav-shortcut">3</span>
+    </div>
+    <div class="nav-item" data-page="categories" onclick="switchPage('categories')">
+      <span class="nav-icon">&#9671;</span>
+      <span class="nav-label">Категории</span>
+      <span class="nav-shortcut">4</span>
+    </div>
+    <div class="nav-item" data-page="settings" onclick="switchPage('settings')">
+      <span class="nav-icon">&#9881;</span>
+      <span class="nav-label">Настройки</span>
+      <span class="nav-shortcut">5</span>
+    </div>
+  </nav>
+  <div class="sidebar-footer">
+    <div class="nav-item" onclick="openCmdPalette()" style="margin:0">
+      <span class="nav-icon">&#128269;</span>
+      <span class="nav-label">Поиск</span>
+      <span class="nav-shortcut">&#8984;K</span>
+    </div>
+  </div>
+</aside>
+
+<!-- Main -->
+<div class="main">
+  <div class="topbar">
+    <button class="mobile-hamburger" onclick="toggleMobileSidebar()">&#9776;</button>
+    <span class="topbar-title" id="topbar-title">Сегодня</span>
+    <div class="topbar-spacer"></div>
+    <div class="filter-group" id="filter-group">
+      <button class="filter-btn active" data-filter="all" onclick="setFilter('all')">Все</button>
+      <button class="filter-btn" data-filter="active" onclick="setFilter('active')">Активные</button>
+      <button class="filter-btn" data-filter="completed" onclick="setFilter('completed')">Готовые</button>
+    </div>
+    <button class="search-trigger" onclick="openCmdPalette()">
+      <span>Поиск...</span>
+      <kbd>&#8984;K</kbd>
+    </button>
+  </div>
+
+  <div class="content">
+    <!-- TODAY -->
+    <div class="page active" id="page-today">
+      <div class="today-date" id="today-date"></div>
+      <div class="progress-container">
+        <div class="progress-ring">
+          <svg width="52" height="52" viewBox="0 0 52 52">
+            <circle class="progress-ring-bg" cx="26" cy="26" r="22" fill="none" stroke-width="4"/>
+            <circle class="progress-ring-fill" id="progress-fill" cx="26" cy="26" r="22" fill="none" stroke-width="4" stroke-linecap="round" stroke-dasharray="138.23" stroke-dashoffset="138.23"/>
+          </svg>
+        </div>
+        <div class="progress-stats">
+          <div class="progress-label" id="progress-label">0/0</div>
+          <div class="progress-sublabel">задач выполнено сегодня</div>
+        </div>
+      </div>
+      <div class="task-list-header">
+        <span class="task-list-title">Задачи на сегодня</span>
+        <span class="task-count" id="today-count">0</span>
+      </div>
+      <div class="task-list" id="today-tasks"></div>
+      <button class="add-task-btn" onclick="openTaskModal()">
+        <span>+ Новая задача</span>
+        <kbd>N</kbd>
+      </button>
+    </div>
+
+    <!-- TASKS -->
+    <div class="page" id="page-tasks">
+      <div class="task-list-header">
+        <span class="task-list-title">Все задачи</span>
+        <span class="task-count" id="all-count">0</span>
+      </div>
+      <div class="task-list" id="all-tasks"></div>
+      <button class="add-task-btn" onclick="openTaskModal()">
+        <span>+ Новая задача</span>
+        <kbd>N</kbd>
+      </button>
+    </div>
+
+    <!-- CALENDAR -->
+    <div class="page" id="page-calendar">
+      <div class="cal-nav">
+        <button class="cal-nav-btn" onclick="calNav(-1)">&larr; Назад</button>
+        <span class="cal-month-label" id="cal-month-label"></span>
+        <button class="cal-nav-btn" onclick="calNav(1)">Вперед &rarr;</button>
+      </div>
+      <div class="calendar-grid" id="calendar-grid"></div>
+    </div>
+
+    <!-- CATEGORIES -->
+    <div class="page" id="page-categories">
+      <div class="task-list-header">
+        <span class="task-list-title">Категории</span>
+      </div>
+      <div class="category-list" id="category-list"></div>
+      <div style="margin-top:20px">
+        <div class="task-list-title" style="font-size:11px;color:var(--text-tertiary);margin-bottom:8px;">ДОБАВИТЬ КАТЕГОРИЮ</div>
+        <div class="add-cat-form">
+          <input class="form-input" id="new-cat-name" placeholder="Название категории">
+          <button class="btn btn-primary" onclick="addCategory()">Добавить</button>
+        </div>
+        <div class="color-picker-row" id="cat-color-picker"></div>
+      </div>
+    </div>
+
+    <!-- SETTINGS -->
+    <div class="page" id="page-settings">
+      <div class="settings-section">
+        <div class="settings-section-title">Внешний вид</div>
+        <div class="setting-item">
+          <div>
+            <div class="setting-label">Светлая тема</div>
+            <div class="setting-desc">Переключить на светлый режим</div>
+          </div>
+          <div class="toggle" id="theme-toggle" onclick="toggleTheme()"></div>
+        </div>
+      </div>
+      <div class="settings-section">
+        <div class="settings-section-title">Данные</div>
+        <div class="setting-item">
+          <div>
+            <div class="setting-label">Очистить все данные</div>
+            <div class="setting-desc">Удалить все задачи и категории</div>
+          </div>
+          <button class="btn btn-ghost" onclick="clearAllData()" style="color:var(--red);border-color:var(--red)">Очистить</button>
+        </div>
+      </div>
+      <div class="settings-section">
+        <div class="settings-section-title">Горячие клавиши</div>
+        <div class="setting-item">
+          <div>
+            <div class="setting-label" style="font-family:var(--font-mono);font-size:13px">1 &ndash; 5</div>
+            <div class="setting-desc">Навигация по разделам</div>
+          </div>
+        </div>
+        <div class="setting-item">
+          <div>
+            <div class="setting-label" style="font-family:var(--font-mono);font-size:13px">N</div>
+            <div class="setting-desc">Новая задача</div>
+          </div>
+        </div>
+        <div class="setting-item">
+          <div>
+            <div class="setting-label" style="font-family:var(--font-mono);font-size:13px">&#8984;K / Ctrl+K</div>
+            <div class="setting-desc">Поиск и команды</div>
+          </div>
+        </div>
+        <div class="setting-item">
+          <div>
+            <div class="setting-label" style="font-family:var(--font-mono);font-size:13px">Esc</div>
+            <div class="setting-desc">Закрыть модальное окно</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Task Modal -->
+<div class="modal-overlay" id="task-modal">
+  <div class="modal">
+    <div class="modal-header">
+      <span class="modal-title" id="modal-title">Новая задача</span>
+      <button class="modal-close" onclick="closeTaskModal()">&times;</button>
+    </div>
+    <div class="modal-body">
+      <div class="form-group">
+        <label class="form-label">Название</label>
+        <input class="form-input" id="task-title-input" placeholder="Что нужно сделать?">
+      </div>
+      <div class="form-group">
+        <label class="form-label">Описание</label>
+        <textarea class="form-textarea" id="task-desc-input" placeholder="Детали задачи (необязательно)"></textarea>
+      </div>
+      <div class="form-row">
+        <div class="form-group">
+          <label class="form-label">Дата</label>
+          <input class="form-input" type="date" id="task-date-input">
+        </div>
+        <div class="form-group">
+          <label class="form-label">Время</label>
+          <input class="form-input" type="time" id="task-time-input">
+        </div>
+      </div>
+      <div class="form-row">
+        <div class="form-group">
+          <label class="form-label">Приоритет</label>
+          <select class="form-select" id="task-priority-input">
+            <option value="low">Низкий</option>
+            <option value="medium" selected>Средний</option>
+            <option value="high">Высокий</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label class="form-label">Категория</label>
+          <select class="form-select" id="task-category-input"></select>
+        </div>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-ghost" onclick="closeTaskModal()">Отмена <span style="font-family:var(--font-mono);font-size:10px;opacity:0.6;margin-left:4px">Esc</span></button>
+      <button class="btn btn-primary" id="task-save-btn" onclick="saveTask()">Создать</button>
+    </div>
+  </div>
+</div>
+
+<!-- Command Palette -->
+<div class="cmd-palette" id="cmd-palette">
+  <div class="cmd-box">
+    <div class="cmd-input-wrap">
+      <span class="cmd-input-icon">&#128269;</span>
+      <input class="cmd-input" id="cmd-input" placeholder="Поиск задач, команд..." autocomplete="off">
+    </div>
+    <div class="cmd-results" id="cmd-results"></div>
+  </div>
+</div>
+
+<!-- Category edit modal -->
+<div class="modal-overlay" id="cat-edit-modal">
+  <div class="modal" style="width:380px">
+    <div class="modal-header">
+      <span class="modal-title">Редактировать категорию</span>
+      <button class="modal-close" onclick="closeCatEditModal()">&times;</button>
+    </div>
+    <div class="modal-body">
+      <div class="form-group">
+        <label class="form-label">Название</label>
+        <input class="form-input" id="cat-edit-name">
+      </div>
+      <div class="form-group">
+        <label class="form-label">Цвет</label>
+        <div class="color-picker-row" id="cat-edit-colors"></div>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-ghost" onclick="closeCatEditModal()">Отмена</button>
+      <button class="btn btn-primary" onclick="saveCatEdit()">Сохранить</button>
+    </div>
+  </div>
+</div>
+
+<script>
+const COLORS = ['#7C5CFC','#F04D6A','#F0943D','#3DD68C','#E8D44D','#4DA6F0','#E066A0','#4DD6C8'];
+const MONTHS_RU = ['Январь','Февраль','Март','Апрель','Май','Июнь','Июль','Август','Сентябрь','Октябрь','Ноябрь','Декабрь'];
+const DAYS_RU = ['Пн','Вт','Ср','Чт','Пт','Сб','Вс'];
+
+let state = {
+  tasks: [], categories: [], currentPage: 'today', filter: 'all',
+  theme: 'dark', calMonth: new Date().getMonth(), calYear: new Date().getFullYear(),
+  editingTaskId: null, editingCatId: null, selectedCatColor: COLORS[0]
+};
+
+function loadState() {
+  try {
+    const saved = localStorage.getItem('planer_linear_v2');
+    if (saved) { Object.assign(state, JSON.parse(saved)); }
+    else { initSampleData(); }
+  } catch(e) { initSampleData(); }
+}
+
+function saveState() {
+  localStorage.setItem('planer_linear_v2', JSON.stringify(state));
+}
+
+function initSampleData() {
+  const today = fmtDate(new Date());
+  const tomorrow = fmtDate(new Date(Date.now() + 86400000));
+  const dayAfter = fmtDate(new Date(Date.now() + 86400000 * 2));
+  const yesterday = fmtDate(new Date(Date.now() - 86400000));
+
+  state.categories = [
+    { id: 'c1', name: 'Работа', color: '#7C5CFC' },
+    { id: 'c2', name: 'Личное', color: '#3DD68C' },
+    { id: 'c3', name: 'Учёба', color: '#4DA6F0' },
+    { id: 'c4', name: 'Здоровье', color: '#F04D6A' }
+  ];
+
+  state.tasks = [
+    { id: 't1', title: 'Ревью pull request #247', desc: 'Проверить feature/auth-flow — миграция на OAuth2', date: today, time: '10:00', priority: 'high', category: 'c1', completed: false },
+    { id: 't2', title: 'Настроить CI/CD пайплайн', desc: 'Добавить стейдж деплоя в staging окружение', date: today, time: '14:00', priority: 'medium', category: 'c1', completed: false },
+    { id: 't3', title: 'Прочитать Clean Architecture гл. 5-7', desc: '', date: today, time: '19:00', priority: 'low', category: 'c3', completed: true },
+    { id: 't4', title: 'Утренняя тренировка', desc: 'Кардио 30 мин + растяжка', date: today, time: '07:30', priority: 'medium', category: 'c4', completed: false },
+    { id: 't5', title: 'Созвон с командой дизайна', desc: 'Обсудить новый UI kit и design tokens', date: tomorrow, time: '11:00', priority: 'high', category: 'c1', completed: false },
+    { id: 't6', title: 'Обновить зависимости проекта', desc: 'npm audit fix, проверить breaking changes', date: dayAfter, time: '15:00', priority: 'medium', category: 'c1', completed: false },
+    { id: 't7', title: 'Купить продукты', desc: 'Молоко, хлеб, овощи, кофе', date: yesterday, time: '18:00', priority: 'low', category: 'c2', completed: true }
+  ];
+}
+
+function uid() { return 'id_' + Date.now() + '_' + Math.random().toString(36).slice(2,8); }
+function fmtDate(d) { return d.toISOString().split('T')[0]; }
+function esc(s) { const d = document.createElement('div'); d.textContent = s; return d.innerHTML; }
+
+function formatDateFull(d) {
+  const days = ['Воскресенье','Понедельник','Вторник','Среда','Четверг','Пятница','Суббота'];
+  const months = ['января','февраля','марта','апреля','мая','июня','июля','августа','сентября','октября','ноября','декабря'];
+  return days[d.getDay()] + ', ' + d.getDate() + ' ' + months[d.getMonth()] + ' ' + d.getFullYear();
+}
+
+function formatDateShort(ds) {
+  const p = ds.split('-');
+  return p[2].replace(/^0/,'') + '.' + p[1];
+}
+
+// ===== RENDER =====
+function render() {
+  renderTodayPage();
+  renderTasksPage();
+  renderCalendar();
+  renderCategories();
+  renderThemeToggle();
+  updateCategorySelect();
+  saveState();
+}
+
+function renderTodayPage() {
+  const today = fmtDate(new Date());
+  const allToday = state.tasks.filter(t => t.date === today);
+  const shown = filterTasks(allToday);
+  const done = allToday.filter(t => t.completed).length;
+  const total = allToday.length;
+
+  document.getElementById('today-date').textContent = formatDateFull(new Date());
+
+  const pct = total > 0 ? done / total : 0;
+  const circ = 2 * Math.PI * 22; // ~138.23
+  document.getElementById('progress-fill').setAttribute('stroke-dashoffset', circ - circ * pct);
+  document.getElementById('progress-label').textContent = done + '/' + total;
+  document.getElementById('today-count').textContent = shown.length;
+
+  renderTaskList(document.getElementById('today-tasks'), shown);
+}
+
+function renderTasksPage() {
+  const tasks = filterTasks(state.tasks);
+  document.getElementById('all-count').textContent = tasks.length;
+  renderTaskList(document.getElementById('all-tasks'), tasks);
+}
+
+function filterTasks(tasks) {
+  if (state.filter === 'active') return tasks.filter(t => !t.completed);
+  if (state.filter === 'completed') return tasks.filter(t => t.completed);
+  return [...tasks];
+}
+
+function renderTaskList(container, tasks) {
+  if (!tasks.length) {
+    container.innerHTML = '<div class="empty-state"><div class="empty-state-icon">&#9744;</div><div class="empty-state-text">Нет задач</div></div>';
+    return;
+  }
+  // Sort: incomplete first, then by time
+  tasks.sort((a,b) => {
+    if (a.completed !== b.completed) return a.completed ? 1 : -1;
+    return (a.time || '').localeCompare(b.time || '');
+  });
+  container.innerHTML = tasks.map(t => {
+    const cat = state.categories.find(c => c.id === t.category);
+    const catColor = cat ? cat.color : '#555';
+    const catName = cat ? cat.name : '';
+    return '<div class="task-item' + (t.completed ? ' completed' : '') + '">' +
+      '<button class="task-checkbox' + (t.completed ? ' checked' : '') + '" onclick="toggleTask(\'' + t.id + '\')"></button>' +
+      '<div class="task-body" onclick="editTask(\'' + t.id + '\')">' +
+        '<div class="task-title">' + esc(t.title) + '</div>' +
+        '<div class="task-meta">' +
+          '<span class="task-priority priority-' + t.priority + '"></span>' +
+          '<span class="task-category-dot" style="background:' + catColor + '"></span>' +
+          '<span>' + esc(catName) + '</span>' +
+          (t.time ? '<span>' + t.time + '</span>' : '') +
+          (t.date ? '<span>' + formatDateShort(t.date) + '</span>' : '') +
+        '</div>' +
+      '</div>' +
+      '<div class="task-actions">' +
+        '<button class="task-action-btn" onclick="deleteTask(\'' + t.id + '\')" title="Удалить">&#10005;</button>' +
+      '</div>' +
+    '</div>';
+  }).join('');
+}
+
+function renderCalendar() {
+  const grid = document.getElementById('calendar-grid');
+  const y = state.calYear, m = state.calMonth;
+  document.getElementById('cal-month-label').textContent = MONTHS_RU[m] + ' ' + y;
+
+  let html = DAYS_RU.map(d => '<div class="cal-header-cell">' + d + '</div>').join('');
+
+  let startDow = new Date(y, m, 1).getDay();
+  startDow = startDow === 0 ? 6 : startDow - 1;
+  const daysInMonth = new Date(y, m + 1, 0).getDate();
+  const prevDays = new Date(y, m, 0).getDate();
+  const todayStr = fmtDate(new Date());
+
+  for (let i = startDow - 1; i >= 0; i--) {
+    const d = prevDays - i;
+    const pm = m === 0 ? 11 : m - 1;
+    const py = m === 0 ? y - 1 : y;
+    const ds = py + '-' + String(pm+1).padStart(2,'0') + '-' + String(d).padStart(2,'0');
+    html += calCell(d, ds, state.tasks.filter(t => t.date === ds), true, ds === todayStr);
+  }
+  for (let d = 1; d <= daysInMonth; d++) {
+    const ds = y + '-' + String(m+1).padStart(2,'0') + '-' + String(d).padStart(2,'0');
+    html += calCell(d, ds, state.tasks.filter(t => t.date === ds), false, ds === todayStr);
+  }
+  const totalCells = startDow + daysInMonth;
+  const rem = totalCells % 7 === 0 ? 0 : 7 - (totalCells % 7);
+  for (let d = 1; d <= rem; d++) {
+    const nm = m === 11 ? 0 : m + 1;
+    const ny = m === 11 ? y + 1 : y;
+    const ds = ny + '-' + String(nm+1).padStart(2,'0') + '-' + String(d).padStart(2,'0');
+    html += calCell(d, ds, state.tasks.filter(t => t.date === ds), true, ds === todayStr);
+  }
+  grid.innerHTML = html;
+}
+
+function calCell(day, ds, tasks, other, isToday) {
+  const cls = (other ? ' other-month' : '') + (isToday ? ' today' : '');
+  const th = tasks.slice(0,3).map(t => {
+    const cat = state.categories.find(c => c.id === t.category);
+    const col = cat ? cat.color : 'var(--accent)';
+    return '<div class="cal-task" style="border-left-color:' + col + '">' + esc(t.title) + '</div>';
+  }).join('');
+  const more = tasks.length > 3 ? '<div style="font-size:10px;color:var(--text-tertiary);padding:0 4px">+' + (tasks.length-3) + '</div>' : '';
+  return '<div class="cal-cell' + cls + '" onclick="calCellClick(\'' + ds + '\')">' +
+    '<div class="cal-day">' + day + '</div>' + th + more + '</div>';
+}
+
+function renderCategories() {
+  const list = document.getElementById('category-list');
+  list.innerHTML = state.categories.map(c => {
+    const count = state.tasks.filter(t => t.category === c.id).length;
+    return '<div class="category-item">' +
+      '<div class="category-color" style="background:' + c.color + '"></div>' +
+      '<div class="category-name">' + esc(c.name) + '</div>' +
+      '<span class="category-count">' + count + '</span>' +
+      '<div class="category-actions">' +
+        '<button class="cat-action-btn" onclick="openCatEdit(\'' + c.id + '\')" title="Редактировать">&#9998;</button>' +
+        '<button class="cat-action-btn delete" onclick="deleteCategory(\'' + c.id + '\')" title="Удалить">&#10005;</button>' +
+      '</div></div>';
+  }).join('');
+
+  document.getElementById('cat-color-picker').innerHTML = COLORS.map(c =>
+    '<div class="color-swatch' + (state.selectedCatColor === c ? ' selected' : '') +
+    '" style="background:' + c + '" onclick="selectCatColor(\'' + c + '\')"></div>'
+  ).join('');
+}
+
+function renderThemeToggle() {
+  const toggle = document.getElementById('theme-toggle');
+  if (state.theme === 'light') toggle.classList.add('on');
+  else toggle.classList.remove('on');
+  document.documentElement.setAttribute('data-theme', state.theme);
+}
+
+function updateCategorySelect() {
+  document.getElementById('task-category-input').innerHTML =
+    state.categories.map(c => '<option value="' + c.id + '">' + esc(c.name) + '</option>').join('');
+}
+
+// ===== ACTIONS =====
+function switchPage(page) {
+  state.currentPage = page;
+  document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+  document.getElementById('page-' + page).classList.add('active');
+  document.querySelectorAll('.nav-item[data-page]').forEach(n =>
+    n.classList.toggle('active', n.dataset.page === page));
+  const titles = { today:'Сегодня', tasks:'Задачи', calendar:'Календарь', categories:'Категории', settings:'Настройки' };
+  document.getElementById('topbar-title').textContent = titles[page] || '';
+  const fg = document.getElementById('filter-group');
+  fg.style.display = (page === 'tasks' || page === 'today') ? 'flex' : 'none';
+  // Close mobile sidebar
+  document.getElementById('sidebar').classList.remove('mobile-open');
+  document.getElementById('mobile-overlay').classList.remove('open');
+  render();
+}
+
+function toggleSidebar() { document.getElementById('sidebar').classList.toggle('collapsed'); }
+
+function toggleMobileSidebar() {
+  const sb = document.getElementById('sidebar');
+  const ov = document.getElementById('mobile-overlay');
+  sb.classList.toggle('mobile-open');
+  ov.classList.toggle('open');
+}
+
+function setFilter(f) {
+  state.filter = f;
+  document.querySelectorAll('.filter-btn').forEach(b =>
+    b.classList.toggle('active', b.dataset.filter === f));
+  render();
+}
+
+function toggleTask(id) {
+  const t = state.tasks.find(x => x.id === id);
+  if (t) { t.completed = !t.completed; render(); }
+}
+
+function deleteTask(id) {
+  state.tasks = state.tasks.filter(t => t.id !== id);
+  render();
+}
+
+function openTaskModal(taskId) {
+  state.editingTaskId = taskId || null;
+  updateCategorySelect();
+  document.getElementById('task-modal').classList.add('open');
+
+  if (taskId) {
+    const t = state.tasks.find(x => x.id === taskId);
+    if (!t) return;
+    document.getElementById('modal-title').textContent = 'Редактировать задачу';
+    document.getElementById('task-save-btn').textContent = 'Сохранить';
+    document.getElementById('task-title-input').value = t.title;
+    document.getElementById('task-desc-input').value = t.desc || '';
+    document.getElementById('task-date-input').value = t.date || '';
+    document.getElementById('task-time-input').value = t.time || '';
+    document.getElementById('task-priority-input').value = t.priority;
+    document.getElementById('task-category-input').value = t.category;
+  } else {
+    document.getElementById('modal-title').textContent = 'Новая задача';
+    document.getElementById('task-save-btn').textContent = 'Создать';
+    document.getElementById('task-title-input').value = '';
+    document.getElementById('task-desc-input').value = '';
+    document.getElementById('task-date-input').value = fmtDate(new Date());
+    document.getElementById('task-time-input').value = '';
+    document.getElementById('task-priority-input').value = 'medium';
+    if (state.categories.length) document.getElementById('task-category-input').value = state.categories[0].id;
+  }
+  setTimeout(() => document.getElementById('task-title-input').focus(), 100);
+}
+
+function closeTaskModal() {
+  document.getElementById('task-modal').classList.remove('open');
+  state.editingTaskId = null;
+}
+
+function editTask(id) { openTaskModal(id); }
+
+function saveTask() {
+  const title = document.getElementById('task-title-input').value.trim();
+  if (!title) return;
+  const data = {
+    title,
+    desc: document.getElementById('task-desc-input').value.trim(),
+    date: document.getElementById('task-date-input').value,
+    time: document.getElementById('task-time-input').value,
+    priority: document.getElementById('task-priority-input').value,
+    category: document.getElementById('task-category-input').value
+  };
+  if (state.editingTaskId) {
+    const t = state.tasks.find(x => x.id === state.editingTaskId);
+    if (t) Object.assign(t, data);
+  } else {
+    state.tasks.push({ id: uid(), ...data, completed: false });
+  }
+  closeTaskModal();
+  render();
+}
+
+function calNav(dir) {
+  state.calMonth += dir;
+  if (state.calMonth > 11) { state.calMonth = 0; state.calYear++; }
+  if (state.calMonth < 0) { state.calMonth = 11; state.calYear--; }
+  render();
+}
+
+function calCellClick(ds) {
+  openTaskModal();
+  document.getElementById('task-date-input').value = ds;
+}
+
+function selectCatColor(c) { state.selectedCatColor = c; renderCategories(); }
+
+function addCategory() {
+  const name = document.getElementById('new-cat-name').value.trim();
+  if (!name) return;
+  state.categories.push({ id: uid(), name, color: state.selectedCatColor });
+  document.getElementById('new-cat-name').value = '';
+  render();
+}
+
+function deleteCategory(id) {
+  if (!confirm('Удалить категорию?')) return;
+  state.categories = state.categories.filter(c => c.id !== id);
+  state.tasks.forEach(t => { if (t.category === id) t.category = ''; });
+  render();
+}
+
+function openCatEdit(id) {
+  state.editingCatId = id;
+  const cat = state.categories.find(c => c.id === id);
+  if (!cat) return;
+  document.getElementById('cat-edit-name').value = cat.name;
+  document.getElementById('cat-edit-modal').classList.add('open');
+  const picker = document.getElementById('cat-edit-colors');
+  picker.dataset.selected = cat.color;
+  picker.innerHTML = COLORS.map(c =>
+    '<div class="color-swatch' + (cat.color === c ? ' selected' : '') +
+    '" style="background:' + c + '" onclick="selectEditCatColor(\'' + c + '\')"></div>'
+  ).join('');
+}
+
+function selectEditCatColor(c) {
+  document.getElementById('cat-edit-colors').dataset.selected = c;
+  document.querySelectorAll('#cat-edit-colors .color-swatch').forEach(s => {
+    const bg = s.style.backgroundColor;
+    const hex = rgbToHex(bg);
+    s.classList.toggle('selected', hex === c.toLowerCase());
+  });
+}
+
+function rgbToHex(rgb) {
+  if (rgb.startsWith('#')) return rgb.toLowerCase();
+  const m = rgb.match(/\d+/g);
+  if (!m) return rgb;
+  return '#' + m.slice(0,3).map(x => (+x).toString(16).padStart(2,'0')).join('');
+}
+
+function saveCatEdit() {
+  const cat = state.categories.find(c => c.id === state.editingCatId);
+  if (!cat) return;
+  cat.name = document.getElementById('cat-edit-name').value.trim() || cat.name;
+  const sel = document.getElementById('cat-edit-colors').dataset.selected;
+  if (sel) cat.color = sel;
+  closeCatEditModal();
+  render();
+}
+
+function closeCatEditModal() {
+  document.getElementById('cat-edit-modal').classList.remove('open');
+  state.editingCatId = null;
+}
+
+function toggleTheme() {
+  state.theme = state.theme === 'dark' ? 'light' : 'dark';
+  render();
+}
+
+// Command palette
+function openCmdPalette() {
+  document.getElementById('cmd-palette').classList.add('open');
+  const input = document.getElementById('cmd-input');
+  input.value = '';
+  input.focus();
+  renderCmdResults('');
+}
+
+function closeCmdPalette() {
+  document.getElementById('cmd-palette').classList.remove('open');
+}
+
+let cmdActions = [];
+
+function renderCmdResults(query) {
+  const container = document.getElementById('cmd-results');
+  let items = [];
+  const q = query.toLowerCase();
+
+  // Commands
+  if (!q || 'новая задача'.includes(q)) {
+    items.push({ icon: '+', text: 'Новая задача', hint: 'N', action() { closeCmdPalette(); openTaskModal(); }});
+  }
+  if (!q || 'тема светлая'.includes(q) || 'тёмная'.includes(q)) {
+    items.push({ icon: '&#9680;', text: 'Переключить тему', hint: '', action() { closeCmdPalette(); toggleTheme(); }});
+  }
+
+  [
+    { name:'Сегодня', page:'today', icon:'&#9673;', key:'1' },
+    { name:'Задачи', page:'tasks', icon:'&#9744;', key:'2' },
+    { name:'Календарь', page:'calendar', icon:'&#9635;', key:'3' },
+    { name:'Категории', page:'categories', icon:'&#9671;', key:'4' },
+    { name:'Настройки', page:'settings', icon:'&#9881;', key:'5' }
+  ].forEach(p => {
+    if (!q || p.name.toLowerCase().includes(q)) {
+      items.push({ icon: p.icon, text: p.name, hint: p.key, action() { closeCmdPalette(); switchPage(p.page); }});
+    }
+  });
+
+  // Search tasks
+  if (q) {
+    state.tasks.forEach(t => {
+      if (t.title.toLowerCase().includes(q) || (t.desc && t.desc.toLowerCase().includes(q))) {
+        const cat = state.categories.find(c => c.id === t.category);
+        items.push({
+          icon: t.completed ? '&#10003;' : '&#9744;',
+          text: t.title,
+          hint: cat ? cat.name : '',
+          action() { closeCmdPalette(); switchPage('tasks'); }
+        });
+      }
+    });
+  }
+
+  cmdActions = items.map(i => i.action);
+
+  if (!items.length) {
+    container.innerHTML = '<div class="cmd-empty">Ничего не найдено</div>';
+    return;
+  }
+
+  container.innerHTML = items.map((item, i) =>
+    '<div class="cmd-result-item' + (i === 0 ? ' selected' : '') + '" data-idx="' + i + '" onclick="cmdSelect(' + i + ')">' +
+      '<span class="r-icon">' + item.icon + '</span>' +
+      '<span class="r-text">' + esc(item.text) + '</span>' +
+      '<span class="r-hint">' + item.hint + '</span>' +
+    '</div>'
+  ).join('');
+}
+
+function cmdSelect(idx) {
+  if (cmdActions[idx]) cmdActions[idx]();
+}
+
+function clearAllData() {
+  if (confirm('Удалить все данные? Это действие нельзя отменить.')) {
+    localStorage.removeItem('planer_linear_v2');
+    state.tasks = [];
+    state.categories = [];
+    render();
+  }
+}
+
+// ===== KEYBOARD =====
+document.addEventListener('keydown', e => {
+  const tag = e.target.tagName;
+  const isInput = tag === 'INPUT' || tag === 'TEXTAREA' || tag === 'SELECT';
+
+  if ((e.metaKey || e.ctrlKey) && e.key === 'k') {
+    e.preventDefault();
+    openCmdPalette();
+    return;
+  }
+
+  if (e.key === 'Escape') {
+    closeCmdPalette();
+    closeTaskModal();
+    closeCatEditModal();
+    return;
+  }
+
+  if (isInput) return;
+
+  if (e.key === '1') switchPage('today');
+  if (e.key === '2') switchPage('tasks');
+  if (e.key === '3') switchPage('calendar');
+  if (e.key === '4') switchPage('categories');
+  if (e.key === '5') switchPage('settings');
+
+  if (e.key === 'n' || e.key === 'N') {
+    e.preventDefault();
+    openTaskModal();
+  }
+});
+
+document.getElementById('cmd-input').addEventListener('input', e => renderCmdResults(e.target.value));
+
+document.getElementById('cmd-input').addEventListener('keydown', e => {
+  const items = document.querySelectorAll('.cmd-result-item');
+  if (!items.length) return;
+  const selected = document.querySelector('.cmd-result-item.selected');
+  let idx = selected ? +selected.dataset.idx : 0;
+
+  if (e.key === 'ArrowDown') {
+    e.preventDefault();
+    idx = Math.min(idx + 1, items.length - 1);
+    items.forEach((it,i) => it.classList.toggle('selected', i === idx));
+  } else if (e.key === 'ArrowUp') {
+    e.preventDefault();
+    idx = Math.max(idx - 1, 0);
+    items.forEach((it,i) => it.classList.toggle('selected', i === idx));
+  } else if (e.key === 'Enter') {
+    e.preventDefault();
+    cmdSelect(idx);
+  }
+});
+
+// Close on overlay click
+['task-modal','cmd-palette','cat-edit-modal'].forEach(id => {
+  document.getElementById(id).addEventListener('click', function(e) {
+    if (e.target === this) {
+      if (id === 'task-modal') closeTaskModal();
+      else if (id === 'cmd-palette') closeCmdPalette();
+      else closeCatEditModal();
+    }
+  });
+});
+
+document.getElementById('task-title-input').addEventListener('keydown', e => {
+  if (e.key === 'Enter') { e.preventDefault(); saveTask(); }
+});
+
+document.getElementById('new-cat-name').addEventListener('keydown', e => {
+  if (e.key === 'Enter') { e.preventDefault(); addCategory(); }
+});
+
+// ===== INIT =====
+loadState();
+render();
+</script>
+</body>
+</html>
