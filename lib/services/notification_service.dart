@@ -12,6 +12,12 @@ class NotificationService {
   final _plugin = FlutterLocalNotificationsPlugin();
   bool _initialized = false;
 
+  /// Колбэк при нажатии на уведомление — передаёт ID задачи.
+  static void Function(int taskId)? onTaskTapped;
+
+  /// Уникальный ID для ежедневной сводки.
+  static const int _dailySummaryId = 999999;
+
   Future<void> init() async {
     if (_initialized) return;
 
@@ -38,8 +44,14 @@ class NotificationService {
   }
 
   void _onNotificationTap(NotificationResponse response) {
-    // Task ID is stored in payload — can be used for navigation
     debugPrint('Notification tapped: ${response.payload}');
+    final payload = response.payload;
+    if (payload != null && payload.isNotEmpty) {
+      final taskId = int.tryParse(payload);
+      if (taskId != null && onTaskTapped != null) {
+        onTaskTapped!(taskId);
+      }
+    }
   }
 
   Future<void> requestPermissions() async {
@@ -51,6 +63,19 @@ class NotificationService {
     await _plugin
         .resolvePlatformSpecificImplementation<AndroidFlutterLocalNotificationsPlugin>()
         ?.requestNotificationsPermission();
+  }
+
+  /// Проверяет, включены ли уведомления на устройстве.
+  Future<bool> areNotificationsEnabled() async {
+    final androidImpl = _plugin
+        .resolvePlatformSpecificImplementation<AndroidFlutterLocalNotificationsPlugin>();
+    if (androidImpl != null) {
+      return await androidImpl.areNotificationsEnabled() ?? false;
+    }
+
+    // На iOS считаем, что разрешения были запрошены через requestPermissions.
+    // Если платформа не Android — возвращаем true по умолчанию.
+    return true;
   }
 
   Future<void> scheduleTaskReminder({
@@ -112,6 +137,138 @@ class NotificationService {
     return 'Через ${offset.inMinutes} мин.';
   }
 
+  /// Планирует ежедневную сводку в указанное время.
+  /// Показывает «У вас X задач на сегодня» каждый день.
+  Future<void> scheduleDailySummary({
+    required int hour,
+    required int minute,
+  }) async {
+    if (kIsWeb) return;
+
+    final now = tz.TZDateTime.now(tz.local);
+    var scheduledDate = tz.TZDateTime(tz.local, now.year, now.month, now.day, hour, minute);
+
+    // Если время уже прошло сегодня — переносим на завтра.
+    if (scheduledDate.isBefore(now)) {
+      scheduledDate = scheduledDate.add(const Duration(days: 1));
+    }
+
+    await _plugin.zonedSchedule(
+      _dailySummaryId,
+      'Ежедневная сводка',
+      'У вас есть задачи на сегодня',
+      scheduledDate,
+      const NotificationDetails(
+        android: AndroidNotificationDetails(
+          'daily_summary',
+          'Ежедневная сводка',
+          channelDescription: 'Ежедневное напоминание о задачах на день',
+          importance: Importance.defaultImportance,
+          priority: Priority.defaultPriority,
+        ),
+        iOS: DarwinNotificationDetails(
+          presentAlert: true,
+          presentBadge: true,
+          presentSound: true,
+        ),
+      ),
+      androidScheduleMode: AndroidScheduleMode.exactAllowWhileIdle,
+      uiLocalNotificationDateInterpretation: UILocalNotificationDateInterpretation.absoluteTime,
+      matchDateTimeComponents: DateTimeComponents.time,
+      payload: 'daily_summary',
+    );
+  }
+
+  /// Отменяет ежедневную сводку.
+  Future<void> cancelDailySummary() async {
+    await _plugin.cancel(_dailySummaryId);
+  }
+
+  /// Планирует повторяющееся уведомление для задачи.
+  ///
+  /// [firstOccurrence] — время первого уведомления.
+  /// [interval] — интервал повторения (день, неделя и т.д.).
+  Future<void> scheduleRecurring({
+    required int taskId,
+    required String title,
+    required DateTime firstOccurrence,
+    required Duration interval,
+  }) async {
+    if (kIsWeb) return;
+
+    final tzTime = tz.TZDateTime.from(firstOccurrence, tz.local);
+    if (tzTime.isBefore(tz.TZDateTime.now(tz.local))) return;
+
+    // Определяем подходящий DateTimeComponents по интервалу.
+    DateTimeComponents? matchComponents;
+    if (interval.inDays == 7) {
+      matchComponents = DateTimeComponents.dayOfWeekAndTime;
+    } else if (interval.inDays == 1) {
+      matchComponents = DateTimeComponents.time;
+    } else if (interval.inDays >= 28 && interval.inDays <= 31) {
+      matchComponents = DateTimeComponents.dayOfMonthAndTime;
+    }
+
+    if (matchComponents != null) {
+      // Используем zonedSchedule с matchDateTimeComponents для точного повторения.
+      await _plugin.zonedSchedule(
+        taskId,
+        title,
+        'Повторяющаяся задача',
+        tzTime,
+        const NotificationDetails(
+          android: AndroidNotificationDetails(
+            'task_reminders',
+            'Напоминания о задачах',
+            channelDescription: 'Уведомления о предстоящих задачах',
+            importance: Importance.high,
+            priority: Priority.high,
+          ),
+          iOS: DarwinNotificationDetails(
+            presentAlert: true,
+            presentBadge: true,
+            presentSound: true,
+          ),
+        ),
+        androidScheduleMode: AndroidScheduleMode.exactAllowWhileIdle,
+        uiLocalNotificationDateInterpretation: UILocalNotificationDateInterpretation.absoluteTime,
+        matchDateTimeComponents: matchComponents,
+        payload: taskId.toString(),
+      );
+    } else {
+      // Для нестандартных интервалов используем periodicallyShow.
+      RepeatInterval repeatInterval;
+      if (interval.inHours >= 1 && interval.inHours < 24) {
+        repeatInterval = RepeatInterval.hourly;
+      } else {
+        repeatInterval = RepeatInterval.daily;
+      }
+
+      await _plugin.periodicallyShow(
+        taskId,
+        title,
+        'Повторяющаяся задача',
+        repeatInterval,
+        const NotificationDetails(
+          android: AndroidNotificationDetails(
+            'task_reminders',
+            'Напоминания о задачах',
+            channelDescription: 'Уведомления о предстоящих задачах',
+            importance: Importance.high,
+            priority: Priority.high,
+          ),
+          iOS: DarwinNotificationDetails(
+            presentAlert: true,
+            presentBadge: true,
+            presentSound: true,
+          ),
+        ),
+        androidScheduleMode: AndroidScheduleMode.exactAllowWhileIdle,
+        payload: taskId.toString(),
+      );
+    }
+  }
+
   Future<void> cancelTaskReminders(int taskId) async {
     await _plugin.cancel(taskId);
     // Cancel offset reminders too
@@ -122,5 +279,19 @@ class NotificationService {
 
   Future<void> cancelAll() async {
     await _plugin.cancelAll();
+  }
+
+  /// Возвращает список всех запланированных уведомлений.
+  /// Полезно для повторного планирования после перезагрузки устройства.
+  Future<List<Map<String, dynamic>>> getPendingNotifications() async {
+    final pending = await _plugin.pendingNotificationRequests();
+    return pending.map((request) {
+      return {
+        'id': request.id,
+        'title': request.title,
+        'body': request.body,
+        'payload': request.payload,
+      };
+    }).toList();
   }
 }

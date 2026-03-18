@@ -19,6 +19,7 @@ class AttachmentList extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final db = ref.watch(databaseProvider);
     final theme = Theme.of(context);
+    final isDark = theme.brightness == Brightness.dark;
 
     return StreamBuilder<List<Attachment>>(
       stream: db.watchAttachmentsForTask(taskId),
@@ -28,38 +29,72 @@ class AttachmentList extends ConsumerWidget {
         return Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
+            // --- Section header ---
             Row(
               children: [
-                Text('Вложения', style: theme.textTheme.titleSmall),
-                const Spacer(),
+                Icon(
+                  Icons.attach_file_rounded,
+                  size: 22,
+                  color: theme.colorScheme.onSurfaceVariant,
+                ),
+                const SizedBox(width: 8),
+                Text(
+                  'Вложения',
+                  style: theme.textTheme.bodyLarge?.copyWith(
+                    fontWeight: FontWeight.w500,
+                  ),
+                ),
+                const SizedBox(width: 8),
                 if (attachments.isNotEmpty)
-                  Text(
-                    '${attachments.length}',
-                    style: theme.textTheme.bodySmall?.copyWith(
-                      color: theme.colorScheme.onSurfaceVariant,
+                  Container(
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 7,
+                      vertical: 2,
+                    ),
+                    decoration: BoxDecoration(
+                      color: isDark
+                          ? theme.colorScheme.surfaceContainerHighest
+                          : theme.colorScheme.surfaceContainerHigh,
+                      borderRadius: BorderRadius.circular(10),
+                    ),
+                    child: Text(
+                      '${attachments.length}',
+                      style: theme.textTheme.labelSmall?.copyWith(
+                        color: theme.colorScheme.onSurfaceVariant,
+                        fontWeight: FontWeight.w600,
+                        fontSize: 11,
+                      ),
                     ),
                   ),
-                const SizedBox(width: 8),
-                PopupMenuButton<String>(
-                  icon: const Icon(Icons.add, size: 20),
-                  onSelected: (value) => _addAttachment(context, db, value),
-                  itemBuilder: (_) => [
-                    const PopupMenuItem(value: 'camera', child: Text('Камера')),
-                    const PopupMenuItem(value: 'gallery', child: Text('Галерея')),
-                    const PopupMenuItem(value: 'file', child: Text('Файл')),
-                  ],
+                const Spacer(),
+                GestureDetector(
+                  onTap: () => _showAddSheet(context, db),
+                  child: Icon(
+                    Icons.add_circle_outline_rounded,
+                    size: 24,
+                    color: theme.colorScheme.primary,
+                  ),
                 ),
               ],
             ),
-            if (attachments.isNotEmpty)
+            const SizedBox(height: 12),
+
+            // --- Content ---
+            if (attachments.isEmpty)
+              _buildEmptyState(context, db, theme, isDark)
+            else
               SizedBox(
-                height: 100,
-                child: ListView.builder(
+                height: 90,
+                child: ListView.separated(
                   scrollDirection: Axis.horizontal,
                   itemCount: attachments.length,
+                  separatorBuilder: (_, __) => const SizedBox(width: 10),
                   itemBuilder: (context, index) {
                     final att = attachments[index];
-                    return _buildAttachmentTile(context, att, db, theme);
+                    return _AttachmentTileAnimated(
+                      key: ValueKey(att.id),
+                      child: _buildAttachmentTile(context, att, db, theme, isDark),
+                    );
                   },
                 ),
               ),
@@ -69,52 +104,122 @@ class AttachmentList extends ConsumerWidget {
     );
   }
 
+  // --- Empty state: dashed border + icon ---
+  Widget _buildEmptyState(
+      BuildContext context, AppDatabase db, ThemeData theme, bool isDark) {
+    final borderColor = isDark
+        ? theme.colorScheme.outlineVariant.withValues(alpha: 0.4)
+        : theme.colorScheme.outlineVariant;
+
+    return GestureDetector(
+      onTap: () => _showAddSheet(context, db),
+      child: Container(
+        height: 90,
+        decoration: BoxDecoration(
+          borderRadius: BorderRadius.circular(10),
+        ),
+        child: CustomPaint(
+          painter: _DashedBorderPainter(
+            color: borderColor,
+            borderRadius: 10,
+            dashWidth: 6,
+            dashSpace: 4,
+          ),
+          child: Center(
+            child: Column(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                Icon(
+                  Icons.add_rounded,
+                  size: 28,
+                  color: theme.colorScheme.onSurfaceVariant.withValues(alpha: 0.6),
+                ),
+                const SizedBox(height: 4),
+                Text(
+                  'Добавить вложение',
+                  style: theme.textTheme.bodySmall?.copyWith(
+                    color: theme.colorScheme.onSurfaceVariant.withValues(alpha: 0.6),
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+
+  // --- Attachment tile ---
   Widget _buildAttachmentTile(
-      BuildContext context, Attachment att, AppDatabase db, ThemeData theme) {
+      BuildContext context, Attachment att, AppDatabase db, ThemeData theme, bool isDark) {
     final isImage = att.attachmentType == AttachmentType.image;
 
-    return Padding(
-      padding: const EdgeInsets.only(right: 8),
+    return SizedBox(
+      width: 90,
+      height: 90,
       child: Stack(
         children: [
+          // Tile body
           GestureDetector(
             onTap: () {
               if (isImage && !kIsWeb) {
                 showDialog(
                   context: context,
                   builder: (_) => Dialog(
-                    child: Image.file(File(att.filePath)),
+                    child: ClipRRect(
+                      borderRadius: BorderRadius.circular(12),
+                      child: Image.file(File(att.filePath)),
+                    ),
                   ),
                 );
               }
             },
             child: Container(
-              width: 100,
-              height: 100,
+              width: 90,
+              height: 90,
               decoration: BoxDecoration(
-                borderRadius: BorderRadius.circular(12),
-                color: theme.colorScheme.surfaceContainerHighest,
+                borderRadius: BorderRadius.circular(10),
+                color: isImage
+                    ? null
+                    : (isDark
+                        ? theme.colorScheme.surfaceContainerHigh
+                        : theme.colorScheme.surfaceContainerHighest
+                            .withValues(alpha: 0.7)),
                 image: isImage && !kIsWeb
                     ? DecorationImage(
                         image: FileImage(File(att.filePath)),
                         fit: BoxFit.cover,
                       )
                     : null,
+                boxShadow: [
+                  BoxShadow(
+                    color: Colors.black.withValues(alpha: isDark ? 0.3 : 0.08),
+                    blurRadius: 6,
+                    offset: const Offset(0, 2),
+                  ),
+                ],
               ),
               child: !isImage
                   ? Column(
                       mainAxisAlignment: MainAxisAlignment.center,
                       children: [
-                        const Icon(Icons.insert_drive_file, size: 32),
-                        const SizedBox(height: 4),
+                        Icon(
+                          _fileIcon(att.displayName),
+                          size: 28,
+                          color: theme.colorScheme.onSurfaceVariant,
+                        ),
+                        const SizedBox(height: 6),
                         Padding(
-                          padding: const EdgeInsets.symmetric(horizontal: 4),
+                          padding: const EdgeInsets.symmetric(horizontal: 6),
                           child: Text(
                             att.displayName ?? 'Файл',
                             maxLines: 2,
                             overflow: TextOverflow.ellipsis,
                             textAlign: TextAlign.center,
-                            style: theme.textTheme.labelSmall,
+                            style: theme.textTheme.labelSmall?.copyWith(
+                              fontSize: 10,
+                              color: theme.colorScheme.onSurfaceVariant,
+                            ),
                           ),
                         ),
                       ],
@@ -122,9 +227,11 @@ class AttachmentList extends ConsumerWidget {
                   : null,
             ),
           ),
+
+          // Delete button
           Positioned(
-            top: 2,
-            right: 2,
+            top: 4,
+            right: 4,
             child: GestureDetector(
               onTap: () async {
                 await db.deleteAttachment(att.id);
@@ -135,12 +242,17 @@ class AttachmentList extends ConsumerWidget {
                 }
               },
               child: Container(
-                padding: const EdgeInsets.all(2),
+                width: 20,
+                height: 20,
                 decoration: BoxDecoration(
-                  color: Colors.black54,
-                  borderRadius: BorderRadius.circular(12),
+                  color: Colors.black.withValues(alpha: 0.55),
+                  shape: BoxShape.circle,
                 ),
-                child: const Icon(Icons.close, size: 16, color: Colors.white),
+                child: const Icon(
+                  Icons.close_rounded,
+                  size: 13,
+                  color: Colors.white,
+                ),
               ),
             ),
           ),
@@ -149,6 +261,138 @@ class AttachmentList extends ConsumerWidget {
     );
   }
 
+  // --- Add bottom sheet ---
+  void _showAddSheet(BuildContext context, AppDatabase db) {
+    final theme = Theme.of(context);
+    final isDark = theme.brightness == Brightness.dark;
+
+    showModalBottomSheet(
+      context: context,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+      ),
+      backgroundColor: isDark
+          ? theme.colorScheme.surfaceContainerHigh
+          : theme.colorScheme.surface,
+      builder: (ctx) {
+        return SafeArea(
+          child: Padding(
+            padding: const EdgeInsets.symmetric(vertical: 12),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                // Handle
+                Container(
+                  width: 36,
+                  height: 4,
+                  decoration: BoxDecoration(
+                    color: theme.colorScheme.outlineVariant,
+                    borderRadius: BorderRadius.circular(2),
+                  ),
+                ),
+                const SizedBox(height: 16),
+                Text(
+                  'Добавить вложение',
+                  style: theme.textTheme.titleMedium?.copyWith(
+                    fontWeight: FontWeight.w600,
+                  ),
+                ),
+                const SizedBox(height: 12),
+                _buildSheetOption(
+                  context: ctx,
+                  icon: Icons.camera_alt_rounded,
+                  iconColor: theme.colorScheme.primary,
+                  title: 'Камера',
+                  subtitle: 'Сделать фото',
+                  onTap: () {
+                    Navigator.pop(ctx);
+                    _addAttachment(context, db, 'camera');
+                  },
+                  theme: theme,
+                ),
+                _buildSheetOption(
+                  context: ctx,
+                  icon: Icons.photo_library_rounded,
+                  iconColor: Colors.orange,
+                  title: 'Галерея',
+                  subtitle: 'Выбрать из галереи',
+                  onTap: () {
+                    Navigator.pop(ctx);
+                    _addAttachment(context, db, 'gallery');
+                  },
+                  theme: theme,
+                ),
+                _buildSheetOption(
+                  context: ctx,
+                  icon: Icons.folder_rounded,
+                  iconColor: Colors.teal,
+                  title: 'Файл',
+                  subtitle: 'Выбрать документ',
+                  onTap: () {
+                    Navigator.pop(ctx);
+                    _addAttachment(context, db, 'file');
+                  },
+                  theme: theme,
+                ),
+                const SizedBox(height: 8),
+              ],
+            ),
+          ),
+        );
+      },
+    );
+  }
+
+  Widget _buildSheetOption({
+    required BuildContext context,
+    required IconData icon,
+    required Color iconColor,
+    required String title,
+    required String subtitle,
+    required VoidCallback onTap,
+    required ThemeData theme,
+  }) {
+    return ListTile(
+      leading: Container(
+        width: 42,
+        height: 42,
+        decoration: BoxDecoration(
+          color: iconColor.withValues(alpha: 0.12),
+          borderRadius: BorderRadius.circular(12),
+        ),
+        child: Icon(icon, color: iconColor, size: 22),
+      ),
+      title: Text(
+        title,
+        style: theme.textTheme.bodyLarge?.copyWith(fontWeight: FontWeight.w500),
+      ),
+      subtitle: Text(
+        subtitle,
+        style: theme.textTheme.bodySmall?.copyWith(
+          color: theme.colorScheme.onSurfaceVariant,
+        ),
+      ),
+      onTap: onTap,
+      contentPadding: const EdgeInsets.symmetric(horizontal: 20),
+    );
+  }
+
+  // --- File icon helper ---
+  IconData _fileIcon(String? name) {
+    if (name == null) return Icons.insert_drive_file_rounded;
+    final ext = p.extension(name).toLowerCase();
+    return switch (ext) {
+      '.pdf' => Icons.picture_as_pdf_rounded,
+      '.doc' || '.docx' => Icons.description_rounded,
+      '.xls' || '.xlsx' => Icons.table_chart_rounded,
+      '.zip' || '.rar' || '.7z' => Icons.folder_zip_rounded,
+      '.mp3' || '.wav' || '.aac' => Icons.audio_file_rounded,
+      '.mp4' || '.mov' || '.avi' => Icons.video_file_rounded,
+      _ => Icons.insert_drive_file_rounded,
+    };
+  }
+
+  // --- Original attachment logic (preserved) ---
   Future<void> _addAttachment(BuildContext context, AppDatabase db, String source) async {
     if (kIsWeb) {
       if (context.mounted) {
@@ -199,4 +443,100 @@ class AttachmentList extends ConsumerWidget {
       ));
     }
   }
+}
+
+// --- Fade-in animation wrapper for tiles ---
+class _AttachmentTileAnimated extends StatefulWidget {
+  final Widget child;
+
+  const _AttachmentTileAnimated({super.key, required this.child});
+
+  @override
+  State<_AttachmentTileAnimated> createState() => _AttachmentTileAnimatedState();
+}
+
+class _AttachmentTileAnimatedState extends State<_AttachmentTileAnimated>
+    with SingleTickerProviderStateMixin {
+  late final AnimationController _controller;
+  late final Animation<double> _fadeAnimation;
+  late final Animation<double> _scaleAnimation;
+
+  @override
+  void initState() {
+    super.initState();
+    _controller = AnimationController(
+      duration: const Duration(milliseconds: 300),
+      vsync: this,
+    );
+    _fadeAnimation = CurvedAnimation(
+      parent: _controller,
+      curve: Curves.easeOut,
+    );
+    _scaleAnimation = Tween<double>(begin: 0.85, end: 1.0).animate(
+      CurvedAnimation(parent: _controller, curve: Curves.easeOutBack),
+    );
+    _controller.forward();
+  }
+
+  @override
+  void dispose() {
+    _controller.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return FadeTransition(
+      opacity: _fadeAnimation,
+      child: ScaleTransition(
+        scale: _scaleAnimation,
+        child: widget.child,
+      ),
+    );
+  }
+}
+
+// --- Dashed border painter for empty state ---
+class _DashedBorderPainter extends CustomPainter {
+  final Color color;
+  final double borderRadius;
+  final double dashWidth;
+  final double dashSpace;
+
+  _DashedBorderPainter({
+    required this.color,
+    required this.borderRadius,
+    required this.dashWidth,
+    required this.dashSpace,
+  });
+
+  @override
+  void paint(Canvas canvas, Size size) {
+    final paint = Paint()
+      ..color = color
+      ..strokeWidth = 1.2
+      ..style = PaintingStyle.stroke;
+
+    final rrect = RRect.fromRectAndRadius(
+      Rect.fromLTWH(0, 0, size.width, size.height),
+      Radius.circular(borderRadius),
+    );
+
+    final path = Path()..addRRect(rrect);
+    final metrics = path.computeMetrics();
+
+    for (final metric in metrics) {
+      double distance = 0;
+      while (distance < metric.length) {
+        final end = (distance + dashWidth).clamp(0.0, metric.length);
+        final segment = metric.extractPath(distance, end);
+        canvas.drawPath(segment, paint);
+        distance += dashWidth + dashSpace;
+      }
+    }
+  }
+
+  @override
+  bool shouldRepaint(covariant _DashedBorderPainter oldDelegate) =>
+      color != oldDelegate.color;
 }

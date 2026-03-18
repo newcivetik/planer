@@ -2,17 +2,18 @@
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:background="@android:color/white"
+    android:background="@drawable/widget_background"
     android:orientation="vertical"
-    android:padding="12dp">
+    android:padding="16dp">
 
-    <!-- Header -->
+    <!-- Header row -->
     <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:orientation="horizontal"
         android:gravity="center_vertical">
 
+        <!-- App name and summary -->
         <LinearLayout
             android:layout_width="0dp"
             android:layout_height="wrap_content"
@@ -25,26 +26,31 @@
                 android:text="Планер"
                 android:textSize="16sp"
                 android:textStyle="bold"
-                android:textColor="#1A1A1A" />
+                android:textColor="#1A1A1A"
+                android:fontFamily="sans-serif-medium" />
 
             <TextView
                 android:id="@+id/widget_summary_text"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
+                android:layout_marginTop="1dp"
                 android:text="0 из 0 выполнено"
                 android:textSize="12sp"
-                android:textColor="#666666" />
+                android:textColor="#888888"
+                android:fontFamily="sans-serif" />
 
         </LinearLayout>
 
+        <!-- Progress percentage -->
         <TextView
             android:id="@+id/widget_progress_text"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:text="0%"
-            android:textSize="24sp"
+            android:textSize="26sp"
             android:textStyle="bold"
-            android:textColor="#6200EE" />
+            android:textColor="#4A90D9"
+            android:fontFamily="sans-serif-medium" />
 
     </LinearLayout>
 
@@ -53,96 +59,256 @@
         android:id="@+id/widget_date_text"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_marginTop="8dp"
-        android:textSize="12sp"
-        android:textColor="#999999" />
+        android:layout_marginTop="6dp"
+        android:textSize="11sp"
+        android:textColor="#888888"
+        android:fontFamily="sans-serif" />
 
     <!-- Divider -->
     <View
         android:layout_width="match_parent"
         android:layout_height="1dp"
-        android:layout_marginVertical="8dp"
-        android:background="#E0E0E0" />
+        android:layout_marginTop="10dp"
+        android:layout_marginBottom="10dp"
+        android:background="@drawable/widget_divider" />
 
     <!-- Tasks header -->
     <TextView
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:text="Задачи"
-        android:textSize="12sp"
+        android:text="ЗАДАЧИ"
+        android:textSize="10sp"
         android:textStyle="bold"
-        android:textColor="#999999"
-        android:layout_marginBottom="4dp" />
+        android:textColor="#888888"
+        android:fontFamily="sans-serif-medium"
+        android:layout_marginBottom="6dp"
+        android:letterSpacing="0.08" />
 
-    <!-- Task list -->
-    <TextView
-        android:id="@+id/widget_task_1"
+    <!-- Task 1 -->
+    <LinearLayout
+        android:id="@+id/widget_task_row_1"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:layout_marginVertical="2dp"
-        android:drawablePadding="8dp"
-        android:ellipsize="end"
-        android:maxLines="1"
-        android:textSize="13sp"
-        android:textColor="#1A1A1A"
-        android:visibility="gone" />
+        android:orientation="horizontal"
+        android:gravity="center_vertical"
+        android:background="@drawable/widget_task_row_bg"
+        android:paddingHorizontal="10dp"
+        android:paddingVertical="6dp"
+        android:layout_marginBottom="4dp"
+        android:visibility="gone">
 
-    <TextView
-        android:id="@+id/widget_task_2"
+        <View
+            android:id="@+id/widget_task_dot_1"
+            android:layout_width="8dp"
+            android:layout_height="8dp"
+            android:background="@drawable/dot_low" />
+
+        <TextView
+            android:id="@+id/widget_task_1"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:layout_marginStart="10dp"
+            android:ellipsize="end"
+            android:maxLines="1"
+            android:textSize="13sp"
+            android:textColor="#1A1A1A"
+            android:fontFamily="sans-serif" />
+
+        <TextView
+            android:id="@+id/widget_task_time_1"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="8dp"
+            android:textSize="11sp"
+            android:textColor="#888888"
+            android:fontFamily="sans-serif"
+            android:visibility="gone" />
+
+    </LinearLayout>
+
+    <!-- Task 2 -->
+    <LinearLayout
+        android:id="@+id/widget_task_row_2"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:layout_marginVertical="2dp"
-        android:drawablePadding="8dp"
-        android:ellipsize="end"
-        android:maxLines="1"
-        android:textSize="13sp"
-        android:textColor="#1A1A1A"
-        android:visibility="gone" />
+        android:orientation="horizontal"
+        android:gravity="center_vertical"
+        android:background="@drawable/widget_task_row_bg"
+        android:paddingHorizontal="10dp"
+        android:paddingVertical="6dp"
+        android:layout_marginBottom="4dp"
+        android:visibility="gone">
 
-    <TextView
-        android:id="@+id/widget_task_3"
+        <View
+            android:id="@+id/widget_task_dot_2"
+            android:layout_width="8dp"
+            android:layout_height="8dp"
+            android:background="@drawable/dot_low" />
+
+        <TextView
+            android:id="@+id/widget_task_2"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:layout_marginStart="10dp"
+            android:ellipsize="end"
+            android:maxLines="1"
+            android:textSize="13sp"
+            android:textColor="#1A1A1A"
+            android:fontFamily="sans-serif" />
+
+        <TextView
+            android:id="@+id/widget_task_time_2"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="8dp"
+            android:textSize="11sp"
+            android:textColor="#888888"
+            android:fontFamily="sans-serif"
+            android:visibility="gone" />
+
+    </LinearLayout>
+
+    <!-- Task 3 -->
+    <LinearLayout
+        android:id="@+id/widget_task_row_3"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:layout_marginVertical="2dp"
-        android:drawablePadding="8dp"
-        android:ellipsize="end"
-        android:maxLines="1"
-        android:textSize="13sp"
-        android:textColor="#1A1A1A"
-        android:visibility="gone" />
+        android:orientation="horizontal"
+        android:gravity="center_vertical"
+        android:background="@drawable/widget_task_row_bg"
+        android:paddingHorizontal="10dp"
+        android:paddingVertical="6dp"
+        android:layout_marginBottom="4dp"
+        android:visibility="gone">
 
-    <TextView
-        android:id="@+id/widget_task_4"
+        <View
+            android:id="@+id/widget_task_dot_3"
+            android:layout_width="8dp"
+            android:layout_height="8dp"
+            android:background="@drawable/dot_low" />
+
+        <TextView
+            android:id="@+id/widget_task_3"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:layout_marginStart="10dp"
+            android:ellipsize="end"
+            android:maxLines="1"
+            android:textSize="13sp"
+            android:textColor="#1A1A1A"
+            android:fontFamily="sans-serif" />
+
+        <TextView
+            android:id="@+id/widget_task_time_3"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="8dp"
+            android:textSize="11sp"
+            android:textColor="#888888"
+            android:fontFamily="sans-serif"
+            android:visibility="gone" />
+
+    </LinearLayout>
+
+    <!-- Task 4 -->
+    <LinearLayout
+        android:id="@+id/widget_task_row_4"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:layout_marginVertical="2dp"
-        android:drawablePadding="8dp"
-        android:ellipsize="end"
-        android:maxLines="1"
-        android:textSize="13sp"
-        android:textColor="#1A1A1A"
-        android:visibility="gone" />
+        android:orientation="horizontal"
+        android:gravity="center_vertical"
+        android:background="@drawable/widget_task_row_bg"
+        android:paddingHorizontal="10dp"
+        android:paddingVertical="6dp"
+        android:layout_marginBottom="4dp"
+        android:visibility="gone">
 
-    <TextView
-        android:id="@+id/widget_task_5"
+        <View
+            android:id="@+id/widget_task_dot_4"
+            android:layout_width="8dp"
+            android:layout_height="8dp"
+            android:background="@drawable/dot_low" />
+
+        <TextView
+            android:id="@+id/widget_task_4"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:layout_marginStart="10dp"
+            android:ellipsize="end"
+            android:maxLines="1"
+            android:textSize="13sp"
+            android:textColor="#1A1A1A"
+            android:fontFamily="sans-serif" />
+
+        <TextView
+            android:id="@+id/widget_task_time_4"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="8dp"
+            android:textSize="11sp"
+            android:textColor="#888888"
+            android:fontFamily="sans-serif"
+            android:visibility="gone" />
+
+    </LinearLayout>
+
+    <!-- Task 5 -->
+    <LinearLayout
+        android:id="@+id/widget_task_row_5"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:layout_marginVertical="2dp"
-        android:drawablePadding="8dp"
-        android:ellipsize="end"
-        android:maxLines="1"
-        android:textSize="13sp"
-        android:textColor="#1A1A1A"
-        android:visibility="gone" />
+        android:orientation="horizontal"
+        android:gravity="center_vertical"
+        android:background="@drawable/widget_task_row_bg"
+        android:paddingHorizontal="10dp"
+        android:paddingVertical="6dp"
+        android:layout_marginBottom="4dp"
+        android:visibility="gone">
 
+        <View
+            android:id="@+id/widget_task_dot_5"
+            android:layout_width="8dp"
+            android:layout_height="8dp"
+            android:background="@drawable/dot_low" />
+
+        <TextView
+            android:id="@+id/widget_task_5"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:layout_marginStart="10dp"
+            android:ellipsize="end"
+            android:maxLines="1"
+            android:textSize="13sp"
+            android:textColor="#1A1A1A"
+            android:fontFamily="sans-serif" />
+
+        <TextView
+            android:id="@+id/widget_task_time_5"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="8dp"
+            android:textSize="11sp"
+            android:textColor="#888888"
+            android:fontFamily="sans-serif"
+            android:visibility="gone" />
+
+    </LinearLayout>
+
+    <!-- No tasks placeholder -->
     <TextView
         android:id="@+id/widget_no_tasks"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_gravity="center"
-        android:layout_marginTop="16dp"
+        android:layout_marginTop="12dp"
         android:text="Нет задач на сегодня"
         android:textSize="13sp"
-        android:textColor="#999999" />
+        android:textColor="#888888"
+        android:fontFamily="sans-serif" />
 
 </LinearLayout>

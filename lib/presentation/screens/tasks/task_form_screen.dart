@@ -186,9 +186,212 @@ class _TaskFormScreenState extends ConsumerState<TaskFormScreen> {
     super.dispose();
   }
 
+  // ── UI helpers ──────────────────────────────────────────────
+
+  bool get _isDark => Theme.of(context).brightness == Brightness.dark;
+
+  Color get _bgColor =>
+      _isDark ? Theme.of(context).scaffoldBackgroundColor : const Color(0xFFF5F5F5);
+
+  Color get _cardColor =>
+      _isDark ? Theme.of(context).cardColor : Colors.white;
+
+  Color get _fieldFill =>
+      _isDark ? Theme.of(context).colorScheme.surfaceContainerHighest : const Color(0xFFF5F5F5);
+
+  Color get _accent => Theme.of(context).colorScheme.primary;
+
+  List<BoxShadow> get _cardShadow => [
+        BoxShadow(
+          color: Colors.black.withValues(alpha: _isDark ? 0.2 : 0.06),
+          blurRadius: 8,
+          offset: const Offset(0, 2),
+        ),
+      ];
+
+  Widget _sectionCard({required List<Widget> children}) {
+    return Container(
+      width: double.infinity,
+      decoration: BoxDecoration(
+        color: _cardColor,
+        borderRadius: BorderRadius.circular(10),
+        boxShadow: _cardShadow,
+      ),
+      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: children,
+      ),
+    );
+  }
+
+  Widget _sectionHeader(String text) {
+    return Padding(
+      padding: const EdgeInsets.only(bottom: 10),
+      child: Text(
+        text.toUpperCase(),
+        style: TextStyle(
+          fontSize: 11,
+          fontWeight: FontWeight.w700,
+          letterSpacing: 0.8,
+          color: _accent,
+        ),
+      ),
+    );
+  }
+
+  InputDecoration _fieldDecoration({required String hint}) {
+    return InputDecoration(
+      hintText: hint,
+      hintStyle: TextStyle(
+        color: _isDark
+            ? Colors.white.withValues(alpha: 0.35)
+            : Colors.black.withValues(alpha: 0.3),
+      ),
+      filled: true,
+      fillColor: _fieldFill,
+      border: OutlineInputBorder(
+        borderRadius: BorderRadius.circular(10),
+        borderSide: BorderSide.none,
+      ),
+      enabledBorder: OutlineInputBorder(
+        borderRadius: BorderRadius.circular(10),
+        borderSide: BorderSide.none,
+      ),
+      focusedBorder: OutlineInputBorder(
+        borderRadius: BorderRadius.circular(10),
+        borderSide: BorderSide(color: _accent, width: 1.5),
+      ),
+      errorBorder: OutlineInputBorder(
+        borderRadius: BorderRadius.circular(10),
+        borderSide: const BorderSide(color: AppColors.danger, width: 1),
+      ),
+      focusedErrorBorder: OutlineInputBorder(
+        borderRadius: BorderRadius.circular(10),
+        borderSide: const BorderSide(color: AppColors.danger, width: 1.5),
+      ),
+      contentPadding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
+    );
+  }
+
+  Widget _infoRow({
+    required IconData icon,
+    required String text,
+    required VoidCallback onTap,
+    VoidCallback? onClear,
+    bool hasValue = false,
+  }) {
+    final theme = Theme.of(context);
+    return InkWell(
+      borderRadius: BorderRadius.circular(6),
+      onTap: onTap,
+      child: Padding(
+        padding: const EdgeInsets.symmetric(vertical: 10),
+        child: Row(
+          children: [
+            Icon(icon, size: 22, color: theme.colorScheme.onSurfaceVariant),
+            const SizedBox(width: 14),
+            Expanded(
+              child: Text(
+                text,
+                style: TextStyle(
+                  fontSize: 15,
+                  color: hasValue
+                      ? theme.colorScheme.onSurface
+                      : theme.colorScheme.onSurfaceVariant,
+                ),
+              ),
+            ),
+            if (onClear != null)
+              GestureDetector(
+                onTap: onClear,
+                child: Icon(
+                  Icons.close,
+                  size: 18,
+                  color: theme.colorScheme.onSurfaceVariant.withValues(alpha: 0.6),
+                ),
+              ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _thinDivider() {
+    return Divider(
+      height: 0.5,
+      thickness: 0.5,
+      indent: 52,
+      color: Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.3),
+    );
+  }
+
+  // ── Priority cards ──────────────────────────────────────────
+
+  static const _priorityColors = {
+    TaskPriority.low: Color(0xFF4A90D9),
+    TaskPriority.medium: Color(0xFFF39C12),
+    TaskPriority.high: Color(0xFFE74C3C),
+  };
+
+  static const _priorityLabels = {
+    TaskPriority.low: 'Низкий',
+    TaskPriority.medium: 'Средний',
+    TaskPriority.high: 'Высокий',
+  };
+
+  Widget _priorityCard(TaskPriority p) {
+    final selected = _priority == p;
+    final color = _priorityColors[p]!;
+    final theme = Theme.of(context);
+
+    return Expanded(
+      child: GestureDetector(
+        onTap: () => setState(() => _priority = p),
+        child: AnimatedContainer(
+          duration: const Duration(milliseconds: 200),
+          padding: const EdgeInsets.symmetric(vertical: 12),
+          decoration: BoxDecoration(
+            color: selected
+                ? color.withValues(alpha: _isDark ? 0.15 : 0.08)
+                : Colors.transparent,
+            borderRadius: BorderRadius.circular(10),
+            border: Border.all(
+              color: selected ? color : theme.colorScheme.outline.withValues(alpha: 0.2),
+              width: selected ? 1.8 : 1,
+            ),
+          ),
+          child: Row(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              Container(
+                width: 8,
+                height: 8,
+                decoration: BoxDecoration(
+                  shape: BoxShape.circle,
+                  color: color,
+                ),
+              ),
+              const SizedBox(width: 6),
+              Text(
+                _priorityLabels[p]!,
+                style: TextStyle(
+                  fontSize: 13,
+                  fontWeight: selected ? FontWeight.w600 : FontWeight.w500,
+                  color: selected ? color : theme.colorScheme.onSurfaceVariant,
+                ),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
+  // ── Build ───────────────────────────────────────────────────
+
   @override
   Widget build(BuildContext context) {
-    final theme = Theme.of(context);
     final categories = ref.watch(allCategoriesProvider);
     final dateFormat = DateFormat('d MMMM yyyy', 'ru');
 
@@ -200,197 +403,255 @@ class _TaskFormScreenState extends ConsumerState<TaskFormScreen> {
     }
 
     return Scaffold(
+      backgroundColor: _bgColor,
       appBar: AppBar(
-        title: Text(_isEditing ? AppStrings.editTask : AppStrings.newTask),
+        backgroundColor: _cardColor,
+        surfaceTintColor: Colors.transparent,
+        elevation: 0.5,
+        title: Text(
+          _isEditing ? 'Редактирование' : 'Новая задача',
+          style: const TextStyle(fontSize: 17, fontWeight: FontWeight.w600),
+        ),
         actions: [
           TextButton(
             onPressed: _save,
-            child: const Text(AppStrings.save),
+            child: Text(
+              AppStrings.save,
+              style: TextStyle(
+                fontSize: 15,
+                fontWeight: FontWeight.w600,
+                color: _accent,
+              ),
+            ),
           ),
         ],
       ),
       body: Form(
         key: _formKey,
         child: ListView(
-          padding: const EdgeInsets.all(16),
+          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
           children: [
-            // Название
-            TextFormField(
-              controller: _titleController,
-              decoration: const InputDecoration(
-                labelText: AppStrings.taskTitle,
-                hintText: 'Что нужно сделать?',
-              ),
-              autofocus: !_isEditing,
-              textCapitalization: TextCapitalization.sentences,
-              validator: (value) {
-                if (value == null || value.trim().isEmpty) {
-                  return 'Введите название задачи';
-                }
-                return null;
-              },
-            ),
-            const SizedBox(height: 16),
-
-            // Описание
-            TextFormField(
-              controller: _descriptionController,
-              decoration: const InputDecoration(
-                labelText: AppStrings.taskDescription,
-                hintText: 'Добавьте описание...',
-              ),
-              maxLines: 3,
-              textCapitalization: TextCapitalization.sentences,
-            ),
-            const SizedBox(height: 24),
-
-            // Дата
-            ListTile(
-              contentPadding: EdgeInsets.zero,
-              leading: const Icon(Icons.calendar_today),
-              title: Text(_selectedDate != null
-                  ? dateFormat.format(_selectedDate!)
-                  : 'Выберите дату'),
-              trailing: _selectedDate != null
-                  ? IconButton(
-                      icon: const Icon(Icons.clear),
-                      onPressed: () => setState(() => _selectedDate = null),
-                    )
-                  : null,
-              onTap: _pickDate,
-            ),
-
-            // Время
-            ListTile(
-              contentPadding: EdgeInsets.zero,
-              leading: const Icon(Icons.access_time),
-              title: Text(_selectedTime != null
-                  ? '${_selectedTime!.hour.toString().padLeft(2, '0')}:${_selectedTime!.minute.toString().padLeft(2, '0')}'
-                  : 'Выберите время'),
-              trailing: _selectedTime != null
-                  ? IconButton(
-                      icon: const Icon(Icons.clear),
-                      onPressed: () => setState(() => _selectedTime = null),
-                    )
-                  : null,
-              onTap: _pickTime,
-            ),
-
-            // Повтор
-            ListTile(
-              contentPadding: EdgeInsets.zero,
-              leading: const Icon(Icons.repeat),
-              title: Text(_recurrenceLabel(_recurrenceType)),
-              onTap: () {
-                showModalBottomSheet(
-                  context: context,
-                  builder: (ctx) => SafeArea(
-                    child: Column(
-                      mainAxisSize: MainAxisSize.min,
-                      children: [
-                        ListTile(
-                          title: const Text('Не повторяется'),
-                          leading: const Icon(Icons.block),
-                          onTap: () {
-                            setState(() => _recurrenceType = null);
-                            Navigator.pop(ctx);
-                          },
-                        ),
-                        ...TaskRecurrenceType.values.map((type) => ListTile(
-                              title: Text(_recurrenceLabel(type)),
-                              leading: const Icon(Icons.repeat),
-                              onTap: () {
-                                setState(() => _recurrenceType = type);
-                                Navigator.pop(ctx);
-                              },
-                            )),
-                      ],
-                    ),
-                  ),
-                );
-              },
-            ),
-
-            const Divider(height: 32),
-
-            // Приоритет
-            Text(AppStrings.taskPriority, style: theme.textTheme.titleSmall),
-            const SizedBox(height: 8),
-            SegmentedButton<TaskPriority>(
-              segments: [
-                ButtonSegment(
-                  value: TaskPriority.low,
-                  label: const Text('Низкий'),
-                  icon: Icon(Icons.arrow_downward, color: AppColors.priorityLow, size: 18),
+            // ── Title & Description ─────────────────────────
+            _sectionCard(
+              children: [
+                _sectionHeader('Основное'),
+                TextFormField(
+                  controller: _titleController,
+                  decoration: _fieldDecoration(hint: 'Что нужно сделать?'),
+                  autofocus: !_isEditing,
+                  textCapitalization: TextCapitalization.sentences,
+                  style: const TextStyle(fontSize: 15),
+                  validator: (value) {
+                    if (value == null || value.trim().isEmpty) {
+                      return 'Введите название задачи';
+                    }
+                    return null;
+                  },
                 ),
-                ButtonSegment(
-                  value: TaskPriority.medium,
-                  label: const Text('Средний'),
-                  icon: Icon(Icons.remove, color: AppColors.priorityMedium, size: 18),
-                ),
-                ButtonSegment(
-                  value: TaskPriority.high,
-                  label: const Text('Высокий'),
-                  icon: Icon(Icons.arrow_upward, color: AppColors.priorityHigh, size: 18),
+                const SizedBox(height: 10),
+                TextFormField(
+                  controller: _descriptionController,
+                  decoration: _fieldDecoration(hint: 'Добавьте описание...'),
+                  maxLines: 3,
+                  textCapitalization: TextCapitalization.sentences,
+                  style: const TextStyle(fontSize: 14),
                 ),
               ],
-              selected: {_priority},
-              onSelectionChanged: (value) {
-                setState(() => _priority = value.first);
-              },
             ),
 
-            const SizedBox(height: 24),
+            const SizedBox(height: 12),
 
-            // Напоминания
-            ReminderPicker(
-              selectedOffsets: _reminderOffsets,
-              onChanged: (offsets) => _reminderOffsets = offsets,
+            // ── Date, Time, Recurrence ──────────────────────
+            _sectionCard(
+              children: [
+                _sectionHeader('Когда'),
+                _infoRow(
+                  icon: Icons.calendar_today_outlined,
+                  text: _selectedDate != null
+                      ? dateFormat.format(_selectedDate!)
+                      : 'Выберите дату',
+                  hasValue: _selectedDate != null,
+                  onTap: _pickDate,
+                  onClear: _selectedDate != null
+                      ? () => setState(() => _selectedDate = null)
+                      : null,
+                ),
+                _thinDivider(),
+                _infoRow(
+                  icon: Icons.access_time_outlined,
+                  text: _selectedTime != null
+                      ? '${_selectedTime!.hour.toString().padLeft(2, '0')}:${_selectedTime!.minute.toString().padLeft(2, '0')}'
+                      : 'Выберите время',
+                  hasValue: _selectedTime != null,
+                  onTap: _pickTime,
+                  onClear: _selectedTime != null
+                      ? () => setState(() => _selectedTime = null)
+                      : null,
+                ),
+                _thinDivider(),
+                _infoRow(
+                  icon: Icons.repeat_rounded,
+                  text: _recurrenceLabel(_recurrenceType),
+                  hasValue: _recurrenceType != null,
+                  onTap: () {
+                    showModalBottomSheet(
+                      context: context,
+                      builder: (ctx) => SafeArea(
+                        child: Column(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            ListTile(
+                              title: const Text('Не повторяется'),
+                              leading: const Icon(Icons.block),
+                              onTap: () {
+                                setState(() => _recurrenceType = null);
+                                Navigator.pop(ctx);
+                              },
+                            ),
+                            ...TaskRecurrenceType.values.map((type) => ListTile(
+                                  title: Text(_recurrenceLabel(type)),
+                                  leading: const Icon(Icons.repeat),
+                                  onTap: () {
+                                    setState(() => _recurrenceType = type);
+                                    Navigator.pop(ctx);
+                                  },
+                                )),
+                          ],
+                        ),
+                      ),
+                    );
+                  },
+                ),
+              ],
             ),
 
-            const SizedBox(height: 24),
+            const SizedBox(height: 12),
 
-            // Теги
-            TagInput(
-              tags: _tags,
-              onChanged: (tags) => _tags = tags,
+            // ── Priority ────────────────────────────────────
+            _sectionCard(
+              children: [
+                _sectionHeader(AppStrings.taskPriority),
+                Row(
+                  children: [
+                    _priorityCard(TaskPriority.low),
+                    const SizedBox(width: 8),
+                    _priorityCard(TaskPriority.medium),
+                    const SizedBox(width: 8),
+                    _priorityCard(TaskPriority.high),
+                  ],
+                ),
+              ],
             ),
 
-            const SizedBox(height: 24),
+            const SizedBox(height: 12),
 
-            // Категория
+            // ── Reminders ───────────────────────────────────
+            _sectionCard(
+              children: [
+                _sectionHeader('Напоминания'),
+                ReminderPicker(
+                  selectedOffsets: _reminderOffsets,
+                  onChanged: (offsets) => _reminderOffsets = offsets,
+                ),
+              ],
+            ),
+
+            const SizedBox(height: 12),
+
+            // ── Tags ────────────────────────────────────────
+            _sectionCard(
+              children: [
+                _sectionHeader(AppStrings.taskTags),
+                TagInput(
+                  tags: _tags,
+                  onChanged: (tags) => _tags = tags,
+                ),
+              ],
+            ),
+
+            const SizedBox(height: 12),
+
+            // ── Category ────────────────────────────────────
             categories.when(
               loading: () => const SizedBox(),
               error: (_, _) => const SizedBox(),
               data: (cats) {
                 if (cats.isEmpty) return const SizedBox();
-                return Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
+                return _sectionCard(
                   children: [
-                    Text(AppStrings.taskCategory, style: theme.textTheme.titleSmall),
-                    const SizedBox(height: 8),
+                    _sectionHeader(AppStrings.taskCategory),
                     Wrap(
                       spacing: 8,
+                      runSpacing: 8,
                       children: [
-                        ChoiceChip(
-                          label: const Text('Без категории'),
+                        _categoryChip(
+                          label: 'Без категории',
                           selected: _categoryId == null,
-                          onSelected: (_) => setState(() => _categoryId = null),
+                          onTap: () => setState(() => _categoryId = null),
                         ),
-                        ...cats.map((cat) => ChoiceChip(
-                              label: Text(cat.name),
+                        ...cats.map((cat) => _categoryChip(
+                              label: cat.name,
                               selected: _categoryId == cat.id,
-                              onSelected: (_) => setState(() => _categoryId = cat.id),
-                              avatar: CircleAvatar(
-                                backgroundColor: Color(cat.colorValue),
-                                radius: 8,
-                              ),
+                              onTap: () => setState(() => _categoryId = cat.id),
+                              dotColor: Color(cat.colorValue),
                             )),
                       ],
                     ),
                   ],
                 );
               },
+            ),
+
+            const SizedBox(height: 24),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _categoryChip({
+    required String label,
+    required bool selected,
+    required VoidCallback onTap,
+    Color? dotColor,
+  }) {
+    final theme = Theme.of(context);
+    return GestureDetector(
+      onTap: onTap,
+      child: AnimatedContainer(
+        duration: const Duration(milliseconds: 200),
+        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+        decoration: BoxDecoration(
+          color: selected
+              ? _accent.withValues(alpha: _isDark ? 0.15 : 0.08)
+              : _fieldFill,
+          borderRadius: BorderRadius.circular(10),
+          border: Border.all(
+            color: selected ? _accent : Colors.transparent,
+            width: 1.2,
+          ),
+        ),
+        child: Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            if (dotColor != null) ...[
+              Container(
+                width: 10,
+                height: 10,
+                decoration: BoxDecoration(
+                  shape: BoxShape.circle,
+                  color: dotColor,
+                ),
+              ),
+              const SizedBox(width: 6),
+            ],
+            Text(
+              label,
+              style: TextStyle(
+                fontSize: 13,
+                fontWeight: selected ? FontWeight.w600 : FontWeight.w500,
+                color: selected ? _accent : theme.colorScheme.onSurfaceVariant,
+              ),
             ),
           ],
         ),
