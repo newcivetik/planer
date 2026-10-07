@@ -1,17 +1,60 @@
-# planer
+# Планер
 
-A new Flutter project.
+Мобильное приложение для планирования задач на Flutter. По духу близко к TickTick:
+задачи на сегодня, календарь, категории, повторения и напоминания. Все данные хранятся локально на устройстве.
 
-## Getting Started
+## Возможности
 
-This project is a starting point for a Flutter application.
+- экраны «Сегодня», «Задачи», «Календарь», «Категории» и «Настройки»;
+- приоритеты (низкий, средний, высокий), категории и теги;
+- подзадачи и процент выполнения;
+- повторяющиеся задачи: ежедневно, еженедельно по выбранным дням, ежемесячно, ежегодно;
+- напоминания через локальные уведомления;
+- вложения: фото и файлы;
+- виджет на главном экране с прогрессом за день;
+- резервная копия: в iCloud на iOS, локальная копия на Android;
+- светлая и тёмная темы, выбор акцентного цвета, интерфейс на русском языке.
 
-A few resources to get you started if this is your first Flutter project:
+## Как проектировался интерфейс
 
-- [Learn Flutter](https://docs.flutter.dev/get-started/learn-flutter)
-- [Write your first Flutter app](https://docs.flutter.dev/get-started/codelab)
-- [Flutter learning resources](https://docs.flutter.dev/reference/learning-resources)
+До разработки я разобрал конкурентов и перебрал варианты дизайна:
 
-For help getting started with Flutter development, view the
-[online documentation](https://docs.flutter.dev/), which offers tutorials,
-samples, guidance on mobile development, and a full API reference.
+- [`docs/competitive_analysis.md`](docs/competitive_analysis.md) — анализ 16 приложений: Todoist, TickTick, Things 3, Microsoft To Do, Notion, Structured, Fantastical и других;
+- [`docs/UX_PATTERNS_GUIDE.md`](docs/UX_PATTERNS_GUIDE.md) — паттерны навигации, создания, отображения и завершения задач;
+- [`prototypes/`](prototypes/) — 18 HTML-прототипов в разных стилях: минимализм, пастель, glassmorphism, Material You;
+- [`mockups/`](mockups/) — макеты, где проверяются принципы UX: когнитивная нагрузка, закон Фиттса, эффект фон Ресторфф, правило пика и конца, доступность.
+
+## Стек
+
+| Задача | Решение |
+|---|---|
+| UI | Flutter, Material Design, flutter_animate, flutter_slidable |
+| Состояние | Riverpod |
+| Навигация | go_router |
+| База данных | Drift (SQLite) |
+| Уведомления | flutter_local_notifications, timezone |
+| Виджет | home_widget |
+
+## Структура
+
+```
+lib/
+  core/          тема, цвета, строки, маршруты
+  data/          база данных Drift
+  domain/        модели: задача, подзадача, категория
+  presentation/  экраны, виджеты, провайдеры Riverpod
+  services/      уведомления, виджет, синхронизация и резервные копии
+docs/            конкурентный анализ и UX-паттерны
+prototypes/      HTML-прототипы стилей
+mockups/         UX-макеты
+```
+
+## Запуск
+
+Нужен [Flutter](https://docs.flutter.dev/get-started/install) (Dart SDK 3.11+).
+
+```bash
+flutter pub get
+dart run build_runner build   # генерация кода Drift
+flutter run
+```
